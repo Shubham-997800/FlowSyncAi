@@ -1,121 +1,152 @@
-import { useState, useEffect } from 'react'
-import { Bell, Trash2, CheckCheck, AlertTriangle, ListTodo, Target, Flame, Clock } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { useState } from 'react'
+import { Bell, Clock, AlertTriangle, Info, CheckCheck, X } from 'lucide-react'
+import NotificationCard from './NotificationCard'
+import ReminderCard from './ReminderCard'
+import AlertCard from './AlertCard'
 
 function loadNotifications() {
   try { const d = localStorage.getItem('flowsync_notifications'); return d ? JSON.parse(d) : [] } catch { return [] }
 }
 function saveNotifications(n) { localStorage.setItem('flowsync_notifications', JSON.stringify(n)) }
 
-const notificationIcons = {
-  task: { icon: ListTodo, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-  deadline: { icon: AlertTriangle, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' },
-  goal: { icon: Target, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
-  habit: { icon: Flame, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
-  focus: { icon: Clock, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-}
-
-function createSampleNotifications() {
-  return [
-    { _id: '1', type: 'deadline', title: 'Overdue Task', message: '"Q4 Report" was due yesterday. Consider reprioritizing.', time: new Date(Date.now() - 1000 * 60 * 30).toISOString(), read: false },
-    { _id: '2', type: 'task', title: 'Task Reminder', message: '"Design Review" is due in 2 hours. Start now to stay on track.', time: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), read: false },
-    { _id: '3', type: 'habit', title: 'Habit Streak', message: 'You completed "Morning Workout" for 5 days in a row! Keep it up!', time: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(), read: false },
-    { _id: '4', type: 'goal', title: 'Goal Progress', message: '"Learn React" is 75% complete. Great progress this week!', time: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), read: true },
-    { _id: '5', type: 'focus', title: 'Focus Summary', message: 'You completed 4 focus sessions yesterday — 100 minutes of deep work.', time: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), read: true },
-  ]
+function createSystemNotification(type) {
+  const msgs = {
+    task: { icon: 'CheckCircle', title: 'Task Completed', message: 'Great job! Keep up the momentum.', type: 'success' },
+    goal: { icon: 'Target', title: 'Goal Milestone', message: 'You\'re making progress on your goals.', type: 'info' },
+    habit: { icon: 'Flame', title: 'Habit Streak', message: 'Consistency is key. Stay on track.', type: 'reminder' },
+    focus: { icon: 'Timer', title: 'Focus Session Done', message: 'Well done on completing a focus session.', type: 'success' },
+    overdue: { icon: 'AlertTriangle', title: 'Overdue Task', message: 'You have tasks that need attention.', type: 'alert' },
+  }
+  const n = msgs[type] || msgs.task
+  return { id: Date.now(), ...n, read: false, time: new Date().toISOString() }
 }
 
 function Notifications() {
-  const [notifications, setNotifications] = useState(() => {
-    const stored = loadNotifications()
-    return stored.length > 0 ? stored : createSampleNotifications()
+  const [notifications, setNotifications] = useState(loadNotifications)
+  const [activeTab, setActiveTab] = useState('all')
+
+  const addNotification = (type) => {
+    const n = createSystemNotification(type)
+    const updated = [n, ...notifications]
+    setNotifications(updated)
+    saveNotifications(updated)
+  }
+
+  const markRead = (id) => {
+    const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n)
+    setNotifications(updated)
+    saveNotifications(updated)
+  }
+
+  const dismissAll = () => {
+    setNotifications([])
+    saveNotifications([])
+  }
+
+  const today = notifications.filter(n => {
+    const d = new Date(n.time); const now = new Date()
+    return d.toDateString() === now.toDateString()
+  })
+  const thisWeek = notifications.filter(n => {
+    const d = new Date(n.time); const now = new Date()
+    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
+    return !today.includes(n) && d >= weekAgo
+  })
+  const earlier = notifications.filter(n => {
+    const d = new Date(n.time); const now = new Date()
+    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
+    return d < weekAgo
   })
 
-  useEffect(() => { saveNotifications(notifications) }, [notifications])
+  const unread = notifications.filter(n => !n.read).length
 
-  const markAllRead = () => { setNotifications(prev => prev.map(n => ({ ...n, read: true }))); toast.success('All marked as read') }
-  const clearAll = () => { setNotifications([]); toast.success('Notifications cleared') }
-  const toggleRead = (id) => setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: !n.read } : n))
-  const deleteNotification = (id) => setNotifications(prev => prev.filter(n => n._id !== id))
-
-  const unreadCount = notifications.filter(n => !n.read).length
+  const sampleTypes = ['task', 'goal', 'habit', 'focus', 'overdue']
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Notifications</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {unreadCount > 0 ? <span className="text-indigo-600 dark:text-indigo-400 font-medium">{unreadCount} unread</span> : 'All caught up!'}
-          </p>
-        </div>
-        {notifications.length > 0 && (
-          <div className="flex gap-2">
-            <button onClick={markAllRead} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition">
-              <CheckCheck size={16} /> Mark All Read
-            </button>
-            <button onClick={clearAll} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition">
-              <Trash2 size={16} /> Clear All
-            </button>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Notifications</h1>
+            {unread > 0 && (
+              <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-medium">{unread} new</span>
+            )}
           </div>
-        )}
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Stay updated on your progress</p>
+        </div>
+        <div className="flex gap-2">
+          <div className="flex gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+            {['all', 'unread'].map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors duration-300 ${activeTab === tab ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{tab}</button>
+            ))}
+          </div>
+          {notifications.length > 0 && (
+            <button onClick={dismissAll} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-300">Clear all</button>
+          )}
+        </div>
+      </div>
+
+      <div className="mb-8 flex flex-wrap gap-2">
+        {sampleTypes.map(type => (
+          <button key={type} onClick={() => addNotification(type)} className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300 capitalize">
+            + {type}
+          </button>
+        ))}
       </div>
 
       {notifications.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 dark:text-slate-500">
-          <Bell size={48} className="mx-auto mb-4 opacity-50" />
-          <p className="text-lg font-medium text-slate-500 dark:text-slate-400">No notifications</p>
-          <p className="text-sm mt-1">Check back later for updates</p>
+        <div className="text-center py-16">
+          <Bell size={48} className="mx-auto mb-4 text-slate-300 dark:text-zinc-600" />
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No notifications yet</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Click the demo buttons above to generate sample notifications</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {notifications.map(n => {
-            const cfg = notificationIcons[n.type] || notificationIcons.task
-            const Icon = cfg.icon
-            const timeAgo = getTimeAgo(new Date(n.time))
-            return (
-              <div key={n._id} className={`group bg-white dark:bg-zinc-900 rounded-2xl border p-4 transition hover:shadow-sm ${n.read ? 'border-slate-200 dark:border-zinc-800' : 'border-indigo-200 dark:border-indigo-800 bg-indigo-50/30 dark:bg-indigo-900/10'}`}>
-                <div className="flex gap-3">
-                  <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
-                    <Icon size={18} className={cfg.color} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className={`text-sm font-semibold ${n.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-slate-100'}`}>{n.title}</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{n.message}</p>
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">{timeAgo}</span>
-                        <button onClick={() => deleteNotification(n._id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition">
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-                    <button onClick={() => toggleRead(n._id)} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline mt-1.5">
-                      {n.read ? 'Mark as unread' : 'Mark as read'}
-                    </button>
-                  </div>
-                </div>
+        <div className="space-y-6">
+          {activeTab === 'unread' ? (
+            notifications.filter(n => !n.read).length > 0 ? (
+              <div className="space-y-2">
+                {notifications.filter(n => !n.read).map(n => <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <CheckCheck size={40} className="mx-auto mb-3 text-emerald-400" />
+                <p className="text-slate-500 dark:text-slate-400">All caught up!</p>
               </div>
             )
-          })}
+          ) : (
+            <>
+              {today.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Today</h3>
+                  <div className="space-y-2">
+                    {today.map(n => n.type === 'alert' ? <AlertCard key={n.id} notification={n} onMarkRead={markRead} /> : n.type === 'reminder' ? <ReminderCard key={n.id} notification={n} onMarkRead={markRead} /> : <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                  </div>
+                </div>
+              )}
+
+              {thisWeek.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">This Week</h3>
+                  <div className="space-y-2">
+                    {thisWeek.map(n => <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                  </div>
+                </div>
+              )}
+
+              {earlier.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Earlier</h3>
+                  <div className="space-y-2">
+                    {earlier.map(n => <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>
   )
-}
-
-function getTimeAgo(date) {
-  const now = new Date()
-  const diff = now - date
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
 }
 
 export default Notifications

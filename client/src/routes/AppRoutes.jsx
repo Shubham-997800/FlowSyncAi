@@ -15,6 +15,9 @@ import Habits from '../pages/Habits/Habits'
 import Notifications from '../pages/Notifications/Notifications'
 import Analytics from '../pages/Analytics/Analytics'
 import Settings from '../pages/Settings/Settings'
+import Profile from '../pages/Profile/Profile'
+import NotFound from '../pages/Error/NotFound'
+import Unauthorized from '../pages/Error/Unauthorized'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -45,8 +48,11 @@ function AppRoutes() {
         <Route path="habits" element={<ProtectedRoute><Habits /></ProtectedRoute>} />
         <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+        <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       </Route>
+      <Route path="unauthorized" element={<Unauthorized />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
