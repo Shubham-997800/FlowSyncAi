@@ -2,42 +2,45 @@ import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, RotateCcw, Coffee, Brain } from 'lucide-react'
 import ProgressCircle from './ProgressCircle'
 
-function Timer({ mode: externalMode, onComplete, sessionComplete }) {
-  const [timeLeft, setTimeLeft] = useState(25 * 60)
+const FOCUS_TIME = 25 * 60
+const BREAK_TIME = 5 * 60
+const LONG_BREAK = 15 * 60
+
+function Timer({ mode: externalMode, onComplete }) {
+  const [timeLeft, setTimeLeft] = useState(() => externalMode === 'focus' ? FOCUS_TIME : BREAK_TIME)
   const [isRunning, setIsRunning] = useState(false)
   const [mode, setMode] = useState(externalMode || 'focus')
   const intervalRef = useRef(null)
+  const onCompleteRef = useRef(onComplete)
 
-  const FOCUS_TIME = 25 * 60
-  const BREAK_TIME = 5 * 60
-  const LONG_BREAK = 15 * 60
+  useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     setMode(externalMode)
+    setIsRunning(false)
+    setTimeLeft(externalMode === 'focus' ? FOCUS_TIME : BREAK_TIME)
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [externalMode])
 
   useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
-            clearInterval(intervalRef.current)
+    if (!isRunning) return
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(intervalRef.current)
+          setTimeout(() => {
+            onCompleteRef.current()
             setIsRunning(false)
-            onComplete()
-            return mode === 'focus' ? BREAK_TIME : FOCUS_TIME
-          }
-          return prev - 1
-        })
-      }, 1000)
-    }
+            setTimeLeft(mode === 'focus' ? FOCUS_TIME : BREAK_TIME)
+          }, 0)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
     return () => clearInterval(intervalRef.current)
   }, [isRunning, mode])
-
-  useEffect(() => {
-    if (sessionComplete) {
-      setIsRunning(false)
-    }
-  }, [sessionComplete])
 
   const toggleTimer = () => setIsRunning(!isRunning)
 

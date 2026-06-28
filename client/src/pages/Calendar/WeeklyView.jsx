@@ -26,13 +26,6 @@ function WeeklyView({ tasks, onDateClick }) {
 
   const getTasksForDate = (dateStr) => tasks.filter(t => t.dueDate === dateStr)
 
-  const getLoadColor = (dateStr) => {
-    const count = getTasksForDate(dateStr).filter(t => !t.completed).length
-    if (count === 0) return 'bg-indigo-100 dark:bg-indigo-900/20'
-    if (count <= 2) return 'bg-amber-100 dark:bg-amber-900/20'
-    return 'bg-red-100 dark:bg-red-900/20'
-  }
-
   const getLoadDot = (dateStr) => {
     const count = getTasksForDate(dateStr).filter(t => !t.completed).length
     if (count === 0) return 'bg-emerald-400'

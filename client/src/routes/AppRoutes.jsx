@@ -1,23 +1,25 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
 import Home from '../pages/Home'
-import Login from '../pages/Authentication/Login'
-import Register from '../pages/Authentication/Register'
-import ForgotPassword from '../pages/Authentication/ForgotPassword'
-import Dashboard from '../pages/Dashboard/Dashboard'
-import TaskManager from '../pages/TaskManager/TaskManager'
-import AIPlanner from '../pages/AIPlanner/AIPlanner'
-import Calendar from '../pages/Calendar/Calendar'
-import FocusMode from '../pages/FocusMode/FocusMode'
-import Goals from '../pages/Goals/Goals'
-import Habits from '../pages/Habits/Habits'
-import Notifications from '../pages/Notifications/Notifications'
-import Analytics from '../pages/Analytics/Analytics'
-import Settings from '../pages/Settings/Settings'
-import Profile from '../pages/Profile/Profile'
-import NotFound from '../pages/Error/NotFound'
-import Unauthorized from '../pages/Error/Unauthorized'
+
+const Login = lazy(() => import('../pages/Authentication/Login'))
+const Register = lazy(() => import('../pages/Authentication/Register'))
+const ForgotPassword = lazy(() => import('../pages/Authentication/ForgotPassword'))
+const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard'))
+const TaskManager = lazy(() => import('../pages/TaskManager/TaskManager'))
+const AIPlanner = lazy(() => import('../pages/AIPlanner/AIPlanner'))
+const Calendar = lazy(() => import('../pages/Calendar/Calendar'))
+const FocusMode = lazy(() => import('../pages/FocusMode/FocusMode'))
+const Goals = lazy(() => import('../pages/Goals/Goals'))
+const Habits = lazy(() => import('../pages/Habits/Habits'))
+const Notifications = lazy(() => import('../pages/Notifications/Notifications'))
+const Analytics = lazy(() => import('../pages/Analytics/Analytics'))
+const Settings = lazy(() => import('../pages/Settings/Settings'))
+const Profile = lazy(() => import('../pages/Profile/Profile'))
+const NotFound = lazy(() => import('../pages/Error/NotFound'))
+const Unauthorized = lazy(() => import('../pages/Error/Unauthorized'))
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -31,28 +33,32 @@ function PublicRoute({ children }) {
   return user ? <Navigate to="/dashboard" replace /> : children
 }
 
+function Lazy({ children }) {
+  return <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-zinc-950" />}>{children}</Suspense>
+}
+
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="login" element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="register" element={<PublicRoute><Register /></PublicRoute>} />
-      <Route path="forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-      <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="login" element={<PublicRoute><Lazy><Login /></Lazy></PublicRoute>} />
+      <Route path="register" element={<PublicRoute><Lazy><Register /></Lazy></PublicRoute>} />
+      <Route path="forgot-password" element={<PublicRoute><Lazy><ForgotPassword /></Lazy></PublicRoute>} />
       <Route element={<MainLayout />}>
-        <Route path="tasks" element={<ProtectedRoute><TaskManager /></ProtectedRoute>} />
-        <Route path="ai-planner" element={<ProtectedRoute><AIPlanner /></ProtectedRoute>} />
-        <Route path="calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-        <Route path="focus" element={<ProtectedRoute><FocusMode /></ProtectedRoute>} />
-        <Route path="goals" element={<ProtectedRoute><Goals /></ProtectedRoute>} />
-        <Route path="habits" element={<ProtectedRoute><Habits /></ProtectedRoute>} />
-        <Route path="notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-        <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="dashboard" element={<ProtectedRoute><Lazy><Dashboard /></Lazy></ProtectedRoute>} />
+        <Route path="tasks" element={<ProtectedRoute><Lazy><TaskManager /></Lazy></ProtectedRoute>} />
+        <Route path="ai-planner" element={<ProtectedRoute><Lazy><AIPlanner /></Lazy></ProtectedRoute>} />
+        <Route path="calendar" element={<ProtectedRoute><Lazy><Calendar /></Lazy></ProtectedRoute>} />
+        <Route path="focus" element={<ProtectedRoute><Lazy><FocusMode /></Lazy></ProtectedRoute>} />
+        <Route path="goals" element={<ProtectedRoute><Lazy><Goals /></Lazy></ProtectedRoute>} />
+        <Route path="habits" element={<ProtectedRoute><Lazy><Habits /></Lazy></ProtectedRoute>} />
+        <Route path="notifications" element={<ProtectedRoute><Lazy><Notifications /></Lazy></ProtectedRoute>} />
+        <Route path="analytics" element={<ProtectedRoute><Lazy><Analytics /></Lazy></ProtectedRoute>} />
+        <Route path="profile" element={<ProtectedRoute><Lazy><Profile /></Lazy></ProtectedRoute>} />
+        <Route path="settings" element={<ProtectedRoute><Lazy><Settings /></Lazy></ProtectedRoute>} />
       </Route>
-      <Route path="unauthorized" element={<Unauthorized />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="unauthorized" element={<Lazy><Unauthorized /></Lazy>} />
+      <Route path="*" element={<Lazy><NotFound /></Lazy>} />
     </Routes>
   )
 }

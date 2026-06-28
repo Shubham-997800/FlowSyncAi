@@ -4,10 +4,8 @@ const weeklyData = [65, 72, 80, 75, 92, 88, 85]
 
 function ProductivityScore() {
   const [score, setScore] = useState(0)
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
     const timer = setTimeout(() => setScore(92), 200)
     return () => clearTimeout(timer)
   }, [])
@@ -23,11 +21,11 @@ function ProductivityScore() {
         <div className="relative w-32 h-32">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 110 110">
             <circle cx="55" cy="55" r={radius} fill="none" className="stroke-slate-200 dark:stroke-zinc-700" strokeWidth="8" />
-            <circle cx="55" cy="55" r={radius} fill="none" className="stroke-indigo-500 transition-all duration-1000 ease-out" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={mounted ? offset : circumference} />
+            <circle cx="55" cy="55" r={radius} fill="none" className="stroke-indigo-500 transition-all duration-1000 ease-out" strokeWidth="8" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset} />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{mounted ? score : 0}%</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{score}%</p>
               <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">Excellent</p>
             </div>
           </div>
@@ -47,7 +45,7 @@ function ProductivityScore() {
           <div className="flex items-end gap-1.5 h-12">
             {weeklyData.map((val, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full rounded bg-indigo-500 transition-all duration-500" style={{ height: mounted ? `${(val / 100) * 48}px` : '0px' }} />
+                <div className="w-full rounded bg-indigo-500 transition-all duration-500" style={{ height: `${(val / 100) * 48}px` }} />
                 <span className="text-[9px] text-slate-500 dark:text-slate-400">{['M','T','W','T','F','S','S'][i]}</span>
               </div>
             ))}

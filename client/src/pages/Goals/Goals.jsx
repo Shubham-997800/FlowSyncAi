@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, X, Target, Calendar, TrendingUp, Trash2 } from 'lucide-react'
+import { Plus, X, Target, Calendar, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 function loadGoals() {

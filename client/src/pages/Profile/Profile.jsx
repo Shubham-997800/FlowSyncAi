@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { User, Settings as SettingsIcon, LogOut } from 'lucide-react'
 import EditProfile from './EditProfile'
@@ -80,12 +80,10 @@ function Profile() {
 }
 
 function RecentActivity() {
-  const [activities, setActivities] = useState([])
-
-  useEffect(() => {
+  const [activities] = useState(() => {
     try {
       const tasks = JSON.parse(localStorage.getItem('flowsync_tasks') || '[]')
-      const recent = tasks
+      return tasks
         .filter(t => t.dueDate)
         .sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate))
         .slice(0, 10)
@@ -95,9 +93,8 @@ function RecentActivity() {
           type: t.completed ? 'completed' : 'pending',
           date: t.dueDate,
         }))
-      setActivities(recent)
-    } catch {}
-  }, [])
+    } catch { return [] }
+  })
 
   if (activities.length === 0) {
     return (
@@ -112,7 +109,7 @@ function RecentActivity() {
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
       <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Recent Activity</h3>
       <div className="space-y-2">
-        {activities.map((a, i) => (
+        {activities.map(a => (
           <div key={a.id} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200">
             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.type === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             <p className="flex-1 text-sm text-slate-700 dark:text-slate-300 min-w-0 truncate">{a.text}</p>

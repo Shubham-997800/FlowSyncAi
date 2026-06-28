@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Trash2, Download, LogOut, Eye, EyeOff } from 'lucide-react'
+import { Shield, Trash2, Download, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 
 function AccountSettings() {
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
   const navigate = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState(false)
 

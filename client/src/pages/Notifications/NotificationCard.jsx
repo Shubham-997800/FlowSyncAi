@@ -1,6 +1,7 @@
-import { CheckCircle, Target, Flame, Timer, Info } from 'lucide-react'
+import { useMemo } from 'react'
+import { CheckCircle, Info, Timer } from 'lucide-react'
 
-const iconMap = { CheckCircle, Target, Flame, Timer, Info }
+const iconMap = { CheckCircle, Info, Timer }
 
 const borderColorMap = {
   success: 'border-emerald-500',
@@ -12,7 +13,7 @@ function NotificationCard({ notification, onMarkRead }) {
   const { icon, title, message, type, read, time } = notification
   const Icon = iconMap[icon] || Info
   const border = borderColorMap[type] || borderColorMap.default
-  const timeAgo = Math.floor((Date.now() - new Date(time).getTime()) / 60000)
+  const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time]) // eslint-disable-line react-hooks/purity
 
   return (
     <div className={`flex items-start gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900 border-l-4 ${border} shadow-sm transition-all duration-300 hover:scale-[1.02] ${read ? 'opacity-60' : ''}`}>

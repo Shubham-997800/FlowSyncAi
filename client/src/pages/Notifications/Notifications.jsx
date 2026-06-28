@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Bell, Clock, AlertTriangle, Info, CheckCheck, X } from 'lucide-react'
+import { Bell, CheckCheck } from 'lucide-react'
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
 
 function loadNotifications() {
-  try { const d = localStorage.getItem('flowsync_notifications'); return d ? JSON.parse(d) : [] } catch { return [] }
+  try { const d = localStorage.getItem('flowsync_notifications'); return d ? JSON.parse(d) : [] } catch { /* ignore */ return [] }
 }
 function saveNotifications(n) { localStorage.setItem('flowsync_notifications', JSON.stringify(n)) }
 

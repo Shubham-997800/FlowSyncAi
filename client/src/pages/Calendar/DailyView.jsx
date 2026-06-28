@@ -14,9 +14,12 @@ function DailyView({ tasks, date, onBack }) {
   const getTasksForHour = (hour) => {
     const hourNum = parseInt(hour.split(':')[0])
     return dayTasks.filter(t => {
-      if (!t.createdAt) return false
-      const taskHour = new Date(t.createdAt).getHours()
-      return taskHour === hourNum
+      if (t.title.toLowerCase().includes('focus') || t.title.toLowerCase().includes('meeting')) {
+        return hourNum >= 9 && hourNum <= 10
+      }
+      if (t.priority === 'high') return hourNum >= 8 && hourNum <= 11
+      if (t.priority === 'medium') return hourNum >= 12 && hourNum <= 15
+      return hourNum >= 14 && hourNum <= 18
     })
   }
 
@@ -36,7 +39,7 @@ function DailyView({ tasks, date, onBack }) {
       </div>
 
       <div className="relative">
-        {timeSlots.map((slot, i) => {
+        {timeSlots.map((slot) => {
           const hourNum = parseInt(slot.split(':')[0])
           const slotTasks = getTasksForHour(slot)
           const isCurrentHour = date === today && hourNum === currentHour

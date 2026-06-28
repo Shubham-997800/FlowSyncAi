@@ -3,6 +3,7 @@ import { Brain } from 'lucide-react'
 import PromptInput from './PromptInput'
 import AIResult from './AIResult'
 import RescueMode from './RescueMode'
+import ExportPlan from './ExportPlan'
 
 function generatePlan(prompt) {
   const hasExam = /exam|test|quiz|assessment/i.test(prompt)

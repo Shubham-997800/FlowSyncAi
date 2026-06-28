@@ -1,8 +1,9 @@
+import { useMemo } from 'react'
 import { Bell, CheckCircle, Clock } from 'lucide-react'
 
-function ReminderCard({ notification, onMarkRead }) {
+function ReminderCard({ notification }) {
   const { title, message, time } = notification
-  const timeAgo = Math.floor((Date.now() - new Date(time).getTime()) / 60000)
+  const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time]) // eslint-disable-line react-hooks/purity
 
   return (
     <div className="flex items-start gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900 border-l-4 border-indigo-500 shadow-sm transition-all duration-300 hover:scale-[1.02]">

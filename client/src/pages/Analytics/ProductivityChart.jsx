@@ -1,6 +1,6 @@
 import { TrendingUp } from 'lucide-react'
 
-function ProductivityChart({ tasks, period }) {
+function ProductivityChart({ tasks }) {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const weekData = weekDays.map((_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))

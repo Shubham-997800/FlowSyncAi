@@ -1,26 +1,31 @@
-import { createContext, useState, useEffect, useContext } from 'react'
+import { createContext, useEffect, useContext, useReducer } from 'react'
 import { login as loginService, register as registerService } from '../services/authService'
 
 const AuthContext = createContext(null)
 
+function authReducer(state, action) {
+  switch (action.type) {
+    case 'INIT': return { ...state, user: action.user, loading: false }
+    case 'LOGIN': return { ...state, user: action.user }
+    case 'LOGOUT': return { ...state, user: null }
+    default: return state
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [state, dispatch] = useReducer(authReducer, { user: null, loading: true })
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
     const token = localStorage.getItem('token')
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser))
-    }
-    setLoading(false)
+    dispatch({ type: 'INIT', user: storedUser && token ? JSON.parse(storedUser) : null })
   }, [])
 
   const login = async (email, password) => {
     const data = await loginService({ email, password })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
-    setUser(data.user)
+    dispatch({ type: 'LOGIN', user: data.user })
     return data
   }
 
@@ -28,7 +33,7 @@ export function AuthProvider({ children }) {
     const data = await registerService({ name, email, password })
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
-    setUser(data.user)
+    dispatch({ type: 'LOGIN', user: data.user })
     return data
   }
 
@@ -37,23 +42,24 @@ export function AuthProvider({ children }) {
     const token = 'demo-token'
     localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(demoUser))
-    setUser(demoUser)
+    dispatch({ type: 'LOGIN', user: demoUser })
     return { user: demoUser, token }
   }
 
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
-    setUser(null)
+    dispatch({ type: 'LOGOUT' })
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, demoLogin, logout }}>
+    <AuthContext.Provider value={{ user: state.user, loading: state.loading, login, register, demoLogin, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (!context) {

@@ -1,4 +1,4 @@
-import { Edit2, Trash2, Clock, Flag } from 'lucide-react'
+import { Edit2, Trash2, Clock } from 'lucide-react'
 
 const priorityConfig = {
   high: { color: 'text-red-600 dark:text-red-400', bar: 'bg-red-500' },

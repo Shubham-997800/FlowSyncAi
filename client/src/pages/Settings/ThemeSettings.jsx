@@ -8,11 +8,14 @@ function ThemeSettings() {
 
   useEffect(() => {
     if ((mode === 'dark') !== dark) toggle()
-  }, [mode])
+  }, [mode, dark, toggle])
 
   useEffect(() => {
-    setMode(dark ? 'dark' : 'light')
-  }, [dark])
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const next = dark ? 'dark' : 'light'
+    if (next !== mode) setMode(next)
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [dark, mode])
 
   const options = [
     { key: 'light', label: 'Light', desc: 'Bright and clean interface', icon: Sun },

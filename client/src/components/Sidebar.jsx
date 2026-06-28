@@ -1,6 +1,10 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
-import { LayoutDashboard, ListTodo, Brain, Calendar, Clock, BarChart3, Settings, LogOut } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import {
+  LayoutDashboard, ListTodo, Brain, Calendar, Clock, Target,
+  BarChart3, Bell, Settings, LogOut, Menu, X, Flame, User,
+} from 'lucide-react'
 
 const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -8,18 +12,25 @@ const links = [
   { to: '/ai-planner', label: 'AI Planner', icon: Brain },
   { to: '/calendar', label: 'Calendar', icon: Calendar },
   { to: '/focus', label: 'Focus Mode', icon: Clock },
+  { to: '/goals', label: 'Goals', icon: Target },
+  { to: '/habits', label: 'Habits', icon: Flame },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/profile', label: 'Profile', icon: User },
 ]
 
 function Sidebar() {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [open, setOpen] = useState(false)
 
-  return (
-    <aside className="sticky top-0 h-screen w-64 flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col">
-      <div className="flex items-center px-6 h-16 border-b border-slate-200 dark:border-zinc-800">
-        <Link to="/dashboard" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
+  const handleNavClick = () => setOpen(false)
+
+  const sidebarContent = (
+    <>
+      <div className="flex items-center px-6 h-14 border-b border-slate-200 dark:border-zinc-800">
+        <Link to="/dashboard" onClick={handleNavClick} className="text-xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {links.map(({ to, label, icon: Icon }) => {
@@ -28,6 +39,7 @@ function Sidebar() {
             <Link
               key={to}
               to={to}
+              onClick={handleNavClick}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-300 ${
                 isActive ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -52,7 +64,25 @@ function Sidebar() {
           <LogOut size={18} /> Logout
         </button>
       </div>
-    </aside>
+    </>
+  )
+
+  return (
+    <>
+      <button className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm" onClick={() => setOpen(!open)}>
+        {open ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      {open && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={() => setOpen(false)} />
+      )}
+
+      <aside className={`${
+        open ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 fixed lg:sticky top-0 left-0 z-40 lg:z-0 w-64 flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-300 h-screen`}>
+        {sidebarContent}
+      </aside>
+    </>
   )
 }
 

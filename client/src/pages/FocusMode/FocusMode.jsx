@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Brain, ListTodo } from 'lucide-react'
 import Timer from './Timer'
 import CurrentTask from './CurrentTask'
@@ -11,20 +11,13 @@ function loadTasks() {
 }
 
 function FocusMode() {
-  const [tasks, setTasks] = useState(loadTasks)
+  const [tasks] = useState(loadTasks)
   const [selectedTask, setSelectedTask] = useState(null)
   const [mode, setMode] = useState('focus')
-  const [sessions, setSessions] = useState(0)
-  const [totalFocusMinutes, setTotalFocusMinutes] = useState(0)
+  const [sessions, setSessions] = useState(() => parseInt(localStorage.getItem('flowsync_focus_sessions') || '0'))
+  const [totalFocusMinutes, setTotalFocusMinutes] = useState(() => parseInt(localStorage.getItem('flowsync_focus_minutes') || '0'))
   const [showMusic, setShowMusic] = useState(false)
   const [sessionComplete, setSessionComplete] = useState(false)
-
-  useEffect(() => {
-    const stored = localStorage.getItem('flowsync_focus_sessions')
-    if (stored) setSessions(parseInt(stored))
-    const storedMin = localStorage.getItem('flowsync_focus_minutes')
-    if (storedMin) setTotalFocusMinutes(parseInt(storedMin))
-  }, [])
 
   const handleSessionComplete = () => {
     const newSessions = sessions + 1

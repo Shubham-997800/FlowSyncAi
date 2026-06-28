@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, Brain, Clock, CheckCircle, ListTodo, AlertTriangle, Target, BarChart3, Calendar, Timer, TrendingUp, Layers, LayoutDashboard, ArrowRight } from 'lucide-react'
+import { Sparkles, Brain, Clock, CheckCircle, AlertTriangle, Target, BarChart3, Calendar, Timer, LayoutDashboard, ArrowRight, ListTodo, TrendingUp, Layers } from 'lucide-react'
 
 function FloatingCard({ icon: Icon, text, sub, delay, className }) {
   return (
@@ -57,7 +57,7 @@ function HeroSection() {
                 { icon: Clock, label: 'Smart Scheduling' },
                 { icon: AlertTriangle, label: 'Deadline Prediction' },
                 { icon: Target, label: 'Focus Mode' },
-              ].map(({ icon: Icon, label }) => (
+              ].map(({ label }) => (
                 <span key={label} className="flex items-center gap-2">
                   <CheckCircle size={16} className="text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
                   <span className="font-medium text-slate-700 dark:text-slate-300">{label}</span>

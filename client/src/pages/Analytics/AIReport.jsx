@@ -17,14 +17,14 @@ function AIReport({ tasks, completionRate, overdue, focusSessions, habitStreaks 
   const recommendations = []
 
   if (completionRate >= 70) strengths.push('High task completion rate — you consistently finish what you start')
-  if (parseInt(focusSessions) >= 10) strengths.push('Strong focus discipline with regular Pomodoro sessions')
+  if (focusSessions >= 10) strengths.push('Strong focus discipline with regular Pomodoro sessions')
   if (habitStreaks >= 3) strengths.push('Building good habit streaks — consistency is your advantage')
   if (morningTasks > afternoonTasks) strengths.push('Most productive in morning hours — optimal for deep work')
   else strengths.push('Good afternoon productivity — use this window for collaborative work')
 
   if (completionRate < 50) weaknesses.push('Task completion rate needs improvement — try reducing scope')
   if (overdue > 3) weaknesses.push(`${overdue} overdue tasks — review deadlines and reprioritize`)
-  if (parseInt(focusSessions) < 5) weaknesses.push('Low focus session count — aim for at least 1 session daily')
+  if (focusSessions < 5) weaknesses.push('Low focus session count — aim for at least 1 session daily')
   if (tasks.length === 0) weaknesses.push('No tasks tracked yet — consistency starts with small daily entries')
 
   if (overdue > 0) recommendations.push(`Focus on ${overdue} overdue tasks first to clear backlog`)

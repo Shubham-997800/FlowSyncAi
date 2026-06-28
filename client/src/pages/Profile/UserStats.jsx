@@ -25,7 +25,7 @@ function UserStats() {
           return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.completed).length / dayTasks.length) * 100) : 0
         })
         setWeekData(wd)
-      } catch {}
+      } catch { /* ignore */ }
     }, 2000)
     return () => clearInterval(interval)
   }, [])

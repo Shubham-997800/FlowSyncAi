@@ -1,12 +1,35 @@
+import { useState, useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 
-const atRiskTasks = [
-  { name: 'Q4 Report', remaining: '2h 30m', progress: 65, action: 'Focus now' },
-  { name: 'API Docs', remaining: '4h', progress: 30, action: 'Start immediately' },
-]
-
 function DeadlineRisk() {
-  const risk = 22
+  const [atRisk, setAtRisk] = useState([])
+  const [risk, setRisk] = useState(0)
+
+  useEffect(() => {
+    const update = () => {
+      try {
+        const tasks = JSON.parse(localStorage.getItem('flowsync_tasks') || '[]')
+        const today = new Date().toISOString().split('T')[0]
+        const overdue = tasks.filter(t => t.dueDate && !t.completed && t.dueDate < today)
+        const dueToday = tasks.filter(t => t.dueDate === today && !t.completed)
+
+        const atRiskTasks = [...overdue, ...dueToday].slice(0, 3).map(t => ({
+          name: t.title,
+          remaining: t.dueDate < today ? 'Overdue' : 'Due today',
+          progress: t.dueDate < today ? 100 : 65,
+          action: t.dueDate < today ? 'Complete ASAP' : 'Focus now',
+        }))
+        setAtRisk(atRiskTasks)
+
+        const total = tasks.filter(t => t.dueDate && !t.completed).length
+        setRisk(total > 0 ? Math.round((atRiskTasks.length / total) * 100) : 0)
+      } catch { /* ignore */ }
+    }
+    update()
+    const interval = setInterval(update, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
   const riskLevel = risk <= 25 ? 'Low Risk' : risk <= 50 ? 'Moderate Risk' : 'High Risk'
   const riskColor = risk <= 25 ? 'text-indigo-600 dark:text-indigo-400' : risk <= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'
   const badgeBg = risk <= 25 ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' : risk <= 50 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
@@ -26,22 +49,26 @@ function DeadlineRisk() {
       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-4 ${badgeBg}`}>
         <AlertTriangle size={12} /> {riskLevel}
       </div>
-      <div className="space-y-3">
-        {atRiskTasks.map(({ name, remaining, progress, action }) => (
-          <div key={name} className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{name}</p>
-              <span className="text-xs text-slate-500 dark:text-slate-400">{remaining}</span>
+      {atRisk.length === 0 ? (
+        <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No tasks at risk</p>
+      ) : (
+        <div className="space-y-3">
+          {atRisk.map(({ name, remaining, progress, action }) => (
+            <div key={name} className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{name}</p>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{remaining}</span>
+              </div>
+              <div className="w-full h-2 bg-slate-200 dark:bg-zinc-700 rounded-full">
+                <div className="bg-indigo-500 h-full rounded-full transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+                Suggested: <span className="text-indigo-600 dark:text-indigo-400 font-medium">{action}</span>
+              </p>
             </div>
-            <div className="w-full h-2 bg-slate-200 dark:bg-zinc-700 rounded-full">
-              <div className="bg-indigo-500 h-full rounded-full transition-all" style={{ width: `${progress}%` }} />
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-              Suggested: <span className="text-indigo-600 dark:text-indigo-400 font-medium">{action}</span>
-            </p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

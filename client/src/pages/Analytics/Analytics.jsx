@@ -34,10 +34,8 @@ function Analytics() {
   const completed = tasks.filter(t => t.completed).length
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
   const overdue = tasks.filter(t => t.dueDate && !t.completed && t.dueDate < new Date().toISOString().split('T')[0]).length
-  const focusSessions = localStorage.getItem('flowsync_focus_sessions') || '0'
-  const focusMinutes = localStorage.getItem('flowsync_focus_minutes') || '0'
-  const totalGoals = goals.length
-  const avgGoalProgress = totalGoals > 0 ? Math.round(goals.reduce((s, g) => s + (g.progress || 0), 0) / totalGoals) : 0
+  const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
+  const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
   const habitStreaks = habits.filter(h => (h.streak || 0) >= 3).length
 
   const topCards = [
