@@ -49,20 +49,16 @@ const Habit = require('./models/Habit')
 app.post('/api/cleanup', async (req, res) => {
   try {
     if (req.body.secret !== process.env.JWT_SECRET) return res.status(401).json({ message: 'Unauthorized' })
-    const users = await User.find({ email: { $ne: 'shubhamdangi82@gmail.com' } })
-    let deleted = 0
-    for (const u of users) {
-      await Task.deleteMany({ user: u._id })
-      await Goal.deleteMany({ user: u._id })
-      await Habit.deleteMany({ user: u._id })
-      await u.deleteOne()
-      deleted++
-    }
+    const validIds = (await User.find({}).select('_id')).map(u => u._id)
+    const oldTasks = await Task.deleteMany({ user: { $nin: validIds } })
+    const oldGoals = await Goal.deleteMany({ user: { $nin: validIds } })
+    const oldHabits = await Habit.deleteMany({ user: { $nin: validIds } })
+    const oldUsers = await User.deleteMany({ email: { $ne: 'shubhamdangi82@gmail.com' } })
     const remain = await User.countDocuments()
     const t = await Task.countDocuments()
     const g = await Goal.countDocuments()
     const h = await Habit.countDocuments()
-    res.json({ deleted, remaining: remain, tasks: t, goals: g, habits: h })
+    res.json({ deletedUsers: oldUsers.deletedCount, orphanTasks: oldTasks.deletedCount, orphanGoals: oldGoals.deletedCount, orphanHabits: oldHabits.deletedCount, remainingUsers: remain, tasks: t, goals: g, habits: h })
   } catch (e) { res.status(500).json({ message: e.message }) }
 })
 
