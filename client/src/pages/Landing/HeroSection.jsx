@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, Brain, Clock, CheckCircle, Play, ListTodo, AlertTriangle, Target, BarChart3, Calendar, Timer, TrendingUp, Layers } from 'lucide-react'
+import { Sparkles, Brain, Clock, CheckCircle, Play, ListTodo, AlertTriangle, Target, BarChart3, Calendar, Timer, TrendingUp, Layers, LayoutDashboard } from 'lucide-react'
 
 function FloatingCard({ icon: Icon, text, sub, delay, className }) {
   return (
