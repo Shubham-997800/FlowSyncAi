@@ -5,6 +5,7 @@ const morgan = require('morgan')
 const cookieParser = require('cookie-parser')
 const connectDB = require('./config/db')
 const errorHandler = require('./middleware/errorHandler')
+const { startCronJobs } = require('./services/cronService')
 
 const authRoutes = require('./routes/authRoutes')
 const taskRoutes = require('./routes/taskRoutes')
@@ -46,6 +47,8 @@ app.use('/api/notifications', notificationRoutes)
 app.use('/api/settings', settingsRoutes)
 
 app.use(errorHandler)
+
+startCronJobs()
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
