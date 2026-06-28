@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import NotificationPopup from '../components/NotificationPopup'
@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { usePushNotifications } from '../hooks/usePushNotifications'
 import { Sun, Moon } from 'lucide-react'
+import api from '../services/api'
 
 const pageTitles = {
   '/dashboard': 'Dashboard',
@@ -32,22 +33,23 @@ function MainLayout() {
   useEffect(() => {
     if (!user) return
 
-    const checkDeadlines = () => {
+    const checkDeadlines = async () => {
       try {
-        const data = localStorage.getItem('flowsync_tasks')
-        const tasks = data ? JSON.parse(data) : []
+        const { data: tasks } = await api.get('/api/tasks')
         const today = new Date().toISOString().split('T')[0]
         const notified = JSON.parse(localStorage.getItem('flowsync_notified_tasks') || '[]')
 
         tasks.forEach(task => {
-          if (task.completed || notified.includes(task._id)) return
+          if (task.status === 'done' || notified.includes(task._id)) return
+          const due = task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : null
+          if (!due) return
 
-          if (task.dueDate && task.dueDate < today) {
+          if (due < today) {
             sendNotification('Overdue Task', {
               body: `"${task.title}" is overdue. Check your tasks.`,
             })
             localStorage.setItem('flowsync_notified_tasks', JSON.stringify([...notified, task._id]))
-          } else if (task.dueDate === today) {
+          } else if (due === today) {
             sendNotification('Task Due Today', {
               body: `"${task.title}" is due today!`,
             })

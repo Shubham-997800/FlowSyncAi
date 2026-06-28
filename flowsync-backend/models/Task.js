@@ -9,6 +9,7 @@ const taskSchema = new mongoose.Schema({
   deadline: { type: Date, default: null },
   estimatedTime: { type: Number, default: null },
   aiRiskScore: { type: Number, min: 0, max: 100, default: null },
+  aiSuggestedOrder: { type: Number, default: null },
 }, { timestamps: true })
 
 module.exports = mongoose.model('Task', taskSchema)

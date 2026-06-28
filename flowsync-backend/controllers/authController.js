@@ -12,6 +12,7 @@ const signup = async (req, res) => {
     const user = await User.create({ name, email, password })
     res.status(201).json({ token: generateToken(user._id), user })
   } catch (error) {
+    console.error('Signup error:', error.message, error.name)
     if (error.name === 'ValidationError') {
       const msgs = Object.values(error.errors).map(e => e.message).join(', ')
       return res.status(400).json({ message: msgs })
