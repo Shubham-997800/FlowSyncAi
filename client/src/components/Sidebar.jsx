@@ -9,7 +9,7 @@ import {
 const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/tasks', label: 'Tasks', icon: ListTodo },
-  { to: '/ai-planner', label: 'AI Planner', icon: Brain },
+  { to: '/ai-planner', label: 'AI Chat', icon: Brain },
   { to: '/calendar', label: 'Calendar', icon: Calendar },
   { to: '/focus', label: 'Focus Mode', icon: Clock },
   { to: '/goals', label: 'Goals', icon: Target },

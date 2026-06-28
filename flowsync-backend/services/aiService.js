@@ -89,4 +89,29 @@ Respond EXACTLY:
   return { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 }
 }
 
-module.exports = { generatePlan, prioritizeTasks, rescueMode }
+async function chat(message, tasks = []) {
+  const prompt = `${SYSTEM_PROMPT}
+
+You are a productivity assistant inside a task management app called FlowSync.
+You help users plan, organize, and create tasks.
+If the user asks you to create a task, respond with a "tasks" array in your JSON.
+
+Current tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
+
+User said: "${message}"
+
+Respond EXACTLY with this JSON format:
+{
+  "reply": "your friendly conversational response here",
+  "tasks": [{ "title": "task title", "description": "", "priority": "low|medium|high", "deadline": null }],
+  "suggestions": ["optional follow-up suggestions"]
+}
+If the user doesn't ask to create tasks, return "tasks" as empty array [].`
+
+  const raw = await callGemini(prompt)
+  const parsed = parseJSON(raw)
+  if (parsed && parsed.reply) return parsed
+  return { reply: "I understand what you're saying. Could you be more specific about what you'd like me to help with?", tasks: [], suggestions: [] }
+}
+
+module.exports = { generatePlan, prioritizeTasks, rescueMode, chat }
