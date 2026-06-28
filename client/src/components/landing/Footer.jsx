@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom'
 
 const footerLinks = [
   { label: 'Features', href: '#features' },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'About', href: '#about' },
+  { label: 'Privacy', href: '#' },
+  { label: 'Terms', href: '#' },
+  { label: 'GitHub', href: 'https://github.com/Shubham-997800/FlowSync-Ai' },
+  { label: 'Contact', href: 'mailto:hello@flowsync.ai' },
 ]
 
 const socialLinks = [
@@ -28,6 +29,8 @@ function Footer() {
               <a
                 key={link.label}
                 href={link.href}
+                target={link.href.startsWith('http') ? '_blank' : undefined}
+                rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
                 className="text-sm text-[#6B7280] hover:text-[#111827] transition-colors"
               >
                 {link.label}
@@ -58,8 +61,8 @@ function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#6B7280]">
           <div className="flex items-center gap-4">
-            <span>Privacy Policy</span>
-            <span>Terms of Service</span>
+            <a href="#" className="hover:text-[#111827]">Privacy Policy</a>
+            <a href="#" className="hover:text-[#111827]">Terms of Service</a>
           </div>
           <p>&copy; {new Date().getFullYear()} FlowSync AI. All rights reserved.</p>
         </div>

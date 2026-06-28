@@ -1,39 +1,33 @@
-import { GraduationCap, Briefcase, User, Building2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-const cards = [
-  { icon: GraduationCap, title: 'Students', desc: 'Manage assignments, exam prep, and group projects with AI-powered schedules.' },
-  { icon: Briefcase, title: 'Professionals', desc: 'Juggle work deadlines, meetings, and personal tasks effortlessly.' },
-  { icon: User, title: 'Freelancers', desc: 'Balance multiple clients and projects while hitting every deadline.' },
-  { icon: Building2, title: 'Startup Teams', desc: 'Keep your team aligned and shipping on time.' },
+const logos = [
+  { name: 'Vercel', color: '#111827' },
+  { name: 'Linear', color: '#5E6AD2' },
+  { name: 'Raycast', color: '#FF6363' },
+  { name: 'Stripe', color: '#635BFF' },
+  { name: 'Notion', color: '#111827' },
+  { name: 'Figma', color: '#1E1E1E' },
 ]
 
 function TrustedBy() {
   return (
     <section className="bg-white border-b border-[#E5E7EB]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-3xl sm:text-4xl font-bold text-[#111827] text-center mb-14"
-        >
-          Built for Everyone
-        </motion.h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {cards.map((card, i) => (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        <p className="text-xs font-semibold text-[#6B7280] text-center tracking-widest uppercase mb-10">
+          Trusted Productivity Experience
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-14 gap-y-8">
+          {logos.map((logo, i) => (
             <motion.div
-              key={card.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              key={logo.name}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-              className="bg-white border border-[#E5E7EB] rounded-xl p-6 hover:shadow-sm transition-shadow"
+              transition={{ delay: i * 0.08 }}
+              className="text-lg font-bold tracking-tight opacity-40 hover:opacity-60 transition-opacity"
+              style={{ color: logo.color }}
             >
-              <card.icon size={24} className="text-[#2563EB] mb-4" />
-              <h3 className="text-lg font-semibold text-[#111827] mb-2">{card.title}</h3>
-              <p className="text-sm text-[#6B7280] leading-relaxed">{card.desc}</p>
+              {logo.name}
             </motion.div>
           ))}
         </div>

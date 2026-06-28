@@ -27,8 +27,7 @@ function Hero() {
             </motion.div>
 
             <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#111827] leading-[1.08] tracking-tight mb-6">
-              Never Miss Another Deadline.
-              <span className="block text-[#2563EB]">Plan Smarter. Focus Better. Finish Faster.</span>
+              Never Miss a Deadline Again.
             </motion.h1>
 
             <motion.p variants={fadeUp} className="text-lg text-[#6B7280] leading-relaxed mb-8 max-w-lg">
@@ -43,14 +42,12 @@ function Hero() {
                 Get Started
               </button>
               <button className="border border-[#E5E7EB] text-[#111827] text-sm font-semibold px-7 py-3 rounded-lg hover:bg-[#F8FAFC] transition-colors inline-flex items-center gap-2">
-                <Play size={16} /> Live Demo
+                <Play size={16} /> Watch Demo
               </button>
             </motion.div>
 
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-6 text-sm text-[#6B7280]">
-              <span className="inline-flex items-center gap-2"><Check size={16} className="text-[#16A34A]" /> AI Powered</span>
-              <span className="inline-flex items-center gap-2"><Check size={16} className="text-[#16A34A]" /> Smart Scheduling</span>
-              <span className="inline-flex items-center gap-2"><Check size={16} className="text-[#16A34A]" /> Free to Start</span>
+            <motion.div variants={fadeUp} className="text-sm text-[#6B7280]">
+              No credit card required
             </motion.div>
           </motion.div>
 
