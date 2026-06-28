@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const PROD_API = 'https://flowsync-ai-production.up.railway.app'
+const DEV_API = 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? DEV_API : PROD_API)
 
 const api = axios.create({
   baseURL: API_URL,
