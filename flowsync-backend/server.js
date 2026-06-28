@@ -40,6 +40,32 @@ app.use('/api/goals', goalRoutes)
 app.use('/api/habits', habitRoutes)
 app.use('/api/settings', settingsRoutes)
 
+// TEMP: Cleanup old users
+const User = require('./models/User')
+const Task = require('./models/Task')
+const Goal = require('./models/Goal')
+const Habit = require('./models/Habit')
+
+app.post('/api/cleanup', async (req, res) => {
+  try {
+    if (req.body.secret !== process.env.JWT_SECRET) return res.status(401).json({ message: 'Unauthorized' })
+    const users = await User.find({ email: { $ne: 'shubhamdangi82@gmail.com' } })
+    let deleted = 0
+    for (const u of users) {
+      await Task.deleteMany({ user: u._id })
+      await Goal.deleteMany({ user: u._id })
+      await Habit.deleteMany({ user: u._id })
+      await u.deleteOne()
+      deleted++
+    }
+    const remain = await User.countDocuments()
+    const t = await Task.countDocuments()
+    const g = await Goal.countDocuments()
+    const h = await Habit.countDocuments()
+    res.json({ deleted, remaining: remain, tasks: t, goals: g, habits: h })
+  } catch (e) { res.status(500).json({ message: e.message }) }
+})
+
 app.use((err, req, res, next) => {
   console.error(err.message)
   if (err.name === 'ValidationError') {
