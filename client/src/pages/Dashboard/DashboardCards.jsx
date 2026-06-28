@@ -1,37 +1,30 @@
 import { useState, useEffect } from 'react'
 import { ListTodo, CheckCircle, CalendarClock, Timer } from 'lucide-react'
 import StatCard from '../../components/ui/StatCard'
-
-function loadTasks() {
-  try { const d = localStorage.getItem('flowsync_tasks'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
+import { getTasks } from '../../services/taskService'
 
 function DashboardCards() {
-  const [data, setData] = useState({ todayTasks: 0, completedToday: 0, upcomingDeadlines: 0, focusTime: '0h' })
+  const [data, setData] = useState({ todayTasks: 0, completedToday: 0, upcomingDeadlines: 0, focusTime: '0h', pct: 0 })
 
   useEffect(() => {
-    const update = () => {
-      const tasks = loadTasks()
-      const today = new Date().toISOString().split('T')[0]
-      const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
-
-      const todayTasks = tasks.filter(t => t.dueDate === today && !t.completed).length
-      const completedToday = tasks.filter(t => t.completed && t.dueDate === today).length
-      const upcomingDeadlines = tasks.filter(t => t.dueDate && !t.completed && t.dueDate >= today).length
-      const total = tasks.filter(t => t.dueDate === today).length
-      const pct = total > 0 ? Math.round((completedToday / total) * 100) : 0
-
-      setData({
-        todayTasks,
-        completedToday,
-        upcomingDeadlines,
-        focusTime: `${Math.floor(focusMinutes / 60)}h ${focusMinutes % 60}m`,
-        pct,
-      })
+    let mounted = true
+    const update = async () => {
+      try {
+        const tasks = await getTasks()
+        if (!mounted) return
+        const today = new Date().toISOString().split('T')[0]
+        const todayTasks = tasks.filter(t => { const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : null; return d === today && t.status !== 'done' })
+        const completedToday = tasks.filter(t => t.status === 'done' && new Date(t.updatedAt).toISOString().split('T')[0] === today)
+        const upcoming = tasks.filter(t => { if (!t.deadline || t.status === 'done') return false; const d = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return d >= today })
+        const total = tasks.filter(t => { const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : null; return d === today }).length
+        const doneToday = tasks.filter(t => { const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : null; return d === today && t.status === 'done' }).length
+        const pct = total > 0 ? Math.round((doneToday / total) * 100) : 0
+        setData({ todayTasks: todayTasks.length, completedToday: completedToday.length, upcomingDeadlines: upcoming.length, focusTime: '0h', pct })
+      } catch {}
     }
     update()
-    const interval = setInterval(update, 5000)
-    return () => clearInterval(interval)
+    const interval = setInterval(update, 10000)
+    return () => { mounted = false; clearInterval(interval) }
   }, [])
 
   const cards = [

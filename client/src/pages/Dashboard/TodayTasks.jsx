@@ -1,45 +1,44 @@
 import { useState, useEffect } from 'react'
 import { CheckSquare, Square, Trash2, ListTodo, Clock } from 'lucide-react'
 import PriorityBadge from '../../components/ui/PriorityBadge'
-
-function loadTasks() {
-  try { const d = localStorage.getItem('flowsync_tasks'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
-function saveTasks(t) { localStorage.setItem('flowsync_tasks', JSON.stringify(t)) }
+import { getTasks, updateTask, deleteTask } from '../../services/taskService'
 
 function TodayTasks() {
   const [tasks, setTasks] = useState([])
 
   useEffect(() => {
-    const update = () => {
-      const all = loadTasks()
-      const today = new Date().toISOString().split('T')[0]
-      setTasks(all.filter(t => t.dueDate === today))
+    let mounted = true
+    const fetch = async () => {
+      try {
+        const all = await getTasks()
+        if (!mounted) return
+        const today = new Date().toISOString().split('T')[0]
+        setTasks(all.filter(t => { if (!t.deadline) return false; const d = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return d === today }))
+      } catch {}
     }
-    update()
-    const interval = setInterval(update, 5000)
-    return () => clearInterval(interval)
+    fetch()
+    const interval = setInterval(fetch, 10000)
+    return () => { mounted = false; clearInterval(interval) }
   }, [])
 
-  const toggleComplete = (id) => {
-    setTasks(prev => {
-      const next = prev.map(t => t._id === id ? { ...t, completed: !t.completed } : t)
-      const all = loadTasks().map(t => t._id === id ? { ...t, completed: !t.completed } : t)
-      saveTasks(all)
-      return next
-    })
+  const toggleComplete = async (id) => {
+    const task = tasks.find(t => t._id === id)
+    if (!task) return
+    const newStatus = task.status === 'done' ? 'todo' : 'done'
+    try {
+      await updateTask(id, { status: newStatus })
+      setTasks(prev => prev.map(t => t._id === id ? { ...t, status: newStatus } : t))
+    } catch {}
   }
 
-  const deleteTask = (id) => {
-    setTasks(prev => {
-      const next = prev.filter(t => t._id !== id)
-      const all = loadTasks().filter(t => t._id !== id)
-      saveTasks(all)
-      return next
-    })
+  const handleDelete = async (id) => {
+    try {
+      await deleteTask(id)
+      setTasks(prev => prev.filter(t => t._id !== id))
+    } catch {}
   }
 
-  const remaining = tasks.filter(t => !t.completed).length
+  const remaining = tasks.filter(t => t.status !== 'done').length
 
   return (
     <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">
@@ -57,32 +56,32 @@ function TodayTasks() {
         <div className="space-y-3">
           {tasks.map(task => (
             <div key={task._id} className={`flex items-start gap-3 p-3 rounded-xl border transition ${
-              task.completed ? 'bg-slate-50 dark:bg-zinc-800 border-slate-100 dark:border-zinc-700 opacity-60' : 'bg-white dark:bg-zinc-900 border-slate-100 dark:border-zinc-700 hover:border-slate-200 dark:hover:border-zinc-600'
+              task.status === 'done' ? 'bg-slate-50 dark:bg-zinc-800 border-slate-100 dark:border-zinc-700 opacity-60' : 'bg-white dark:bg-zinc-900 border-slate-100 dark:border-zinc-700 hover:border-slate-200 dark:hover:border-zinc-600'
             }`}>
               <button onClick={() => toggleComplete(task._id)} className="mt-0.5 flex-shrink-0">
-                {task.completed
+                {task.status === 'done'
                   ? <CheckSquare size={18} className="text-indigo-500" />
                   : <Square size={18} className="text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition" />
                 }
               </button>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className={`text-sm font-semibold ${task.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}>
+                  <p className={`text-sm font-semibold ${task.status === 'done' ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}>
                     {task.title}
                   </p>
                   <PriorityBadge priority={task.priority} />
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  {task.dueDate && (
+                  {task.deadline && (
                     <span className="flex items-center gap-1">
-                      <Clock size={11} /> {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      <Clock size={11} /> {new Date(task.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   )}
                   {task.description && <span className="truncate max-w-[200px]">{task.description}</span>}
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <button onClick={() => deleteTask(task._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                <button onClick={() => handleDelete(task._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                   <Trash2 size={14} />
                 </button>
               </div>

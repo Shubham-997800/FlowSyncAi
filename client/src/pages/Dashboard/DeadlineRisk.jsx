@@ -1,33 +1,37 @@
 import { useState, useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { getTasks } from '../../services/taskService'
 
 function DeadlineRisk() {
   const [atRisk, setAtRisk] = useState([])
   const [risk, setRisk] = useState(0)
 
   useEffect(() => {
-    const update = () => {
+    let mounted = true
+    const update = async () => {
       try {
-        const tasks = JSON.parse(localStorage.getItem('flowsync_tasks') || '[]')
+        const tasks = await getTasks()
+        if (!mounted) return
         const today = new Date().toISOString().split('T')[0]
-        const overdue = tasks.filter(t => t.dueDate && !t.completed && t.dueDate < today)
-        const dueToday = tasks.filter(t => t.dueDate === today && !t.completed)
+        const getDate = (t) => t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : null
+        const overdue = tasks.filter(t => { const d = getDate(t); return d && t.status !== 'done' && d < today })
+        const dueToday = tasks.filter(t => { const d = getDate(t); return d === today && t.status !== 'done' })
 
         const atRiskTasks = [...overdue, ...dueToday].slice(0, 3).map(t => ({
           name: t.title,
-          remaining: t.dueDate < today ? 'Overdue' : 'Due today',
-          progress: t.dueDate < today ? 100 : 65,
-          action: t.dueDate < today ? 'Complete ASAP' : 'Focus now',
+          remaining: getDate(t) < today ? 'Overdue' : 'Due today',
+          progress: getDate(t) < today ? 100 : 65,
+          action: getDate(t) < today ? 'Complete ASAP' : 'Focus now',
         }))
         setAtRisk(atRiskTasks)
 
-        const total = tasks.filter(t => t.dueDate && !t.completed).length
-        setRisk(total > 0 ? Math.round((atRiskTasks.length / total) * 100) : 0)
-      } catch { /* ignore */ }
+        const active = tasks.filter(t => t.deadline && t.status !== 'done').length
+        setRisk(active > 0 ? Math.round((atRiskTasks.length / active) * 100) : 0)
+      } catch {}
     }
     update()
     const interval = setInterval(update, 10000)
-    return () => clearInterval(interval)
+    return () => { mounted = false; clearInterval(interval) }
   }, [])
 
   const riskLevel = risk <= 25 ? 'Low Risk' : risk <= 50 ? 'Moderate Risk' : 'High Risk'

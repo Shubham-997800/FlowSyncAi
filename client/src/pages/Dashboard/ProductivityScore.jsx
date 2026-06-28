@@ -1,35 +1,36 @@
 import { useEffect, useState } from 'react'
-
-function loadTasks() {
-  try { const d = localStorage.getItem('flowsync_tasks'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
+import { getTasks } from '../../services/taskService'
 
 function ProductivityScore() {
   const [data, setData] = useState({ completed: 0, pending: 0, score: 0, weeklyData: [0,0,0,0,0,0,0] })
   const [animateScore, setAnimateScore] = useState(0)
 
   useEffect(() => {
-    const update = () => {
-      const tasks = loadTasks()
-      const completed = tasks.filter(t => t.completed).length
-      const pending = tasks.filter(t => !t.completed).length
-      const total = tasks.length
-      const score = total > 0 ? Math.round((completed / total) * 100) : 0
+    let mounted = true
+    const update = async () => {
+      try {
+        const tasks = await getTasks()
+        if (!mounted) return
+        const completed = tasks.filter(t => t.status === 'done').length
+        const pending = tasks.filter(t => t.status !== 'done').length
+        const total = tasks.length
+        const score = total > 0 ? Math.round((completed / total) * 100) : 0
 
-      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-      const weeklyData = dayNames.map((_, i) => {
-        const d = new Date()
-        d.setDate(d.getDate() - (6 - i))
-        const dateStr = d.toISOString().split('T')[0]
-        const dayTasks = tasks.filter(t => t.dueDate === dateStr)
-        return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.completed).length / dayTasks.length) * 100) : 0
-      })
+        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+        const weeklyData = dayNames.map((_, i) => {
+          const d = new Date()
+          d.setDate(d.getDate() - (6 - i))
+          const dateStr = d.toISOString().split('T')[0]
+          const dayTasks = tasks.filter(t => { if (!t.deadline) return false; const dd = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return dd === dateStr })
+          return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.status === 'done').length / dayTasks.length) * 100) : 0
+        })
 
-      setData({ completed, pending, score, weeklyData })
+        setData({ completed, pending, score, weeklyData })
+      } catch {}
     }
     update()
-    const interval = setInterval(update, 5000)
-    return () => clearInterval(interval)
+    const interval = setInterval(update, 10000)
+    return () => { mounted = false; clearInterval(interval) }
   }, [])
 
   useEffect(() => {
