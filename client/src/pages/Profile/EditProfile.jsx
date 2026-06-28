@@ -5,8 +5,8 @@ import toast from 'react-hot-toast'
 import { updateProfile } from '../../services/settingsService'
 
 function EditProfile() {
-  const { user } = useAuth()
-  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: '', bio: '', role: user?.role || 'Student', location: '' })
+  const { user, setUser } = useAuth()
+  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '', bio: user?.bio || '', jobTitle: user?.jobTitle || '', location: user?.location || '' })
   const [errors, setErrors] = useState({})
 
   const validate = () => {
@@ -22,7 +22,8 @@ function EditProfile() {
     e.preventDefault()
     if (!validate()) return
     try {
-      await updateProfile({ name: form.name, email: form.email })
+      const updated = await updateProfile({ name: form.name, email: form.email, bio: form.bio, phone: form.phone, location: form.location, jobTitle: form.jobTitle })
+      setUser(updated)
       toast.success('Profile updated successfully')
     } catch {
       toast.error('Failed to update profile')
@@ -33,9 +34,9 @@ function EditProfile() {
     { key: 'name', label: 'Full Name', type: 'text', required: true },
     { key: 'email', label: 'Email', type: 'email', required: true },
     { key: 'phone', label: 'Phone', type: 'tel', placeholder: '+1 (555) 000-0000' },
-    { key: 'bio', label: 'Bio', type: 'textarea', placeholder: 'Tell us about yourself...' },
-    { key: 'role', label: 'Role', type: 'select', options: ['Student', 'Professional', 'Freelancer', 'Entrepreneur', 'Other'] },
+    { key: 'jobTitle', label: 'Job Title', type: 'text', placeholder: 'e.g. Software Engineer' },
     { key: 'location', label: 'Location', type: 'text', placeholder: 'City, Country' },
+    { key: 'bio', label: 'Bio', type: 'textarea', placeholder: 'Tell us about yourself...' },
   ]
 
   return (

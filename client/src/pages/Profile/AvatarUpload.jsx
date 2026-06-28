@@ -1,8 +1,11 @@
 import { useRef } from 'react'
 import { Upload, X, Image, User } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { uploadAvatar as uploadAvatarApi } from '../../services/settingsService'
+import { useAuth } from '../../context/AuthContext'
 
 function AvatarUpload({ avatar, setAvatar }) {
+  const { user } = useAuth()
   const inputRef = useRef(null)
 
   const handleFile = (file) => {
@@ -10,7 +13,16 @@ function AvatarUpload({ avatar, setAvatar }) {
     if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return }
     if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2MB'); return }
     const reader = new FileReader()
-    reader.onload = (e) => { setAvatar(e.target.result); toast.success('Avatar updated') }
+    reader.onload = async (e) => {
+      const base64 = e.target.result
+      try {
+        await uploadAvatarApi(base64)
+        setAvatar(base64)
+        toast.success('Avatar updated')
+      } catch {
+        toast.error('Failed to upload avatar')
+      }
+    }
     reader.readAsDataURL(file)
   }
 

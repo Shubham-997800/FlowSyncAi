@@ -15,6 +15,11 @@ export const updatePassword = async (passwordData) => {
   return data
 }
 
+export const uploadAvatar = async (profilePicture) => {
+  const { data } = await api.put('/api/settings/avatar', { profilePicture })
+  return data
+}
+
 export const deleteAccount = async () => {
   const { data } = await api.delete('/api/settings/account')
   return data

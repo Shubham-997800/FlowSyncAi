@@ -10,11 +10,30 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, email } = req.body
+    const { name, email, bio, phone, location, jobTitle } = req.body
+    const updates = { name, email }
+    if (bio !== undefined) updates.bio = bio
+    if (phone !== undefined) updates.phone = phone
+    if (location !== undefined) updates.location = location
+    if (jobTitle !== undefined) updates.jobTitle = jobTitle
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, email },
+      updates,
       { new: true, runValidators: true }
+    )
+    res.json(user)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+const uploadAvatar = async (req, res) => {
+  try {
+    const { profilePicture } = req.body
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { profilePicture },
+      { new: true }
     )
     res.json(user)
   } catch (error) {
@@ -46,4 +65,4 @@ const deleteAccount = async (req, res) => {
   }
 }
 
-module.exports = { getProfile, updateProfile, updatePassword, deleteAccount }
+module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar }

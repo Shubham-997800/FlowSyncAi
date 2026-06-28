@@ -13,7 +13,7 @@ function Profile() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState('overview')
-  const [avatar, setAvatar] = useState(null)
+  const [avatar, setAvatar] = useState(user?.profilePicture || null)
 
   const tabs = [
     { key: 'overview', label: 'Overview' },
@@ -54,7 +54,9 @@ function Profile() {
               </div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{user?.name || 'User'}</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
-              <span className="mt-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-medium">{user?.role || 'Student'}</span>
+              {user?.jobTitle && <span className="mt-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-medium">{user.jobTitle}</span>}
+              {user?.location && <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">{user.location}</p>}
+              {user?.bio && <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 italic">"{user.bio}"</p>}
             </div>
             <nav className="space-y-1">
               {tabs.map(t => (
