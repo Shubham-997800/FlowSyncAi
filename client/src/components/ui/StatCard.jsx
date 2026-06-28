@@ -1,5 +1,7 @@
-function StatCard({ icon: Icon, label, value, sub, color = 'text-indigo-600 dark:text-indigo-400', bg = 'bg-indigo-100 dark:bg-indigo-900/30' }) {
-  return (
+import { Link } from 'react-router-dom'
+
+function StatCard({ icon: Icon, label, value, sub, color = 'text-indigo-600 dark:text-indigo-400', bg = 'bg-indigo-100 dark:bg-indigo-900/30', to }) {
+  const content = (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:shadow-md hover:-translate-y-0.5 transition-all">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{label}</span>
@@ -11,6 +13,9 @@ function StatCard({ icon: Icon, label, value, sub, color = 'text-indigo-600 dark
       {sub && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sub}</p>}
     </div>
   )
+
+  if (to) return <Link to={to}>{content}</Link>
+  return content
 }
 
 export default StatCard

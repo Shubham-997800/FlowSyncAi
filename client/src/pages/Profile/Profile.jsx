@@ -88,7 +88,7 @@ function RecentActivity() {
         .sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate))
         .slice(0, 10)
         .map(t => ({
-          id: t.id,
+          id: t._id,
           text: t.title,
           type: t.completed ? 'completed' : 'pending',
           date: t.dueDate,

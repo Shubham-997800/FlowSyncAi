@@ -1,8 +1,8 @@
 import { Clock, Timer, TrendingUp } from 'lucide-react'
 
-function FocusChart() {
-  const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
-  const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
+function FocusChart({ focusMinutes: fm, focusSessions: fs }) {
+  const focusMinutes = fm ?? parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
+  const focusSessions = fs ?? parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
   const avgSession = focusSessions > 0 ? Math.round(focusMinutes / focusSessions) : 0
   const bestHour = '09:00 – 12:00'
 

@@ -37,15 +37,6 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  const demoLogin = () => {
-    const demoUser = { name: 'Demo User', email: 'demo@flowsync.ai', _id: 'demo-user-id' }
-    const token = 'demo-token'
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(demoUser))
-    dispatch({ type: 'LOGIN', user: demoUser })
-    return { user: demoUser, token }
-  }
-
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -53,7 +44,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user: state.user, loading: state.loading, login, register, demoLogin, logout }}>
+    <AuthContext.Provider value={{ user: state.user, loading: state.loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

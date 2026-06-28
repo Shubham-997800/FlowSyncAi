@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Brain, ListTodo } from 'lucide-react'
 import Timer from './Timer'
 import CurrentTask from './CurrentTask'
@@ -11,7 +11,12 @@ function loadTasks() {
 }
 
 function FocusMode() {
-  const [tasks] = useState(loadTasks)
+  const [tasks, setTasks] = useState(loadTasks)
+
+  useEffect(() => {
+    const interval = setInterval(() => setTasks(loadTasks()), 5000)
+    return () => clearInterval(interval)
+  }, [])
   const [selectedTask, setSelectedTask] = useState(null)
   const [mode, setMode] = useState('focus')
   const [sessions, setSessions] = useState(() => parseInt(localStorage.getItem('flowsync_focus_sessions') || '0'))

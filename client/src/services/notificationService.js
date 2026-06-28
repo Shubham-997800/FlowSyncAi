@@ -6,16 +6,6 @@ export const getNotifications = async () => {
 }
 
 export const markAsRead = async (id) => {
-  const { data } = await api.put(`/api/notifications/${id}`)
-  return data
-}
-
-export const markAllAsRead = async () => {
-  const { data } = await api.put('/api/notifications/read-all')
-  return data
-}
-
-export const deleteNotification = async (id) => {
-  const { data } = await api.delete(`/api/notifications/${id}`)
+  const { data } = await api.put(`/api/notifications/${id}/read`)
   return data
 }

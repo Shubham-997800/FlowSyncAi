@@ -1,27 +1,27 @@
-import { useState, useEffect } from 'react'
 import { useTheme } from '../../context/ThemeContext'
 import { Sun, Moon, Monitor, Check } from 'lucide-react'
 
+function Palette(props) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" />
+      <line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
+      <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
+      <line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
+    </svg>
+  )
+}
+
+const options = [
+  { key: 'light', label: 'Light', desc: 'Bright and clean interface', icon: Sun },
+  { key: 'dark', label: 'Dark', desc: 'Easy on the eyes at night', icon: Moon },
+  { key: 'system', label: 'System', desc: 'Follows your system preference', icon: Monitor },
+]
+
 function ThemeSettings() {
-  const { dark, toggle } = useTheme()
-  const [mode, setMode] = useState(dark ? 'dark' : 'light')
-
-  useEffect(() => {
-    if ((mode === 'dark') !== dark) toggle()
-  }, [mode, dark, toggle])
-
-  useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    const next = dark ? 'dark' : 'light'
-    if (next !== mode) setMode(next)
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [dark, mode])
-
-  const options = [
-    { key: 'light', label: 'Light', desc: 'Bright and clean interface', icon: Sun },
-    { key: 'dark', label: 'Dark', desc: 'Easy on the eyes at night', icon: Moon },
-    { key: 'system', label: 'System', desc: 'Follows your system preference', icon: Monitor },
-  ]
+  const { mode, setMode } = useTheme()
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
@@ -51,19 +51,6 @@ function ThemeSettings() {
         </p>
       </div>
     </div>
-  )
-}
-
-function Palette(props) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <circle cx="12" cy="12" r="4" />
-      <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" />
-      <line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
-      <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" />
-      <line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
-    </svg>
   )
 }
 

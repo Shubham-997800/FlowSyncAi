@@ -2,8 +2,14 @@ import { useState } from 'react'
 import { Bell, Mail, Smartphone, Calendar, Brain, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-function NotificationSettings() {
-  const [settings, setSettings] = useState({
+const STORAGE_KEY = 'flowsync_notification_settings'
+
+function loadSettings() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY)
+    if (d) return JSON.parse(d)
+  } catch { /* ignore */ }
+  return {
     email: true,
     push: false,
     taskReminders: true,
@@ -12,11 +18,20 @@ function NotificationSettings() {
     aiAlerts: true,
     weeklyReport: false,
     priorityOnly: false,
-  })
+  }
+}
+
+function saveSettings(s) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s))
+}
+
+function NotificationSettings() {
+  const [settings, setSettings] = useState(loadSettings)
 
   const toggle = (key) => {
     setSettings(s => {
       const updated = { ...s, [key]: !s[key] }
+      saveSettings(updated)
       toast.success(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} ${updated[key] ? 'enabled' : 'disabled'}`)
       return updated
     })

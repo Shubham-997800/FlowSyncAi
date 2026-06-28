@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { Bell, CheckCircle, Clock } from 'lucide-react'
+import { Bell, CheckCircle, Clock, XCircle } from 'lucide-react'
 
-function ReminderCard({ notification }) {
+function ReminderCard({ notification, onMarkRead }) {
   const { title, message, time } = notification
   const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time]) // eslint-disable-line react-hooks/purity
 
@@ -23,6 +23,11 @@ function ReminderCard({ notification }) {
           <button className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors duration-200 flex items-center gap-1.5">
             <Clock size={12} /> Snooze
           </button>
+          {onMarkRead && (
+            <button onClick={() => onMarkRead(notification.id)} className="px-3 py-1.5 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-400 rounded-lg text-xs font-medium hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200 flex items-center gap-1.5">
+              <XCircle size={12} /> Dismiss
+            </button>
+          )}
         </div>
       </div>
     </div>

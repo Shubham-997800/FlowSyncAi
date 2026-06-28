@@ -35,10 +35,10 @@ function DashboardCards() {
   }, [])
 
   const cards = [
-    { label: "Today's Tasks", value: data.todayTasks.toString(), sub: `${data.completedToday} Completed`, icon: ListTodo, color: 'text-indigo-600 dark:text-indigo-400' },
-    { label: 'Completed Today', value: data.completedToday.toString(), sub: `${data.pct}% Completion`, icon: CheckCircle, color: 'text-emerald-600 dark:text-emerald-400' },
-    { label: 'Upcoming Deadlines', value: data.upcomingDeadlines.toString(), sub: 'Total scheduled', icon: CalendarClock, color: 'text-amber-600 dark:text-amber-400' },
-    { label: 'Focus Time', value: data.focusTime, sub: "Today's Focus", icon: Timer, color: 'text-indigo-600 dark:text-indigo-400' },
+    { label: "Today's Tasks", value: data.todayTasks.toString(), sub: `${data.completedToday} Completed`, icon: ListTodo, color: 'text-indigo-600 dark:text-indigo-400', to: '/tasks' },
+    { label: 'Completed Today', value: data.completedToday.toString(), sub: `${data.pct}% Completion`, icon: CheckCircle, color: 'text-emerald-600 dark:text-emerald-400', to: '/tasks' },
+    { label: 'Upcoming Deadlines', value: data.upcomingDeadlines.toString(), sub: 'Total scheduled', icon: CalendarClock, color: 'text-amber-600 dark:text-amber-400', to: '/tasks' },
+    { label: 'Focus Time', value: data.focusTime, sub: "Today's Focus", icon: Timer, color: 'text-indigo-600 dark:text-indigo-400', to: '/focus' },
   ]
 
   return (

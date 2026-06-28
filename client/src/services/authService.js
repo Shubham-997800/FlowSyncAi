@@ -1,7 +1,7 @@
 import api from './api'
 
 export const register = async (userData) => {
-  const { data } = await api.post('/api/auth/register', userData)
+  const { data } = await api.post('/api/auth/signup', userData)
   return data
 }
 

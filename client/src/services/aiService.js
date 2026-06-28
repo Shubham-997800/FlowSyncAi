@@ -1,11 +1,16 @@
 import api from './api'
 
-export const prioritizeTask = async (taskData) => {
-  const { data } = await api.post('/api/ai/prioritize', taskData)
+export const generatePlan = async (prompt) => {
+  const { data } = await api.post('/api/ai/plan', { prompt })
   return data
 }
 
-export const scheduleTask = async (taskData) => {
-  const { data } = await api.post('/api/ai/schedule', taskData)
+export const prioritizeTasks = async () => {
+  const { data } = await api.post('/api/ai/prioritize')
+  return data
+}
+
+export const rescueMode = async () => {
+  const { data } = await api.post('/api/ai/rescue')
   return data
 }

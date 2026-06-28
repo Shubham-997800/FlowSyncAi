@@ -9,14 +9,8 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { login, demoLogin } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
-
-  const handleDemoLogin = () => {
-    demoLogin()
-    toast.success('Welcome to FlowSync AI!')
-    navigate('/dashboard')
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -126,11 +120,7 @@ function Login() {
               Continue with Google
             </button>
 
-            <button onClick={handleDemoLogin} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-indigo-600 dark:border-indigo-400 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors duration-300 mt-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-              Demo Login
-            </button>
-            <p className="text-center text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">demo@flowsync.ai</p>
+
 
             <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
               Don't have an account?{' '}
