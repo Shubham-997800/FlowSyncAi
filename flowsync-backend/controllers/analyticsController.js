@@ -1,6 +1,6 @@
 const Task = require('../models/Task')
 
-const getWeekly = async (req, res, next) => {
+const getWeekly = async (req, res) => {
   try {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     const tasks = await Task.find({ user: req.user._id, createdAt: { $gte: weekAgo } })
@@ -24,10 +24,12 @@ const getWeekly = async (req, res, next) => {
       completionRate: total ? Math.round((done / total) * 100) : 0,
       dailyBreakdown: daily,
     })
-  } catch (error) { next(error) }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
-const getMonthly = async (req, res, next) => {
+const getMonthly = async (req, res) => {
   try {
     const now = new Date()
     const start = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -53,10 +55,12 @@ const getMonthly = async (req, res, next) => {
       highPriorityRate: high ? Math.round((highDone / high) * 100) : 0,
       weeklyBreakdown: weekly,
     })
-  } catch (error) { next(error) }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
-const getStats = async (req, res, next) => {
+const getStats = async (req, res) => {
   try {
     const all = await Task.find({ user: req.user._id })
     const total = all.length
@@ -73,7 +77,9 @@ const getStats = async (req, res, next) => {
       overdue: all.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'done').length,
       completionRate: total ? Math.round((all.filter(t => t.status === 'done').length / total) * 100) : 0,
     })
-  } catch (error) { next(error) }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
 module.exports = { getWeekly, getMonthly, getStats }

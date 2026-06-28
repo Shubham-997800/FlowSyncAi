@@ -1,17 +1,19 @@
 const Task = require('../models/Task')
 const aiService = require('../services/aiService')
 
-const plan = async (req, res, next) => {
+const plan = async (req, res) => {
   try {
     const { prompt } = req.body
     if (!prompt) return res.status(400).json({ message: 'Prompt required' })
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.generatePlan(prompt, tasks)
     res.json(result)
-  } catch (error) { next(error) }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
-const prioritize = async (req, res, next) => {
+const prioritize = async (req, res) => {
   try {
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.prioritizeTasks(tasks)
@@ -21,10 +23,12 @@ const prioritize = async (req, res, next) => {
       }
     }
     res.json(result)
-  } catch (error) { next(error) }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
-const rescue = async (req, res, next) => {
+const rescue = async (req, res) => {
   try {
     const tasks = await Task.find({
       user: req.user._id,
@@ -33,7 +37,9 @@ const rescue = async (req, res, next) => {
     }).sort({ deadline: 1 })
     const result = await aiService.rescueMode(tasks)
     res.json(result)
-  } catch (error) { next(error) }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
 module.exports = { plan, prioritize, rescue }
