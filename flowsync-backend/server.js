@@ -40,28 +40,6 @@ app.use('/api/goals', goalRoutes)
 app.use('/api/habits', habitRoutes)
 app.use('/api/settings', settingsRoutes)
 
-// TEMP: Cleanup old users
-const User = require('./models/User')
-const Task = require('./models/Task')
-const Goal = require('./models/Goal')
-const Habit = require('./models/Habit')
-
-app.post('/api/cleanup', async (req, res) => {
-  try {
-    if (req.body.secret !== process.env.JWT_SECRET) return res.status(401).json({ message: 'Unauthorized' })
-    const validIds = (await User.find({}).select('_id')).map(u => u._id)
-    const oldTasks = await Task.deleteMany({ user: { $nin: validIds } })
-    const oldGoals = await Goal.deleteMany({ user: { $nin: validIds } })
-    const oldHabits = await Habit.deleteMany({ user: { $nin: validIds } })
-    const oldUsers = await User.deleteMany({ email: { $ne: 'shubhamdangi82@gmail.com' } })
-    const remain = await User.countDocuments()
-    const t = await Task.countDocuments()
-    const g = await Goal.countDocuments()
-    const h = await Habit.countDocuments()
-    res.json({ deletedUsers: oldUsers.deletedCount, orphanTasks: oldTasks.deletedCount, orphanGoals: oldGoals.deletedCount, orphanHabits: oldHabits.deletedCount, remainingUsers: remain, tasks: t, goals: g, habits: h })
-  } catch (e) { res.status(500).json({ message: e.message }) }
-})
-
 app.use((err, req, res, next) => {
   console.error(err.message)
   if (err.name === 'ValidationError') {
