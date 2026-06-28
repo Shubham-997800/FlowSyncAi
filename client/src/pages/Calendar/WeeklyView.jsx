@@ -27,7 +27,7 @@ function WeeklyView({ tasks, onDateClick }) {
   const getTasksForDate = (dateStr) => tasks.filter(t => t.dueDate === dateStr)
 
   const getLoadDot = (dateStr) => {
-    const count = getTasksForDate(dateStr).filter(t => !t.completed).length
+    const count = getTasksForDate(dateStr).filter(t => t.status !== 'done').length
     if (count === 0) return 'bg-emerald-400'
     if (count <= 2) return 'bg-amber-400'
     return 'bg-red-400'

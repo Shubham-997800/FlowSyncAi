@@ -33,8 +33,9 @@ function AIPlanner() {
     try {
       const res = await chatAI(msg)
       setMessages(prev => [...prev, { role: 'ai', text: res.reply, tasks: res.tasks || [], createdTasks: res.createdTasks || [] }])
-    } catch {
-      setMessages(prev => [...prev, { role: 'ai', text: 'Sorry, something went wrong. Try again.' }])
+    } catch (err) {
+      const msg = err?.response?.status === 503 ? "AI service quota exceeded. Please try again later." : 'Sorry, something went wrong. Try again.'
+      setMessages(prev => [...prev, { role: 'ai', text: msg }])
     } finally {
       setLoading(false)
     }

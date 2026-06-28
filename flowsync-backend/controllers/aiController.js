@@ -9,6 +9,9 @@ const plan = async (req, res) => {
     const result = await aiService.generatePlan(prompt, tasks)
     res.json(result)
   } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') {
+      return res.status(503).json({ message: 'AI service is currently unavailable due to quota limits. Please try again later.', reply: "I'm currently unavailable due to API limits. Try again later.", tasks: [], suggestions: [] })
+    }
     res.status(500).json({ message: error.message })
   }
 }
@@ -24,6 +27,7 @@ const prioritize = async (req, res) => {
     }
     res.json(result)
   } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service quota exceeded' })
     res.status(500).json({ message: error.message })
   }
 }
@@ -38,6 +42,7 @@ const rescue = async (req, res) => {
     const result = await aiService.rescueMode(tasks)
     res.json(result)
   } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service quota exceeded' })
     res.status(500).json({ message: error.message })
   }
 }
@@ -56,6 +61,7 @@ const chatAI = async (req, res) => {
     }
     res.json(result)
   } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ reply: "AI service is currently unavailable due to quota limits. Please try again later or upgrade your API plan.", tasks: [], suggestions: [] })
     res.status(500).json({ message: error.message })
   }
 }

@@ -4,12 +4,19 @@ const SYSTEM_PROMPT = `You are FlowSync AI, a productivity engine. Always respon
 
 async function callGemini(prompt) {
   const ai = getAI()
-  const res = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    config: { temperature: 0.3 },
-  })
-  return res.text || ''
+  try {
+    const res = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      config: { temperature: 0.3 },
+    })
+    return res.text || ''
+  } catch (err) {
+    if (err.message && err.message.includes('429')) {
+      throw new Error('AI_SERVICE_UNAVAILABLE')
+    }
+    throw err
+  }
 }
 
 function parseJSON(text) {

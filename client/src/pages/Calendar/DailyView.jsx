@@ -1,7 +1,7 @@
 import { ArrowLeft, Clock } from 'lucide-react'
 import EventCard from './EventCard'
 
-function DailyView({ tasks, date, onBack }) {
+function DailyView({ tasks, date, onBack, onEdit, onDelete }) {
   const dayTasks = tasks.filter(t => t.dueDate === date)
   const today = new Date().toISOString().split('T')[0]
   const currentHour = new Date().getHours()
@@ -52,9 +52,9 @@ function DailyView({ tasks, date, onBack }) {
               <div className={`flex-1 min-h-[40px] border-t ${isCurrentHour ? 'border-indigo-500' : 'border-slate-100 dark:border-zinc-800'} relative`}>
                 {isCurrentHour && <div className="absolute left-0 right-0 -top-[1.5px] h-0.5 bg-indigo-500" />}
                 <div className="py-1 space-y-1">
-                  {slotTasks.map(t => (
-                    <EventCard key={t._id} task={t} />
-                  ))}
+                    {slotTasks.map(t => (
+                      <EventCard key={t._id} task={t} onEdit={onEdit} onDelete={onDelete} />
+                    ))}
                 </div>
               </div>
             </div>

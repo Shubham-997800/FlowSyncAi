@@ -4,8 +4,8 @@ function SchedulePreview({ tasks, selectedDate }) {
   const today = new Date().toISOString().split('T')[0]
   const dateStr = selectedDate || today
   const dayTasks = tasks.filter(t => t.dueDate === dateStr)
-  const completed = dayTasks.filter(t => t.completed).length
-  const overdue = dayTasks.filter(t => !t.completed && dateStr < today)
+  const completed = dayTasks.filter(t => t.status === 'done').length
+  const overdue = dayTasks.filter(t => t.status !== 'done' && dateStr < today)
   const loadPercent = dayTasks.length > 0 ? Math.min(100, Math.round((dayTasks.length / 6) * 100)) : 0
 
   const displayDate = new Date(dateStr + 'T12:00:00')
@@ -64,8 +64,8 @@ function SchedulePreview({ tasks, selectedDate }) {
           <div className="space-y-1.5">
             {dayTasks.slice(0, 4).map(t => (
               <div key={t._id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-zinc-800">
-                {t.completed ? <CheckCircle size={12} className="text-emerald-500 flex-shrink-0" /> : <Clock size={12} className="text-slate-400 flex-shrink-0" />}
-                <span className={`text-xs ${t.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-300'}`}>{t.title}</span>
+                {t.status === 'done' ? <CheckCircle size={12} className="text-emerald-500 flex-shrink-0" /> : <Clock size={12} className="text-slate-400 flex-shrink-0" />}
+                <span className={`text-xs ${t.status === 'done' ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-300'}`}>{t.title}</span>
               </div>
             ))}
             {dayTasks.length > 4 && <p className="text-[10px] text-slate-400 text-center">+{dayTasks.length - 4} more tasks</p>}

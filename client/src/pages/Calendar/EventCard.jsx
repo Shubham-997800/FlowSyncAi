@@ -6,7 +6,7 @@ const priorityConfig = {
   low: { color: 'text-emerald-600 dark:text-emerald-400', bar: 'bg-emerald-500' },
 }
 
-function EventCard({ task }) {
+function EventCard({ task, onEdit, onDelete }) {
   const cfg = priorityConfig[task.priority] || priorityConfig.low
 
   return (
@@ -24,10 +24,10 @@ function EventCard({ task }) {
         )}
       </div>
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <button className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors duration-300">
+        <button onClick={() => onEdit?.(task)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors duration-300">
           <Edit2 size={12} />
         </button>
-        <button className="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-300">
+        <button onClick={() => onDelete?.(task._id)} className="p-1 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-300">
           <Trash2 size={12} />
         </button>
       </div>
