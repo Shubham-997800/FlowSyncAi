@@ -7,6 +7,7 @@ function authReducer(state, action) {
   switch (action.type) {
     case 'INIT': return { ...state, user: action.user, loading: false }
     case 'LOGIN': return { ...state, user: action.user }
+    case 'UPDATE_USER': return { ...state, user: action.user }
     case 'LOGOUT': return { ...state, user: null }
     default: return state
   }
@@ -37,6 +38,11 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  const setUser = (user) => {
+    localStorage.setItem('user', JSON.stringify(user))
+    dispatch({ type: 'UPDATE_USER', user })
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -44,7 +50,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user: state.user, loading: state.loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user: state.user, loading: state.loading, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   )
