@@ -75,68 +75,68 @@ function FocusMode() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Focus Mode</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Deep work with AI-adjusted Pomodoro sessions</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Focus Mode</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Deep work with AI-adjusted Pomodoro sessions</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Today:</span>
-          <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{sessions} sessions</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">Today:</span>
+          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{sessions} sessions</span>
         </div>
       </div>
 
       <div className="max-w-md mx-auto">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm text-center">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 border border-slate-200 dark:border-zinc-800 shadow-sm text-center">
           <div className="flex justify-center gap-2 mb-6">
-            <button onClick={() => switchMode('focus')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${mode === 'focus' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
+            <button onClick={() => switchMode('focus')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${mode === 'focus' ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'}`}>
               <Brain size={16} /> Focus
             </button>
-            <button onClick={() => switchMode('break')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${mode === 'break' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
+            <button onClick={() => switchMode('break')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${mode === 'break' ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'}`}>
               <Coffee size={16} /> Break
             </button>
           </div>
 
           <div className="relative mb-8">
             <svg className="w-48 h-48 mx-auto -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" strokeWidth="6" className="dark:stroke-gray-700" />
-              <circle cx="50" cy="50" r="45" fill="none" stroke="#059669" strokeWidth="6" strokeDasharray={`${2 * Math.PI * 45}`} strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress / 100)}`} strokeLinecap="round" className="transition-all duration-1000" />
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" strokeWidth="6" className="dark:stroke-zinc-700" />
+              <circle cx="50" cy="50" r="45" fill="none" strokeWidth="6" strokeDasharray={`${2 * Math.PI * 45}`} strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress / 100)}`} strokeLinecap="round" className="stroke-indigo-600 dark:stroke-indigo-500 transition-all duration-1000" />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <p className="text-5xl font-bold text-gray-900 dark:text-white tabular-nums">
+                <p className="text-5xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
                   {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 capitalize">{mode} {mode === 'focus' ? 'session' : 'time'}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 capitalize">{mode} {mode === 'focus' ? 'session' : 'time'}</p>
               </div>
             </div>
           </div>
 
           {selectedTask && (
-            <div className="mb-4 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2 justify-center">
-              <ListTodo size={14} className="text-emerald-500" />
+            <div className="mb-4 px-3 py-2 bg-slate-50 dark:bg-zinc-800 rounded-xl text-sm text-slate-600 dark:text-slate-300 flex items-center gap-2 justify-center">
+              <ListTodo size={14} className="text-indigo-500" />
               {selectedTask.title}
             </div>
           )}
 
           <div className="flex justify-center gap-3">
-            <button onClick={toggleTimer} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-semibold transition shadow-sm ${isRunning ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}>
+            <button onClick={toggleTimer} className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-semibold transition shadow-sm ${isRunning ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white'}`}>
               {isRunning ? <><Pause size={18} /> Pause</> : <><Play size={18} /> Start</>}
             </button>
-            <button onClick={resetTimer} className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-semibold border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+            <button onClick={resetTimer} className="flex items-center gap-2 px-4 py-3 rounded-xl text-base font-semibold border border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition">
               <RotateCcw size={18} /> Reset
             </button>
           </div>
         </div>
 
         <div className="mt-4">
-          <button onClick={() => setShowTasks(!showTasks)} className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition">
+          <button onClick={() => setShowTasks(!showTasks)} className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
             <ListTodo size={16} /> {showTasks ? 'Hide' : 'Show'} tasks
           </button>
           {showTasks && (
-            <div className="mt-3 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-3 space-y-1">
+            <div className="mt-3 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 p-3 space-y-1">
               {activeTasks.length === 0 ? (
-                <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No active tasks</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No active tasks</p>
               ) : activeTasks.map(t => (
-                <button key={t._id} onClick={() => setSelectedTask(t)} className={`w-full text-left px-3 py-2 rounded-xl text-sm transition ${selectedTask?._id === t._id ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 font-medium' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}>
+                <button key={t._id} onClick={() => setSelectedTask(t)} className={`w-full text-left px-3 py-2 rounded-xl text-sm transition ${selectedTask?._id === t._id ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
                   {t.title}
                 </button>
               ))}

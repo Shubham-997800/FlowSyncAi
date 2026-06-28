@@ -25,21 +25,21 @@ function Landing() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-900 dark:text-white">
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-shadow ${scrolled ? 'shadow-sm bg-gray-900/90 backdrop-blur' : 'bg-transparent'}`}>
+    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-slate-100">
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'shadow-sm bg-white/90 dark:bg-zinc-900/90 backdrop-blur' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            <Link to="/" className="text-xl font-bold text-emerald-600">FlowSync AI</Link>
+            <Link to="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
 
             <div className="hidden md:flex items-center gap-6">
               {links.map((l) => (
-                <a key={l.href} href={l.href} className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-500 transition">{l.label}</a>
+                <a key={l.href} href={l.href} className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-500 transition-colors duration-300">{l.label}</a>
               ))}
-              <button onClick={toggle} className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+              <button onClick={toggle} className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
                 {dark ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-              <Link to="/login" className="text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition">Login</Link>
-              <Link to="/register" className="bg-emerald-600 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-emerald-700 transition">Get Started</Link>
+              <Link to="/login" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-500 transition-colors duration-300">Login</Link>
+              <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors duration-300">Get Started</Link>
             </div>
 
             <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -49,15 +49,15 @@ function Landing() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden bg-gray-800 border-t border-gray-700 px-4 pb-4 pt-2 space-y-2">
+          <div className="md:hidden bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 px-4 pb-4 pt-2 space-y-2">
             {links.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">{l.label}</a>
+              <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">{l.label}</a>
             ))}
-            <button onClick={toggle} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg w-full transition">
+            <button onClick={toggle} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg w-full transition-colors duration-300">
               {dark ? <Sun size={16} /> : <Moon size={16} />} {dark ? 'Light Mode' : 'Dark Mode'}
             </button>
-            <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">Login</Link>
-            <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg text-center transition">Get Started</Link>
+            <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition-colors duration-300">Login</Link>
+            <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg text-center transition-colors duration-300">Get Started</Link>
           </div>
         )}
       </nav>

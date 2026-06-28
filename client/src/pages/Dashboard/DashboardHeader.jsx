@@ -15,31 +15,31 @@ function DashboardHeader() {
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Welcome back. Let&apos;s make today productive.</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Welcome back. Let&apos;s make today productive.</p>
       </div>
       <div className="flex items-center gap-3">
         <div className="relative flex-1 sm:flex-none">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search..."
-            className="w-full sm:w-48 lg:w-56 pl-9 pr-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+            className="w-full sm:w-48 lg:w-56 pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:border-transparent transition-colors duration-300"
           />
         </div>
-        <button className="relative p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+        <button className="relative p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
           <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-slate-50 dark:ring-zinc-950" />
         </button>
-        <button onClick={toggle} className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+        <button onClick={toggle} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
           {dark ? <Sun size={18} /> : <Moon size={18} />}
         </button>
-        <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-gray-700">
+        <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-slate-200 dark:border-zinc-800">
           <div className="text-right">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">{greeting}, {name} 👋</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{dateStr}</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{greeting}, {name}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{dateStr}</p>
           </div>
-          <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
+          <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold">
             {initial}
           </div>
         </div>

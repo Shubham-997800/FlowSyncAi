@@ -15,22 +15,22 @@ const features = [
 
 function FeaturesSection() {
   return (
-    <section id="features" className="py-24 bg-gray-900">
+    <section id="features" className="py-24 bg-slate-50 dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Everything You Need to Stay Productive</h2>
-          <p className="mt-4 text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100">Everything You Need to Stay Productive</h2>
+          <p className="mt-4 text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
             Powerful AI features that help you complete work instead of just reminding you.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="group bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:border-emerald-200 dark:hover:border-emerald-700 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mb-4 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/60 transition">
-                <Icon size={24} className="text-emerald-600 dark:text-emerald-400" />
+            <div key={title} className="group bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-700 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+              <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mb-4 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/60 transition-colors duration-300">
+                <Icon size={24} className="text-indigo-600 dark:text-indigo-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{desc}</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">{title}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>

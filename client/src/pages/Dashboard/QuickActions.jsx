@@ -11,20 +11,16 @@ const actions = [
 function QuickActions() {
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Quick Actions</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {actions.map(({ to, icon: Icon, label, desc }) => (
-          <Link
-            key={to}
-            to={to}
-            className="flex items-center gap-3 bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 hover:border-emerald-200 dark:hover:border-emerald-700 hover:shadow-sm transition group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/60 transition">
-              <Icon size={20} className="text-emerald-600 dark:text-emerald-400" />
+          <Link key={to} to={to} className="flex items-center gap-3 bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-slate-200 dark:border-zinc-800 hover:border-indigo-600 dark:hover:border-indigo-500 hover:shadow-sm transition group">
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center group-hover:bg-indigo-200 dark:group-hover:bg-indigo-900/50 transition">
+              <Icon size={20} className="text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">{label}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{desc}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{label}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{desc}</p>
             </div>
           </Link>
         ))}

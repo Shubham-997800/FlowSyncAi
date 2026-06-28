@@ -25,10 +25,10 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white dark:bg-zinc-900 shadow-sm border-b border-slate-200 dark:border-zinc-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <Link to="/" className="text-xl font-bold text-indigo-600">FlowSync AI</Link>
+          <Link to="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
 
           {user ? (
             <>
@@ -40,8 +40,8 @@ function Navbar() {
                     <Link
                       key={link.to}
                       to={link.to}
-                      className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                        isActive ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                      className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${
+                        isActive ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
                       }`}
                     >
                       <Icon size={16} />
@@ -49,9 +49,9 @@ function Navbar() {
                     </Link>
                   )
                 })}
-                <div className="ml-4 pl-4 border-l border-gray-200 flex items-center gap-3">
-                  <span className="text-sm text-gray-700">{user.name}</span>
-                  <button onClick={logout} className="text-gray-500 hover:text-red-600 transition" title="Logout">
+                <div className="ml-4 pl-4 border-l border-slate-200 dark:border-zinc-800 flex items-center gap-3">
+                  <span className="text-sm text-slate-700 dark:text-slate-300">{user.name}</span>
+                  <button onClick={logout} className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-300" title="Logout">
                     <LogOut size={18} />
                   </button>
                 </div>
@@ -63,14 +63,14 @@ function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <Link to="/login" className="text-gray-700 hover:text-indigo-600 text-sm font-medium">Login</Link>
-              <Link to="/register" className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">Register</Link>
+              <Link to="/login" className="text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm font-medium transition-colors duration-300">Login</Link>
+              <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300">Register</Link>
             </div>
           )}
         </div>
 
         {mobileOpen && user && (
-          <div className="md:hidden pb-4 border-t border-gray-100 mt-2 pt-4 space-y-1">
+          <div className="md:hidden pb-4 border-t border-slate-200 dark:border-zinc-800 mt-2 pt-4 space-y-1">
             {navLinks.map((link) => {
               const Icon = link.icon
               const isActive = location.pathname === link.to
@@ -79,8 +79,8 @@ function Navbar() {
                   key={link.to}
                   to={link.to}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                    isActive ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:text-indigo-600'
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${
+                    isActive ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'
                   }`}
                 >
                   <Icon size={18} />
@@ -88,7 +88,7 @@ function Navbar() {
                 </Link>
               )
             })}
-            <button onClick={logout} className="flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg w-full text-sm font-medium">
+            <button onClick={logout} className="flex items-center gap-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg w-full text-sm font-medium transition-colors duration-300">
               <LogOut size={18} /> Logout
             </button>
           </div>

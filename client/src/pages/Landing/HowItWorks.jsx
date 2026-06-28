@@ -15,27 +15,27 @@ const benefits = [
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 bg-gray-900">
+    <section id="how-it-works" className="py-24 bg-white dark:bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">How FlowSync AI Works</h2>
-          <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">Four simple steps from task creation to deadline mastery.</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100">How FlowSync AI Works</h2>
+          <p className="mt-4 text-lg text-slate-500 dark:text-slate-400">Four simple steps from task creation to deadline mastery.</p>
         </div>
 
         <div className="relative">
-          <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-gray-200 dark:bg-gray-700" />
+          <div className="hidden lg:block absolute top-12 left-[12.5%] right-[12.5%] h-0.5 bg-slate-200 dark:bg-zinc-800" />
 
           <div className="grid lg:grid-cols-4 gap-8">
             {steps.map(({ icon: Icon, title, desc }, i) => (
               <div key={title} className="relative flex flex-col items-center text-center">
-                <div className="relative z-10 w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mb-5">
-                  <Icon size={28} className="text-emerald-600 dark:text-emerald-400" />
+                <div className="relative z-10 w-16 h-16 rounded-2xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mb-5">
+                  <Icon size={28} className="text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <div className="absolute top-6 -left-4 w-8 h-8 rounded-full bg-emerald-500 text-white text-sm font-bold flex items-center justify-center z-20 shadow-sm">
+                <div className="absolute top-6 -left-4 w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-400 text-white text-sm font-bold flex items-center justify-center z-20 shadow-sm">
                   {i + 1}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs">{desc}</p>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">{title}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">{desc}</p>
               </div>
             ))}
           </div>
@@ -43,12 +43,12 @@ function HowItWorks() {
 
         <div className="mt-24 grid md:grid-cols-3 gap-6">
           {benefits.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-              <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mb-4">
-                <Icon size={24} className="text-emerald-600 dark:text-emerald-400" />
+            <div key={title} className="bg-slate-50 dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">
+              <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mb-4">
+                <Icon size={24} className="text-indigo-600 dark:text-indigo-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{desc}</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">{title}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>

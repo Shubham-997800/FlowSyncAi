@@ -8,34 +8,31 @@ const recommendations = [
 
 function AIRecommendation() {
   return (
-    <section className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+    <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
-          <Brain size={15} className="text-purple-600 dark:text-purple-400" />
+        <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+          <Brain size={15} className="text-indigo-600 dark:text-indigo-400" />
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">AI Productivity Coach</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Productivity Coach</h2>
       </div>
       <div className="space-y-3">
         {recommendations.map(({ icon: Icon, title, desc, priority, badge }) => (
-          <div
-            key={title}
-            className="flex gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition"
-          >
+          <div key={title} className="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-800 transition">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
-              priority === 'high' ? 'bg-red-100 dark:bg-red-900/30' : priority === 'medium' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-emerald-100 dark:bg-emerald-900/30'
+              priority === 'high' ? 'bg-red-100 dark:bg-red-900/30' : priority === 'medium' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'
             }`}>
               <Icon size={16} className={
-                priority === 'high' ? 'text-red-600 dark:text-red-400' : priority === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
+                priority === 'high' ? 'text-red-600 dark:text-red-400' : priority === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400'
               } />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
                 <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                  priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : priority === 'medium' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                  priority === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : priority === 'medium' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
                 }`}>{badge}</span>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{desc}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
             </div>
           </div>
         ))}

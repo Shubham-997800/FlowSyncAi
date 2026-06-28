@@ -18,14 +18,14 @@ function Dashboard() {
   if (!mounted) return null
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-zinc-950">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 min-w-0">
         <div className="lg:hidden flex items-center justify-between px-4 pt-4 pb-0">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
             <Menu size={20} />
           </button>
-          <span className="text-lg font-bold text-emerald-600">FlowSync AI</span>
+          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</span>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <DashboardHeader />

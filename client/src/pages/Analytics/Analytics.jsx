@@ -39,13 +39,12 @@ function Analytics() {
   const priorityData = [
     { label: 'High', total: highPriority, done: highCompleted, color: 'bg-red-500' },
     { label: 'Medium', total: tasks.filter(t => t.priority === 'medium').length, done: tasks.filter(t => t.priority === 'medium' && t.completed).length, color: 'bg-amber-400' },
-    { label: 'Low', total: tasks.filter(t => t.priority === 'low').length, done: tasks.filter(t => t.priority === 'low' && t.completed).length, color: 'bg-emerald-400' },
+    { label: 'Low', total: tasks.filter(t => t.priority === 'low').length, done: tasks.filter(t => t.priority === 'low' && t.completed).length, color: 'bg-indigo-400' },
   ]
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const weekData = weekDays.map((_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() - (6 - i))
+    const d = new Date(); d.setDate(d.getDate() - (6 - i))
     const dateStr = d.toISOString().split('T')[0]
     return tasks.filter(t => t.completed && t.dueDate === dateStr).length
   })
@@ -54,45 +53,45 @@ function Analytics() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Your productivity at a glance</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Your productivity at a glance</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { icon: TrendingUp, label: 'Completion Rate', value: `${completionRate}%`, sub: `${completed}/${total} tasks`, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+          { icon: TrendingUp, label: 'Completion Rate', value: `${completionRate}%`, sub: `${completed}/${total} tasks`, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
           { icon: ListTodo, label: 'Today', value: `${todayDone}/${todayTasks}`, sub: 'tasks done today', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
           { icon: Clock, label: 'Focus Sessions', value: focusSessions, sub: 'total sessions', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
           { icon: AlertTriangle, label: 'Overdue', value: overdue, sub: 'tasks past deadline', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' },
-          { icon: Target, label: 'Goals', value: `${totalGoals}`, sub: `${avgGoalProgress}% avg progress`, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+          { icon: Target, label: 'Goals', value: `${totalGoals}`, sub: `${avgGoalProgress}% avg progress`, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
           { icon: Flame, label: 'Habit Streaks', value: habitStreaks, sub: 'habits with 3+ day streak', color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
           { icon: Brain, label: 'AI Score', value: '--', sub: 'coming soon', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-          { icon: BarChart3, label: 'Productivity', value: completionRate >= 70 ? 'Great' : completionRate >= 40 ? 'Good' : 'Needs Work', sub: 'overall rating', color: completionRate >= 70 ? 'text-emerald-600' : completionRate >= 40 ? 'text-amber-600' : 'text-red-600', bg: 'bg-gray-100 dark:bg-gray-700' },
+          { icon: BarChart3, label: 'Productivity', value: completionRate >= 70 ? 'Great' : completionRate >= 40 ? 'Good' : 'Needs Work', sub: 'overall rating', color: completionRate >= 70 ? 'text-indigo-600' : completionRate >= 40 ? 'text-amber-600' : 'text-red-600', bg: 'bg-slate-100 dark:bg-zinc-800' },
         ].map(({ icon: Icon, label, value, sub, color, bg }) => (
-          <div key={label} className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700">
+          <div key={label} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{label}</span>
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</span>
               <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center`}><Icon size={16} className={color} /></div>
             </div>
             <p className={`text-xl font-bold ${color}`}>{value}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{sub}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{sub}</p>
           </div>
         ))}
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Task Completion by Priority</h2>
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Task Completion by Priority</h2>
           <div className="space-y-4">
             {priorityData.map(({ label, total, done, color }) => {
               const rate = total > 0 ? Math.round((done / total) * 100) : 0
               return (
                 <div key={label}>
                   <div className="flex justify-between text-sm mb-1.5">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
-                    <span className="text-gray-500 dark:text-gray-400">{done}/{total} ({rate}%)</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{label}</span>
+                    <span className="text-slate-500 dark:text-slate-400">{done}/{total} ({rate}%)</span>
                   </div>
-                  <div className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div className="h-2.5 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                     <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${rate}%` }} />
                   </div>
                 </div>
@@ -101,16 +100,16 @@ function Analytics() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Weekly Completion</h2>
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Weekly Completion</h2>
           <div className="flex items-end gap-2 h-40 pt-4">
             {weekData.map((val, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                <span className="text-xs text-gray-400 dark:text-gray-500">{val}</span>
-                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden flex-1 self-end" style={{ height: '100%' }}>
-                  <div className="bg-emerald-500 rounded-lg transition-all self-end" style={{ height: `${(val / maxVal) * 100}%` }} />
+                <span className="text-xs text-slate-400 dark:text-slate-500">{val}</span>
+                <div className="w-full bg-slate-100 dark:bg-zinc-800 rounded-lg overflow-hidden flex-1 self-end" style={{ height: '100%' }}>
+                  <div className="bg-indigo-500 rounded-lg transition-all self-end" style={{ height: `${(val / maxVal) * 100}%` }} />
                 </div>
-                <span className="text-[10px] text-gray-400 dark:text-gray-500">{weekDays[i]}</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">{weekDays[i]}</span>
               </div>
             ))}
           </div>
@@ -118,7 +117,7 @@ function Analytics() {
       </div>
 
       {total === 0 && (
-        <div className="mt-6 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 text-center text-gray-400 dark:text-gray-500">
+        <div className="mt-6 bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800 text-center text-slate-400 dark:text-slate-500">
           <BarChart3 size={36} className="mx-auto mb-2 opacity-50" />
           <p className="text-sm">Add some tasks to see your analytics</p>
         </div>
