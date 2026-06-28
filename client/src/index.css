@@ -1,7 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-emerald-50: #EEF2FF;
+  --color-emerald-100: #E0E7FF;
+  --color-emerald-200: #C7D2FE;
+  --color-emerald-300: #A5B4FC;
+  --color-emerald-400: #818CF8;
+  --color-emerald-500: #6366F1;
+  --color-emerald-600: #4F46E5;
+  --color-emerald-700: #4338CA;
+  --color-emerald-800: #3730A3;
+  --color-emerald-900: #312E81;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  transition: background-color 0.3s ease;
+}
 
 body {
   font-family: 'Inter', sans-serif;

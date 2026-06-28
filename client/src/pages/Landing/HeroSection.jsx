@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, Brain, Clock, CheckCircle, Play, ListTodo, AlertTriangle, Target, BarChart3, Calendar, Timer, TrendingUp, Layers, LayoutDashboard } from 'lucide-react'
+import { Sparkles, Brain, Clock, CheckCircle, ListTodo, AlertTriangle, Target, BarChart3, Calendar, Timer, TrendingUp, Layers, LayoutDashboard, ArrowRight } from 'lucide-react'
 
 function FloatingCard({ icon: Icon, text, sub, delay, className }) {
   return (
     <div
-      className={`absolute hidden lg:flex items-center gap-3 bg-white dark:bg-gray-800 rounded-2xl px-5 py-3 shadow-lg border border-gray-200 dark:border-gray-700 ${className}`}
+      className={`absolute hidden lg:flex items-center gap-3 bg-gray-800 rounded-2xl px-5 py-3 shadow-lg border border-gray-700 ${className}`}
       style={{ animation: `float 3s ease-in-out ${delay}s infinite` }}
     >
       <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
@@ -23,7 +23,7 @@ function HeroSection() {
     <section className="relative pt-32 pb-24 overflow-hidden">
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(#e5e7eb 1px, transparent 1px)', backgroundSize: '24px 24px', opacity: 0.5 }}
+        style={{ backgroundImage: 'radial-gradient(#374151 1px, transparent 1px)', backgroundSize: '24px 24px', opacity: 0.5 }}
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,9 +48,9 @@ function HeroSection() {
               <Link to="/register" className="bg-emerald-600 text-white px-7 py-3 rounded-xl text-base font-semibold hover:bg-emerald-700 transition shadow-sm">
                 Get Started
               </Link>
-              <button className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-7 py-3 rounded-xl text-base font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-                <Play size={18} /> Watch Demo
-              </button>
+              <a href="#features" className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 px-7 py-3 rounded-xl text-base font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                Explore Features <ArrowRight size={18} />
+              </a>
             </div>
 
             <div className="flex flex-wrap gap-x-8 gap-y-3 mt-10 text-sm text-gray-500 dark:text-gray-400">
@@ -69,9 +69,9 @@ function HeroSection() {
           </div>
 
           <div className="col-span-2 relative">
-            <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="relative bg-gray-800 rounded-2xl shadow-lg border border-gray-700 overflow-hidden">
               <div className="flex h-[420px] sm:h-[480px]">
-                <div className="w-14 sm:w-16 bg-gray-50 dark:bg-gray-850 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center gap-3 py-4">
+                <div className="w-14 sm:w-16 bg-gray-800/50 border-r border-gray-700 flex flex-col items-center gap-3 py-4">
                   {[LayoutDashboard, ListTodo, BarChart3, Calendar, Timer, Layers].map((Icon, i) => (
                     <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center ${i === 0 ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
                       <Icon size={16} />
@@ -88,7 +88,7 @@ function HeroSection() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 dark:bg-gray-850 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
                       <div className="flex items-center gap-1.5 mb-2">
                         <ListTodo size={12} className="text-emerald-500" />
                         <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">Today's Tasks</span>
@@ -99,7 +99,7 @@ function HeroSection() {
                         <span className="text-[9px] text-gray-400 ml-1">+5</span>
                       </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-850 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                    <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
                       <div className="flex items-center gap-1.5 mb-2">
                         <Brain size={12} className="text-purple-500" />
                         <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">AI Suggest</span>
@@ -110,7 +110,7 @@ function HeroSection() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 dark:bg-gray-850 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                    <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
                       <div className="flex items-center gap-1.5 mb-2">
                         <Target size={12} className="text-emerald-500" />
                         <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">Productivity</span>
@@ -120,7 +120,7 @@ function HeroSection() {
                         <div className="w-[92%] h-full bg-emerald-500 rounded-full" />
                       </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-850 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                    <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
                       <div className="flex items-center gap-1.5 mb-2">
                         <AlertTriangle size={12} className="text-amber-500" />
                         <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">Deadline Risk</span>
@@ -135,7 +135,7 @@ function HeroSection() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 dark:bg-gray-850 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                    <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
                       <div className="flex items-center gap-1.5 mb-2">
                         <Calendar size={12} className="text-emerald-500" />
                         <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">Calendar</span>
@@ -149,7 +149,7 @@ function HeroSection() {
                         ))}
                       </div>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-850 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                    <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
                       <div className="flex items-center gap-1.5 mb-2">
                         <Timer size={12} className="text-emerald-500" />
                         <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">Focus Timer</span>
@@ -159,7 +159,7 @@ function HeroSection() {
                     </div>
                   </div>
 
-                  <div className="bg-gray-50 dark:bg-gray-850 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                  <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700">
                     <div className="flex items-center gap-1.5 mb-2">
                       <TrendingUp size={12} className="text-emerald-500" />
                       <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">Task Progress</span>

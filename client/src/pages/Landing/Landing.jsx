@@ -25,8 +25,8 @@ function Landing() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-shadow ${scrolled ? 'shadow-sm bg-white/90 dark:bg-gray-900/90 backdrop-blur' : 'bg-transparent'}`}>
+    <div className="min-h-screen bg-gray-900 text-gray-900 dark:text-white">
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-shadow ${scrolled ? 'shadow-sm bg-gray-900/90 backdrop-blur' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <Link to="/" className="text-xl font-bold text-emerald-600">FlowSync AI</Link>
@@ -49,7 +49,7 @@ function Landing() {
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 pb-4 pt-2 space-y-2">
+          <div className="md:hidden bg-gray-800 border-t border-gray-700 px-4 pb-4 pt-2 space-y-2">
             {links.map((l) => (
               <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="block px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition">{l.label}</a>
             ))}

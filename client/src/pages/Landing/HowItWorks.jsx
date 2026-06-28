@@ -15,7 +15,7 @@ const benefits = [
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-24 bg-white dark:bg-gray-900">
+    <section id="how-it-works" className="py-24 bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">How FlowSync AI Works</h2>
@@ -43,7 +43,7 @@ function HowItWorks() {
 
         <div className="mt-24 grid md:grid-cols-3 gap-6">
           {benefits.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+            <div key={title} className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
               <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mb-4">
                 <Icon size={24} className="text-emerald-600 dark:text-emerald-400" />
               </div>

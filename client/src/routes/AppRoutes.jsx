@@ -35,8 +35,8 @@ function AppRoutes() {
       <Route path="login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+      <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route element={<MainLayout />}>
-        <Route path="dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="tasks" element={<ProtectedRoute><TaskManager /></ProtectedRoute>} />
         <Route path="ai-planner" element={<ProtectedRoute><AIPlanner /></ProtectedRoute>} />
         <Route path="calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
