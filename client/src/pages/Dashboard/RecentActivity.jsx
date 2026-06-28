@@ -1,30 +1,32 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { getTasks } from '../../services/taskService'
 
 function RecentActivity() {
   const [activities, setActivities] = useState([])
   const navigate = useNavigate()
 
   useEffect(() => {
-    const update = () => {
+    const fetchTasks = async () => {
       try {
-        const tasks = JSON.parse(localStorage.getItem('flowsync_tasks') || '[]')
+        const data = await getTasks()
+        const tasks = Array.isArray(data) ? data : []
         const recent = tasks
-          .filter(t => t.completed || t.dueDate)
-          .sort((a, b) => new Date(b.createdAt || b.dueDate) - new Date(a.createdAt || a.dueDate))
+          .filter(t => t.status === 'done' || t.deadline)
+          .sort((a, b) => new Date(b.createdAt || b.deadline) - new Date(a.createdAt || a.deadline))
           .slice(0, 5)
           .map(t => ({
             id: t._id,
-            text: t.completed ? `"${t.title}" completed` : `"${t.title}" scheduled`,
-            type: t.completed ? 'completed' : 'added',
-            time: t.completed ? new Date(t.dueDate || t.createdAt) : new Date(t.createdAt || t.dueDate),
+            text: t.status === 'done' ? `"${t.title}" completed` : `"${t.title}" scheduled`,
+            type: t.status === 'done' ? 'completed' : 'added',
+            time: t.status === 'done' ? new Date(t.deadline || t.createdAt) : new Date(t.createdAt || t.deadline),
           }))
         setActivities(recent)
       } catch { /* ignore */ }
     }
-    update()
-    const interval = setInterval(update, 10000)
+    fetchTasks()
+    const interval = setInterval(fetchTasks, 10000)
     return () => clearInterval(interval)
   }, [])
 

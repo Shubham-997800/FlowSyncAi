@@ -6,10 +6,7 @@ import MonthlyChart from './MonthlyChart'
 import FocusChart from './FocusChart'
 import AIReport from './AIReport'
 import Achievements from './Achievements'
-
-function loadTasks() {
-  try { const d = localStorage.getItem('flowsync_tasks'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
+import { getTasks } from '../../services/taskService'
 
 function loadGoalData() {
   try { const d = localStorage.getItem('flowsync_goals'); return d ? JSON.parse(d) : [] } catch { return [] }
@@ -20,20 +17,27 @@ function loadHabitData() {
 }
 
 function Analytics() {
-  const [tasks, setTasks] = useState(loadTasks)
+  const [tasks, setTasks] = useState([])
   const [goals] = useState(loadGoalData)
   const [habits] = useState(loadHabitData)
   const [period, setPeriod] = useState('weekly')
 
   useEffect(() => {
-    const interval = setInterval(() => setTasks(loadTasks()), 2000)
+    const fetchTasks = async () => {
+      try {
+        const data = await getTasks()
+        setTasks(Array.isArray(data) ? data : [])
+      } catch { /* ignore */ }
+    }
+    fetchTasks()
+    const interval = setInterval(fetchTasks, 2000)
     return () => clearInterval(interval)
   }, [])
 
   const total = tasks.length
-  const completed = tasks.filter(t => t.completed).length
+  const completed = tasks.filter(t => t.status === 'done').length
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
-  const overdue = tasks.filter(t => t.dueDate && !t.completed && t.dueDate < new Date().toISOString().split('T')[0]).length
+  const overdue = tasks.filter(t => t.deadline && t.status !== 'done' && new Date(t.deadline).toISOString().split('T')[0] < new Date().toISOString().split('T')[0]).length
   const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
   const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
   const habitStreaks = habits.filter(h => (h.streak || 0) >= 3).length

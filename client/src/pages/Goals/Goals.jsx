@@ -1,29 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, Target, Calendar, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-function loadGoals() {
-  try { const d = localStorage.getItem('flowsync_goals'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
-function saveGoals(g) { localStorage.setItem('flowsync_goals', JSON.stringify(g)) }
-
-const categories = [
-  { key: 'career', label: 'Career', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-  { key: 'health', label: 'Health', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
-  { key: 'learning', label: 'Learning', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-  { key: 'personal', label: 'Personal', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30' },
-]
+import { getGoals, createGoal, updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '../../services/goalService'
 
 function GoalForm({ goal, onSave, onClose }) {
   const [title, setTitle] = useState(goal?.title || '')
   const [description, setDescription] = useState(goal?.description || '')
-  const [category, setCategory] = useState(goal?.category || 'career')
-  const [targetDate, setTargetDate] = useState(goal?.targetDate || '')
+  const [status, setStatus] = useState(goal?.status || 'active')
+  const [targetDate, setTargetDate] = useState(goal?.targetDate ? goal.targetDate.split('T')[0] : '')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) return toast.error('Goal title is required')
-    onSave({ title: title.trim(), description: description.trim(), category, targetDate, progress: goal?.progress || 0, createdAt: goal?.createdAt || new Date().toISOString() })
+    await onSave({ title: title.trim(), description: description.trim(), status, targetDate, progress: goal?.progress || 0 })
     toast.success(goal ? 'Goal updated' : 'Goal created')
     onClose()
   }
@@ -46,9 +35,9 @@ function GoalForm({ goal, onSave, onClose }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
-              <select value={category} onChange={e => setCategory(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                {categories.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status</label>
+              <select value={status} onChange={e => setStatus(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                {['active', 'completed', 'cancelled'].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
               </select>
             </div>
             <div>
@@ -64,18 +53,45 @@ function GoalForm({ goal, onSave, onClose }) {
 }
 
 function Goals() {
-  const [goals, setGoals] = useState(loadGoals)
+  const [goals, setGoals] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
 
-  useEffect(() => { saveGoals(goals) }, [goals])
+  const fetchGoals = async () => {
+    try {
+      const data = await getGoals()
+      setGoals(Array.isArray(data) ? data : [])
+    } catch { /* ignore */ }
+  }
 
-  const addGoal = (data) => setGoals(prev => [{ ...data, _id: Date.now().toString() }, ...prev])
-  const updateGoal = (id, data) => setGoals(prev => prev.map(g => g._id === id ? { ...g, ...data } : g))
-  const deleteGoal = (id) => { setGoals(prev => prev.filter(g => g._id !== id)); toast.success('Goal deleted') }
-  const updateProgress = (id, progress) => setGoals(prev => prev.map(g => g._id === id ? { ...g, progress: Math.min(100, Math.max(0, progress)) } : g))
+  useEffect(() => { fetchGoals() }, [])
 
-  const getCategory = (key) => categories.find(c => c.key === key) || categories[0]
+  const addGoal = async (data) => {
+    await createGoal(data)
+    await fetchGoals()
+  }
+
+  const updateGoal = async (id, data) => {
+    await updateGoalApi(id, data)
+    await fetchGoals()
+  }
+
+  const deleteGoal = async (id) => {
+    await deleteGoalApi(id)
+    await fetchGoals()
+    toast.success('Goal deleted')
+  }
+
+  const updateProgress = async (id, progress) => {
+    await updateGoalApi(id, { progress: Math.min(100, Math.max(0, progress)) })
+    await fetchGoals()
+  }
+
+  const getStatusStyle = (status) => {
+    if (status === 'completed') return { color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' }
+    if (status === 'cancelled') return { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' }
+    return { color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' }
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -99,14 +115,14 @@ function Goals() {
       ) : (
         <div className="grid sm:grid-cols-2 gap-4">
           {goals.map(goal => {
-            const cat = getCategory(goal.category)
+            const ss = getStatusStyle(goal.status)
             const daysLeft = goal.targetDate ? Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
             const isOverdue = daysLeft !== null && daysLeft < 0
             return (
               <div key={goal._id} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:shadow-sm transition">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${cat.bg} ${cat.color}`}><Target size={12} /> {cat.label}</span>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${ss.bg} ${ss.color}`}><Target size={12} /> {goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}</span>
                     {isOverdue && <span className="text-xs text-red-500 dark:text-red-400 font-medium">Overdue</span>}
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">

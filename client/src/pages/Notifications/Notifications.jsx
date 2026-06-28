@@ -1,13 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bell, CheckCheck } from 'lucide-react'
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
-
-function loadNotifications() {
-  try { const d = localStorage.getItem('flowsync_notifications'); return d ? JSON.parse(d) : [] } catch { /* ignore */ return [] }
-}
-function saveNotifications(n) { localStorage.setItem('flowsync_notifications', JSON.stringify(n)) }
+import { getNotifications, markAsRead } from '../../services/notificationService'
 
 function createSystemNotification(type) {
   const msgs = {
@@ -18,29 +14,43 @@ function createSystemNotification(type) {
     overdue: { icon: 'AlertTriangle', title: 'Overdue Task', message: 'You have tasks that need attention.', type: 'alert' },
   }
   const n = msgs[type] || msgs.task
-  return { id: Date.now(), ...n, read: false, time: new Date().toISOString() }
+  return { _id: Date.now().toString(), ...n, read: false, time: new Date().toISOString() }
 }
 
 function Notifications() {
-  const [notifications, setNotifications] = useState(loadNotifications)
+  const [notifications, setNotifications] = useState([])
   const [activeTab, setActiveTab] = useState('all')
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const data = await getNotifications()
+        const items = (Array.isArray(data) ? data : []).map(n => ({
+          ...n,
+          id: n._id,
+          read: n.status === 'read',
+          time: n.createdAt,
+        }))
+        setNotifications(items)
+      } catch { /* ignore */ }
+    }
+    fetchNotifications()
+  }, [])
 
   const addNotification = (type) => {
     const n = createSystemNotification(type)
-    const updated = [n, ...notifications]
-    setNotifications(updated)
-    saveNotifications(updated)
+    setNotifications(prev => [n, ...prev])
   }
 
-  const markRead = (id) => {
-    const updated = notifications.map(n => n.id === id ? { ...n, read: true } : n)
-    setNotifications(updated)
-    saveNotifications(updated)
+  const markRead = async (id) => {
+    try {
+      await markAsRead(id)
+      setNotifications(prev => prev.map(n => (n.id === id || n._id === id) ? { ...n, read: true } : n))
+    } catch { /* ignore */ }
   }
 
   const dismissAll = () => {
     setNotifications([])
-    saveNotifications([])
   }
 
   const today = notifications.filter(n => {

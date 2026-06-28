@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Shield, Trash2, Download, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import { updateProfile, deleteAccount as deleteAccountApi } from '../../services/settingsService'
 
 function AccountSettings() {
   const { logout } = useAuth()
@@ -26,10 +27,15 @@ function AccountSettings() {
     toast.success('All data cleared')
   }
 
-  const handleDeleteAccount = () => {
-    toast.success('Account deleted (demo)')
-    logout()
-    navigate('/')
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccountApi()
+      toast.success('Account deleted')
+      logout()
+      navigate('/')
+    } catch {
+      toast.error('Failed to delete account')
+    }
   }
 
   const handleLogoutAll = () => {

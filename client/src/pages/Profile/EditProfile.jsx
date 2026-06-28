@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { Save } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { updateProfile } from '../../services/settingsService'
 
 function EditProfile() {
   const { user } = useAuth()
@@ -17,10 +18,15 @@ function EditProfile() {
     return Object.keys(e).length === 0
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) return
-    toast.success('Profile updated successfully')
+    try {
+      await updateProfile({ name: form.name, email: form.email })
+      toast.success('Profile updated successfully')
+    } catch {
+      toast.error('Failed to update profile')
+    }
   }
 
   const fields = [

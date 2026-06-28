@@ -4,6 +4,7 @@ import ThemeSettings from './ThemeSettings'
 import NotificationSettings from './NotificationSettings'
 import AISettings from './AISettings'
 import AccountSettings from './AccountSettings'
+import { getProfile, deleteAccount } from '../../services/settingsService'
 
 const sidebarItems = [
   { key: 'theme', label: 'Theme', icon: Palette },

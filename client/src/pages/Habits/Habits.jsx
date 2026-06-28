@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, X, Flame, CheckCircle2, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-function loadHabits() {
-  try { const d = localStorage.getItem('flowsync_habits'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
-function saveHabits(h) { localStorage.setItem('flowsync_habits', JSON.stringify(h)) }
+import { getHabits, createHabit, updateHabit as updateHabitApi, deleteHabit as deleteHabitApi } from '../../services/habitService'
 
 function getWeekDates() {
   const dates = []
@@ -26,10 +22,10 @@ function HabitForm({ habit, onSave, onClose }) {
   const [title, setTitle] = useState(habit?.title || '')
   const [frequency, setFrequency] = useState(habit?.frequency || 'daily')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) return toast.error('Habit title is required')
-    onSave({ title: title.trim(), frequency, createdAt: habit?.createdAt || new Date().toISOString(), streak: habit?.streak || 0, logs: habit?.logs || [], lastLogDate: habit?.lastLogDate || null })
+    await onSave({ title: title.trim(), frequency })
     toast.success(habit ? 'Habit updated' : 'Habit created')
     onClose()
   }
@@ -64,15 +60,34 @@ function HabitForm({ habit, onSave, onClose }) {
 }
 
 function Habits() {
-  const [habits, setHabits] = useState(loadHabits)
+  const [habits, setHabits] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
 
-  useEffect(() => { saveHabits(habits) }, [habits])
+  const fetchHabits = async () => {
+    try {
+      const data = await getHabits()
+      setHabits(Array.isArray(data) ? data : [])
+    } catch { /* ignore */ }
+  }
 
-  const addHabit = (data) => setHabits(prev => [{ ...data, _id: Date.now().toString() }, ...prev])
-  const updateHabit = (id, data) => setHabits(prev => prev.map(h => h._id === id ? { ...h, ...data } : h))
-  const deleteHabit = (id) => { setHabits(prev => prev.filter(h => h._id !== id)); toast.success('Habit deleted') }
+  useEffect(() => { fetchHabits() }, [])
+
+  const addHabit = async (data) => {
+    await createHabit(data)
+    await fetchHabits()
+  }
+
+  const updateHabit = async (id, data) => {
+    await updateHabitApi(id, data)
+    await fetchHabits()
+  }
+
+  const deleteHabit = async (id) => {
+    await deleteHabitApi(id)
+    await fetchHabits()
+    toast.success('Habit deleted')
+  }
 
   const toggleLog = (id) => {
     const today = getToday()

@@ -5,16 +5,20 @@ import CurrentTask from './CurrentTask'
 import SessionStats from './SessionStats'
 import FocusMusic from './FocusMusic'
 import toast from 'react-hot-toast'
-
-function loadTasks() {
-  try { const d = localStorage.getItem('flowsync_tasks'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
+import { getTasks } from '../../services/taskService'
 
 function FocusMode() {
-  const [tasks, setTasks] = useState(loadTasks)
+  const [tasks, setTasks] = useState([])
 
   useEffect(() => {
-    const interval = setInterval(() => setTasks(loadTasks()), 5000)
+    const fetchTasks = async () => {
+      try {
+        const data = await getTasks()
+        setTasks(Array.isArray(data) ? data : [])
+      } catch { /* ignore */ }
+    }
+    fetchTasks()
+    const interval = setInterval(fetchTasks, 5000)
     return () => clearInterval(interval)
   }, [])
   const [selectedTask, setSelectedTask] = useState(null)
@@ -43,7 +47,7 @@ function FocusMode() {
     }
   }
 
-  const activeTasks = tasks.filter(t => !t.completed)
+  const activeTasks = tasks.filter(t => t.status !== 'done')
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

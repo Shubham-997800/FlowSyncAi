@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { User, Settings as SettingsIcon, LogOut } from 'lucide-react'
 import EditProfile from './EditProfile'
@@ -7,6 +7,7 @@ import AvatarUpload from './AvatarUpload'
 import UserStats from './UserStats'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import { getTasks } from '../../services/taskService'
 
 function Profile() {
   const { user, logout } = useAuth()
@@ -80,21 +81,28 @@ function Profile() {
 }
 
 function RecentActivity() {
-  const [activities] = useState(() => {
-    try {
-      const tasks = JSON.parse(localStorage.getItem('flowsync_tasks') || '[]')
-      return tasks
-        .filter(t => t.dueDate)
-        .sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate))
-        .slice(0, 10)
-        .map(t => ({
-          id: t._id,
-          text: t.title,
-          type: t.completed ? 'completed' : 'pending',
-          date: t.dueDate,
-        }))
-    } catch { return [] }
-  })
+  const [activities, setActivities] = useState([])
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const data = await getTasks()
+        const tasks = Array.isArray(data) ? data : []
+        const items = tasks
+          .filter(t => t.deadline)
+          .sort((a, b) => new Date(b.deadline) - new Date(a.deadline))
+          .slice(0, 10)
+          .map(t => ({
+            id: t._id,
+            text: t.title,
+            type: t.status === 'done' ? 'completed' : 'pending',
+            date: t.deadline ? new Date(t.deadline).toLocaleDateString() : '',
+          }))
+        setActivities(items)
+      } catch { setActivities([]) }
+    }
+    fetchTasks()
+  }, [])
 
   if (activities.length === 0) {
     return (

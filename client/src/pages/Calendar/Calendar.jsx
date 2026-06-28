@@ -5,19 +5,24 @@ import WeeklyView from './WeeklyView'
 import DailyView from './DailyView'
 import SchedulePreview from './SchedulePreview'
 import toast from 'react-hot-toast'
-
-function loadTasks() {
-  try { const d = localStorage.getItem('flowsync_tasks'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
+import { getTasks } from '../../services/taskService'
 
 function Calendar() {
-  const [tasks, setTasks] = useState(loadTasks)
+  const [tasks, setTasks] = useState([])
   const [view, setView] = useState('monthly')
   const [selectedDate, setSelectedDate] = useState(null)
   const [showDaily, setShowDaily] = useState(false)
 
   useEffect(() => {
-    const interval = setInterval(() => setTasks(loadTasks()), 2000)
+    const fetchTasks = async () => {
+      try {
+        const data = await getTasks()
+        const mapped = (Array.isArray(data) ? data : []).map(t => ({ ...t, dueDate: t.deadline }))
+        setTasks(mapped)
+      } catch { /* ignore */ }
+    }
+    fetchTasks()
+    const interval = setInterval(fetchTasks, 2000)
     return () => clearInterval(interval)
   }, [])
 

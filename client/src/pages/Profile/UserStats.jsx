@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Flame, TrendingUp, Target } from 'lucide-react'
+import { getTasks } from '../../services/taskService'
 
 function UserStats() {
   const [stats, setStats] = useState({ total: 0, completed: 0, focusMinutes: 0, focusSessions: 0, streak: 0 })
   const [weekData, setWeekData] = useState([])
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const fetchData = async () => {
       try {
-        const tasks = JSON.parse(localStorage.getItem('flowsync_tasks') || '[]')
+        const data = await getTasks()
+        const tasks = Array.isArray(data) ? data : []
         const total = tasks.length
-        const completed = tasks.filter(t => t.completed).length
+        const completed = tasks.filter(t => t.status === 'done').length
         const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
         const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
         const habits = JSON.parse(localStorage.getItem('flowsync_habits') || '[]')
@@ -21,12 +23,17 @@ function UserStats() {
         const wd = weekDays.map((_, i) => {
           const d = new Date(); d.setDate(d.getDate() - (6 - i))
           const dateStr = d.toISOString().split('T')[0]
-          const dayTasks = tasks.filter(t => t.dueDate === dateStr)
-          return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.completed).length / dayTasks.length) * 100) : 0
+          const dayTasks = tasks.filter(t => {
+            const deadline = t.deadline ? new Date(t.deadline).toISOString().split('T')[0] : null
+            return deadline === dateStr
+          })
+          return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.status === 'done').length / dayTasks.length) * 100) : 0
         })
         setWeekData(wd)
       } catch { /* ignore */ }
-    }, 2000)
+    }
+    fetchData()
+    const interval = setInterval(fetchData, 2000)
     return () => clearInterval(interval)
   }, [])
 
