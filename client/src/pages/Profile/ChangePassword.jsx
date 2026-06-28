@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Lock, Eye, EyeOff, Shield, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { updatePassword } from '../../services/settingsService'
 
 function getStrength(pw) {
   let score = 0
@@ -19,13 +20,16 @@ function ChangePassword() {
   const [show, setShow] = useState({ current: false, newPw: false, confirm: false })
   const strength = getStrength(form.newPw)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.current || !form.newPw || !form.confirm) { toast.error('All fields are required'); return }
     if (form.newPw !== form.confirm) { toast.error('Passwords do not match'); return }
     if (form.newPw.length < 8) { toast.error('Password must be at least 8 characters'); return }
-    toast.success('Password changed successfully')
-    setForm({ current: '', newPw: '', confirm: '' })
+    try {
+      await updatePassword({ currentPassword: form.current, newPassword: form.newPw })
+      toast.success('Password changed successfully')
+      setForm({ current: '', newPw: '', confirm: '' })
+    } catch { toast.error('Failed to update password. Check your current password.') }
   }
 
   const fields = [

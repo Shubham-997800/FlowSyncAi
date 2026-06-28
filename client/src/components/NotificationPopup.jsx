@@ -1,23 +1,25 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info } from 'lucide-react'
+import { getNotifications } from '../services/notificationService'
 
 const iconMap = { CheckCircle, Target, Flame, Timer, AlertTriangle, Info }
 
-function loadNotifications() {
-  try { const d = localStorage.getItem('flowsync_notifications'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
-
 function NotificationPopup() {
-  const [notifications, setNotifications] = useState(loadNotifications)
+  const [notifications, setNotifications] = useState([])
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const ref = useRef(null)
 
   useEffect(() => {
-    const update = () => setNotifications(loadNotifications())
-    update()
-    const interval = setInterval(update, 5000)
+    const fetch = async () => {
+      try {
+        const data = await getNotifications()
+        setNotifications(Array.isArray(data) ? data : [])
+      } catch { /* ignore */ }
+    }
+    fetch()
+    const interval = setInterval(fetch, 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -28,7 +30,7 @@ function NotificationPopup() {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
-  const unread = notifications.filter(n => !n.read).length
+  const unread = notifications.filter(n => n.status !== 'read').length
   const recent = notifications.slice(0, 5)
 
   const timeAgo = (time) => {
@@ -70,8 +72,9 @@ function NotificationPopup() {
                 <div className="divide-y divide-slate-100 dark:divide-zinc-800">
                   {recent.map(n => {
                     const Icon = iconMap[n.icon] || Info
+                    const isRead = n.status === 'read'
                     return (
-                      <button key={n.id} onClick={() => { setOpen(false); navigate('/notifications') }} className={`w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-zinc-800 transition flex items-start gap-3 ${n.read ? 'opacity-60' : ''}`}>
+                      <button key={n._id} onClick={() => { setOpen(false); navigate('/notifications') }} className={`w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-zinc-800 transition flex items-start gap-3 ${isRead ? 'opacity-60' : ''}`}>
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
                           n.type === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30' : n.type === 'alert' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'
                         }`}>
@@ -81,8 +84,8 @@ function NotificationPopup() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <p className={`text-xs font-medium ${n.read ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>{n.title}</p>
-                            <span className="text-[9px] text-slate-400 dark:text-slate-500 flex-shrink-0">{timeAgo(n.time)}</span>
+                            <p className={`text-xs font-medium ${isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>{n.title}</p>
+                            <span className="text-[9px] text-slate-400 dark:text-slate-500 flex-shrink-0">{timeAgo(n.createdAt)}</span>
                           </div>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{n.message}</p>
                         </div>

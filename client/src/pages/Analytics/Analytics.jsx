@@ -7,30 +7,26 @@ import FocusChart from './FocusChart'
 import AIReport from './AIReport'
 import Achievements from './Achievements'
 import { getTasks } from '../../services/taskService'
-
-function loadGoalData() {
-  try { const d = localStorage.getItem('flowsync_goals'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
-
-function loadHabitData() {
-  try { const d = localStorage.getItem('flowsync_habits'); return d ? JSON.parse(d) : [] } catch { return [] }
-}
+import { getGoals } from '../../services/goalService'
+import { getHabits } from '../../services/habitService'
 
 function Analytics() {
   const [tasks, setTasks] = useState([])
-  const [goals] = useState(loadGoalData)
-  const [habits] = useState(loadHabitData)
+  const [goals, setGoals] = useState([])
+  const [habits, setHabits] = useState([])
   const [period, setPeriod] = useState('weekly')
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetch = async () => {
       try {
-        const data = await getTasks()
-        setTasks(Array.isArray(data) ? data : [])
+        const [t, g, h] = await Promise.all([getTasks(), getGoals(), getHabits()])
+        setTasks(Array.isArray(t) ? t : [])
+        setGoals(Array.isArray(g) ? g : [])
+        setHabits(Array.isArray(h) ? h : [])
       } catch { /* ignore */ }
     }
-    fetchTasks()
-    const interval = setInterval(fetchTasks, 2000)
+    fetch()
+    const interval = setInterval(fetch, 10000)
     return () => clearInterval(interval)
   }, [])
 
@@ -38,8 +34,8 @@ function Analytics() {
   const completed = tasks.filter(t => t.status === 'done').length
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
   const overdue = tasks.filter(t => t.deadline && t.status !== 'done' && new Date(t.deadline).toISOString().split('T')[0] < new Date().toISOString().split('T')[0]).length
-  const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
-  const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
+  const focusSessions = 0
+  const focusMinutes = 0
   const habitStreaks = habits.filter(h => (h.streak || 0) >= 3).length
 
   const topCards = [

@@ -89,22 +89,22 @@ function Habits() {
     toast.success('Habit deleted')
   }
 
-  const toggleLog = (id) => {
+  const toggleLog = async (id) => {
     const today = getToday()
-    setHabits(prev => prev.map(h => {
-      if (h._id !== id) return h
-      const hasLogged = h.logs?.includes(today)
-      const logs = hasLogged ? (h.logs || []).filter(d => d !== today) : [...(h.logs || []), today]
-      const sortedLogs = logs.sort()
-      let streak = 0
-      const checkDate = new Date()
-      while (true) {
-        const d = checkDate.toISOString().split('T')[0]
-        if (sortedLogs.includes(d)) { streak++; checkDate.setDate(checkDate.getDate() - 1) }
-        else break
-      }
-      return { ...h, logs: sortedLogs, streak }
-    }))
+    const h = habits.find(x => x._id === id)
+    if (!h) return
+    const hasLogged = h.logs?.includes(today)
+    const newLogs = hasLogged ? (h.logs || []).filter(d => d !== today) : [...(h.logs || []), today]
+    const sortedLogs = newLogs.sort()
+    let streak = 0
+    const checkDate = new Date()
+    while (true) {
+      const d = checkDate.toISOString().split('T')[0]
+      if (sortedLogs.includes(d)) { streak++; checkDate.setDate(checkDate.getDate() - 1) }
+      else break
+    }
+    setHabits(prev => prev.map(x => x._id === id ? { ...x, logs: sortedLogs, streak } : x))
+    try { await updateHabitApi(id, { logs: sortedLogs, streak }) } catch { /* ignore */ }
   }
 
   const today = getToday()
