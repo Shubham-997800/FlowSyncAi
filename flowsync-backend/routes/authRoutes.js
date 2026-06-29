@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { signup, login, googleLogin } = require('../controllers/authController')
+const { signup, login } = require('../controllers/authController')
 const { authLimiter } = require('../middleware/rateLimiter')
 const router = Router()
 router.use(authLimiter)
@@ -9,5 +9,4 @@ router.get('/ping-async', async (req, res, next) => {
 })
 router.post('/signup', signup)
 router.post('/login', login)
-router.post('/google', googleLogin)
 module.exports = router
