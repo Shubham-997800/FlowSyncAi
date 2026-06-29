@@ -1,9 +1,27 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info } from 'lucide-react'
+import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info, Sparkles } from 'lucide-react'
 import { getNotifications } from '../services/notificationService'
 
-const iconMap = { CheckCircle, Target, Flame, Timer, AlertTriangle, Info }
+const typeIconMap = {
+  deadline_alert: AlertTriangle,
+  ai_suggestion: Sparkles,
+  reminder: Bell,
+  system: Info,
+  success: CheckCircle,
+  info: Info,
+  alert: AlertTriangle,
+}
+
+const typeColorMap = {
+  deadline_alert: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+  ai_suggestion: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+  reminder: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+  system: 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400',
+  success: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+  info: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+  alert: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+}
 
 function NotificationPopup() {
   const [notifications, setNotifications] = useState([])
@@ -71,16 +89,13 @@ function NotificationPopup() {
               ) : (
                 <div className="divide-y divide-slate-100 dark:divide-zinc-800">
                   {recent.map(n => {
-                    const Icon = iconMap[n.icon] || Info
+                    const Icon = typeIconMap[n.type] || Info
+                    const colorClass = typeColorMap[n.type] || typeColorMap.system
                     const isRead = n.status === 'read'
                     return (
                       <button key={n._id} onClick={() => { setOpen(false); navigate('/notifications') }} className={`w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-zinc-800 transition flex items-start gap-3 ${isRead ? 'opacity-60' : ''}`}>
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          n.type === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30' : n.type === 'alert' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'
-                        }`}>
-                          <Icon size={14} className={
-                            n.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : n.type === 'alert' ? 'text-red-600 dark:text-red-400' : 'text-indigo-600 dark:text-indigo-400'
-                          } />
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}>
+                          <Icon size={14} className={colorClass.split(' ').slice(2).join(' ')} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">

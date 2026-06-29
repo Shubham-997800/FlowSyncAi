@@ -3,19 +3,28 @@ import { Bell, CheckCheck } from 'lucide-react'
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
-import { getNotifications, markAsRead } from '../../services/notificationService'
+import { getNotifications, markAsRead, createNotification } from '../../services/notificationService'
 
-function createSystemNotification(type) {
+function normalizeNotification(n) {
+  const id = n._id
+  const read = n.status === 'read'
+  const time = n.createdAt
+  return { ...n, id, read, time }
+}
+
+function createLocalNotification(type) {
   const msgs = {
-    task: { icon: 'CheckCircle', title: 'Task Completed', message: 'Great job! Keep up the momentum.', type: 'success' },
-    goal: { icon: 'Target', title: 'Goal Milestone', message: 'You\'re making progress on your goals.', type: 'info' },
-    habit: { icon: 'Flame', title: 'Habit Streak', message: 'Consistency is key. Stay on track.', type: 'reminder' },
-    focus: { icon: 'Timer', title: 'Focus Session Done', message: 'Well done on completing a focus session.', type: 'success' },
-    overdue: { icon: 'AlertTriangle', title: 'Overdue Task', message: 'You have tasks that need attention.', type: 'alert' },
+    task: { title: 'Task Completed', message: 'Great job! Keep up the momentum.', type: 'success' },
+    goal: { title: 'Goal Milestone', message: 'You\'re making progress on your goals.', type: 'info' },
+    habit: { title: 'Habit Streak', message: 'Consistency is key. Stay on track.', type: 'reminder' },
+    focus: { title: 'Focus Session Done', message: 'Well done on completing a focus session.', type: 'success' },
+    overdue: { title: 'Overdue Task', message: 'You have tasks that need attention.', type: 'alert' },
   }
   const n = msgs[type] || msgs.task
-  return { _id: Date.now().toString(), ...n, read: false, time: new Date().toISOString() }
+  return { _id: 'local_' + Date.now().toString(), ...n, status: 'unread', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
 }
+
+const isLocalId = (id) => typeof id === 'string' && id.startsWith('local_')
 
 function Notifications() {
   const [notifications, setNotifications] = useState([])
@@ -25,12 +34,7 @@ function Notifications() {
     const fetchNotifications = async () => {
       try {
         const data = await getNotifications()
-        const items = (Array.isArray(data) ? data : []).map(n => ({
-          ...n,
-          id: n._id,
-          read: n.status === 'read',
-          time: n.createdAt,
-        }))
+        const items = (Array.isArray(data) ? data : []).map(normalizeNotification)
         setNotifications(items)
       } catch { /* ignore */ }
     }
@@ -38,37 +42,22 @@ function Notifications() {
   }, [])
 
   const addNotification = (type) => {
-    const n = createSystemNotification(type)
-    setNotifications(prev => [n, ...prev])
+    const n = createLocalNotification(type)
+    const normalized = normalizeNotification(n)
+    setNotifications(prev => [normalized, ...prev])
+    createNotification({ type: normalized.type, title: normalized.title, message: normalized.message }).catch(() => {})
   }
 
   const markRead = async (id) => {
-    try {
-      await markAsRead(id)
-      setNotifications(prev => prev.map(n => (n.id === id || n._id === id) ? { ...n, read: true } : n))
-    } catch { /* ignore */ }
+    setNotifications(prev => prev.map(n => (n.id === id || n._id === id) ? { ...n, read: true, status: 'read' } : n))
+    if (!isLocalId(id)) {
+      try { await markAsRead(id) } catch { /* ignore */ }
+    }
   }
 
   const dismissAll = () => {
     setNotifications([])
   }
-
-  const today = notifications.filter(n => {
-    const d = new Date(n.time); const now = new Date()
-    return d.toDateString() === now.toDateString()
-  })
-  const thisWeek = notifications.filter(n => {
-    const d = new Date(n.time); const now = new Date()
-    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
-    return !today.includes(n) && d >= weekAgo
-  })
-  const earlier = notifications.filter(n => {
-    const d = new Date(n.time); const now = new Date()
-    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
-    return d < weekAgo
-  })
-
-  const unread = notifications.filter(n => !n.read).length
 
   const sampleTypes = ['task', 'goal', 'habit', 'focus', 'overdue']
 
@@ -129,7 +118,7 @@ function Notifications() {
                 <div>
                   <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Today</h3>
                   <div className="space-y-2">
-                    {today.map(n => n.type === 'alert' ? <AlertCard key={n.id} notification={n} onMarkRead={markRead} /> : n.type === 'reminder' ? <ReminderCard key={n.id} notification={n} onMarkRead={markRead} /> : <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                    {today.map(n => (n.type === 'alert' || n.type === 'deadline_alert') ? <AlertCard key={n.id} notification={n} onMarkRead={markRead} /> : n.type === 'reminder' ? <ReminderCard key={n.id} notification={n} onMarkRead={markRead} /> : <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
                   </div>
                 </div>
               )}

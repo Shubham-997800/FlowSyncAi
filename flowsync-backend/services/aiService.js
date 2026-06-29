@@ -6,13 +6,14 @@ async function callGrok(prompt) {
   const ai = getAI()
   try {
     const res = await ai.chat.completions.create({
-      model: 'grok-4.3',
+      model: 'grok-2-latest',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
     })
     return res.choices[0]?.message?.content || ''
   } catch (err) {
-    if (err.message && err.message.includes('429')) {
+    const msg = err.message || ''
+    if (msg.includes('429') || msg.includes('401') || msg.includes('402') || msg.includes('insufficient_quota') || msg.includes('invalid_api_key') || msg.includes('Incorrect API key')) {
       throw new Error('AI_SERVICE_UNAVAILABLE')
     }
     throw err

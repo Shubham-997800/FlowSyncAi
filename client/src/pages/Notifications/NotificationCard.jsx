@@ -1,24 +1,48 @@
 import { useMemo } from 'react'
-import { CheckCircle, Info, Timer } from 'lucide-react'
+import { CheckCircle, Info, Timer, Bell, AlertTriangle, Sparkles } from 'lucide-react'
 
-const iconMap = { CheckCircle, Info, Timer }
+const typeIconMap = {
+  deadline_alert: AlertTriangle,
+  ai_suggestion: Sparkles,
+  reminder: Bell,
+  system: Info,
+  success: CheckCircle,
+  info: Info,
+  alert: AlertTriangle,
+}
 
 const borderColorMap = {
+  deadline_alert: 'border-red-500',
+  ai_suggestion: 'border-indigo-500',
+  reminder: 'border-indigo-500',
+  system: 'border-slate-300 dark:border-zinc-600',
   success: 'border-emerald-500',
   info: 'border-indigo-500',
-  default: 'border-slate-300 dark:border-zinc-600',
+  alert: 'border-red-500',
+}
+
+const bgColorMap = {
+  deadline_alert: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
+  ai_suggestion: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+  reminder: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+  system: 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400',
+  success: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400',
+  info: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
+  alert: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 }
 
 function NotificationCard({ notification, onMarkRead }) {
-  const { icon, title, message, type, read, time } = notification
-  const Icon = iconMap[icon] || Info
-  const border = borderColorMap[type] || borderColorMap.default
-  const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time]) // eslint-disable-line react-hooks/purity
+  const { title, message, type, read, time } = notification
+  const Icon = typeIconMap[type] || Info
+  const border = borderColorMap[type] || borderColorMap.system
+  const colors = bgColorMap[type] || bgColorMap.system
+  const id = notification.id || notification._id
+  const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time])
 
   return (
     <div className={`flex items-start gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900 border-l-4 ${border} shadow-sm transition-all duration-300 hover:scale-[1.02] ${read ? 'opacity-60' : ''}`}>
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${type === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30' : type === 'info' ? 'bg-indigo-100 dark:bg-indigo-900/30' : 'bg-slate-100 dark:bg-zinc-800'}`}>
-        <Icon size={18} className={type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : type === 'info' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'} />
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colors.split(' ')[0]} ${colors.split(' ')[1]}`}>
+        <Icon size={18} className={colors.split(' ').slice(2).join(' ')} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
@@ -26,7 +50,7 @@ function NotificationCard({ notification, onMarkRead }) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-[10px] text-slate-400 dark:text-slate-500">{timeAgo < 1 ? 'now' : timeAgo < 60 ? `${timeAgo}m ago` : `${Math.floor(timeAgo / 60)}h ago`}</span>
             {!read && (
-              <button onClick={() => onMarkRead(notification.id)} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors duration-200">
+              <button onClick={() => onMarkRead(id)} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors duration-200">
                 <CheckCircle size={14} className="text-indigo-500" />
               </button>
             )}
