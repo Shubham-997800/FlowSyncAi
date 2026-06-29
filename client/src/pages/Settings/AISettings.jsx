@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Brain, Zap, Timer, AArrowDown } from 'lucide-react'
+import { Brain, Zap, Timer, ArrowDown } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 function AISettings() {
@@ -32,7 +32,7 @@ function AISettings() {
   const toggles = [
     { key: 'autoScheduling', label: 'Auto Scheduling', desc: 'AI automatically schedules tasks based on priority and deadlines', icon: Timer },
     { key: 'smartPrioritization', label: 'Smart Prioritization', desc: 'AI reorders your task list to focus on what matters most', icon: Zap },
-    { key: 'rescueMode', label: 'Rescue Mode', desc: 'AI reorganizes your schedule when you fall behind', icon: AArrowDown },
+    { key: 'rescueMode', label: 'Rescue Mode', desc: 'AI reorganizes your schedule when you fall behind', icon: ArrowDown },
   ]
 
   return (

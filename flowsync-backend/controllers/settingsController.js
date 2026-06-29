@@ -11,7 +11,9 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { name, email, bio, phone, location, jobTitle } = req.body
-    const updates = { name, email }
+    const updates = {}
+    if (name !== undefined) updates.name = name
+    if (email !== undefined) updates.email = email
     if (bio !== undefined) updates.bio = bio
     if (phone !== undefined) updates.phone = phone
     if (location !== undefined) updates.location = location
@@ -56,9 +58,21 @@ const updatePassword = async (req, res) => {
   }
 }
 
+const Task = require('../models/Task')
+const Goal = require('../models/Goal')
+const Habit = require('../models/Habit')
+const Notification = require('../models/Notification')
+
 const deleteAccount = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.user._id)
+    const userId = req.user._id
+    await Promise.all([
+      User.findByIdAndDelete(userId),
+      Task.deleteMany({ user: userId }),
+      Goal.deleteMany({ user: userId }),
+      Habit.deleteMany({ user: userId }),
+      Notification.deleteMany({ user: userId }),
+    ])
     res.json({ message: 'Account deleted' })
   } catch (error) {
     res.status(500).json({ message: error.message })

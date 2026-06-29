@@ -28,7 +28,7 @@ function Calendar() {
       } catch { /* ignore */ }
     }
     fetchTasks()
-    const interval = setInterval(fetchTasks, 2000)
+    const interval = setInterval(fetchTasks, 10000)
     return () => clearInterval(interval)
   }, [])
 

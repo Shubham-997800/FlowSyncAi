@@ -147,53 +147,85 @@ function TaskAndGoals() {
   }, [])
 
   const addTask = async (data) => {
-    const created = await createTask(data)
-    setTasks(prev => [created, ...prev])
-    toast.success('Task created')
-    setShowForm(false)
+    try {
+      const created = await createTask(data)
+      setTasks(prev => [created, ...prev])
+      toast.success('Task created')
+      setShowForm(false)
+    } catch {
+      toast.error('Failed to create task')
+    }
   }
 
   const handleUpdateTask = async (id, data) => {
-    const updated = await updateTask(id, data)
-    setTasks(prev => prev.map(t => t._id === id ? updated : t))
-    toast.success('Task updated')
-    setShowForm(false)
-    setEditing(null)
+    try {
+      const updated = await updateTask(id, data)
+      setTasks(prev => prev.map(t => t._id === id ? updated : t))
+      toast.success('Task updated')
+      setShowForm(false)
+      setEditing(null)
+    } catch {
+      toast.error('Failed to update task')
+    }
   }
 
   const handleDeleteTask = async (id) => {
-    await deleteTask(id)
-    setTasks(prev => prev.filter(t => t._id !== id))
-    toast.success('Task deleted')
+    try {
+      await deleteTask(id)
+      setTasks(prev => prev.filter(t => t._id !== id))
+      toast.success('Task deleted')
+    } catch {
+      toast.error('Failed to delete task')
+    }
   }
 
   const toggleComplete = async (id) => {
     const task = tasks.find(t => t._id === id)
     if (!task) return
     const newStatus = task.status === 'done' ? 'todo' : 'done'
-    const updated = await updateTask(id, { status: newStatus })
-    setTasks(prev => prev.map(t => t._id === id ? updated : t))
+    try {
+      const updated = await updateTask(id, { status: newStatus })
+      setTasks(prev => prev.map(t => t._id === id ? updated : t))
+    } catch {
+      toast.error('Failed to update task')
+    }
   }
 
   const addGoal = async (data) => {
-    await createGoal(data)
-    await fetchGoals()
+    try {
+      await createGoal(data)
+      await fetchGoals()
+    } catch {
+      toast.error('Failed to create goal')
+    }
   }
 
   const updateGoal = async (id, data) => {
-    await updateGoalApi(id, data)
-    await fetchGoals()
+    try {
+      await updateGoalApi(id, data)
+      await fetchGoals()
+    } catch {
+      toast.error('Failed to update goal')
+    }
   }
 
   const deleteGoal = async (id) => {
-    await deleteGoalApi(id)
-    await fetchGoals()
-    toast.success('Goal deleted')
+    try {
+      await deleteGoalApi(id)
+      await fetchGoals()
+      toast.success('Goal deleted')
+    } catch {
+      toast.error('Failed to delete goal')
+    }
   }
 
   const updateProgress = async (id, progress) => {
-    await updateGoalApi(id, { progress: Math.min(100, Math.max(0, progress)) })
-    await fetchGoals()
+    try {
+      await updateGoalApi(id, { progress: Math.min(100, Math.max(0, progress)) })
+      await fetchGoals()
+    } catch {
+      toast.error('Failed to update progress')
+    }
   }
 
   const filtered = tasks

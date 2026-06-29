@@ -34,8 +34,8 @@ function Analytics() {
   const completed = tasks.filter(t => t.status === 'done').length
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
   const overdue = tasks.filter(t => t.deadline && t.status !== 'done' && new Date(t.deadline).toISOString().split('T')[0] < new Date().toISOString().split('T')[0]).length
-  const focusSessions = 0
-  const focusMinutes = 0
+  const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
+  const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
   const habitStreaks = habits.filter(h => (h.streak || 0) >= 3).length
 
   const topCards = [

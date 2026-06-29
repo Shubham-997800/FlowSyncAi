@@ -5,7 +5,7 @@ import { uploadAvatar as uploadAvatarApi } from '../../services/settingsService'
 import { useAuth } from '../../context/AuthContext'
 
 function AvatarUpload({ avatar, setAvatar }) {
-  const { user } = useAuth()
+  const { user, setUser } = useAuth()
   const inputRef = useRef(null)
 
   const handleFile = (file) => {
@@ -16,8 +16,9 @@ function AvatarUpload({ avatar, setAvatar }) {
     reader.onload = async (e) => {
       const base64 = e.target.result
       try {
-        await uploadAvatarApi(base64)
+        const updated = await uploadAvatarApi(base64)
         setAvatar(base64)
+        setUser(updated)
         toast.success('Avatar updated')
       } catch {
         toast.error('Failed to upload avatar')
@@ -44,7 +45,16 @@ function AvatarUpload({ avatar, setAvatar }) {
             {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : <User size={48} className="text-indigo-400" />}
           </div>
           {avatar && (
-            <button onClick={() => { setAvatar(null); toast.success('Avatar removed') }} className="absolute -top-1 -right-1 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors duration-200">
+            <button onClick={async () => {
+              try {
+                const updated = await uploadAvatarApi(null)
+                setAvatar(null)
+                setUser(updated)
+                toast.success('Avatar removed')
+              } catch {
+                toast.error('Failed to remove avatar')
+              }
+            }} className="absolute -top-1 -right-1 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors duration-200">
               <X size={14} />
             </button>
           )}

@@ -6,7 +6,26 @@ const levelConfig = {
   Low: { color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30', bar: 'bg-emerald-500' },
 }
 
+function getLevel(score) {
+  if (score >= 70) return 'High'
+  if (score >= 40) return 'Medium'
+  return 'Low'
+}
+
+function mapItem(item) {
+  const score = item.priorityScore ?? item.score ?? 50
+  return {
+    level: item.level || getLevel(score),
+    title: item.title || item.task || '',
+    reason: item.reason || '',
+    risk: item.risk ?? item.riskScore ?? score,
+    duration: item.duration || '',
+  }
+}
+
 function PriorityCard({ tasks }) {
+  if (!tasks || tasks.length === 0) return null
+
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
       <div className="flex items-center gap-2 mb-5">
@@ -17,7 +36,8 @@ function PriorityCard({ tasks }) {
       </div>
 
       <div className="space-y-4">
-        {tasks.map((t, i) => {
+        {tasks.map((raw, i) => {
+          const t = mapItem(raw)
           const cfg = levelConfig[t.level] || levelConfig.Low
           return (
             <div key={i} className="p-4 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700">
@@ -25,10 +45,10 @@ function PriorityCard({ tasks }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded ${cfg.bg} ${cfg.color}`}>{t.level}</span>
-                    <span className="text-xs text-slate-400 dark:text-slate-500">{t.duration}</span>
+                    {t.duration && <span className="text-xs text-slate-400 dark:text-slate-500">{t.duration}</span>}
                   </div>
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{t.task}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.reason}</p>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{t.title}</h3>
+                  {t.reason && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.reason}</p>}
                 </div>
               </div>
 

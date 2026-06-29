@@ -6,7 +6,7 @@ const milestones = [
   { icon: CheckCircle, label: '100 Tasks', check: (t) => t.length >= 100, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
   { icon: Flame, label: '7 Day Focus Streak', check: (h) => h >= 0, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
   { icon: Target, label: '5 Goals Set', check: (g) => g.length >= 5, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-  { icon: Zap, label: 'All Tasks Done', check: (t) => t.length > 0 && t.every(tt => tt.completed), color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+  { icon: Zap, label: 'All Tasks Done', check: (t) => t.length > 0 && t.every(tt => tt.status === 'done'), color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30' },
 ]
 
 function Achievements({ tasks, goals, habits }) {

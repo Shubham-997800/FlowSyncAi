@@ -16,7 +16,10 @@ function MonthlyView({ tasks, onDateClick }) {
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
 
-  const getTasksForDate = (dateStr) => tasks.filter(t => t.dueDate === dateStr)
+  const getTasksForDate = (dateStr) => tasks.filter(t => {
+    const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : ''
+    return d === dateStr
+  })
 
   const cells = []
   for (let i = 0; i < firstDay; i++) cells.push(null)
@@ -57,7 +60,7 @@ function MonthlyView({ tasks, onDateClick }) {
               {dayTasks.length > 0 && (
                 <div className="mt-1.5 flex gap-0.5">
                   {dayTasks.slice(0, 3).map(t => (
-                    <div key={t._id} className={`w-1.5 h-1.5 rounded-full ${t.completed ? 'bg-indigo-300 dark:bg-indigo-700' : t.priority === 'high' ? 'bg-red-400' : t.priority === 'medium' ? 'bg-amber-400' : 'bg-slate-300 dark:bg-zinc-600'}`} />
+                    <div key={t._id} className={`w-1.5 h-1.5 rounded-full ${t.status === 'done' ? 'bg-indigo-300 dark:bg-indigo-700' : t.priority === 'high' ? 'bg-red-400' : t.priority === 'medium' ? 'bg-amber-400' : 'bg-slate-300 dark:bg-zinc-600'}`} />
                   ))}
                   {overloaded && <span className="text-[9px] text-slate-400 ml-0.5">+{dayTasks.length - 3}</span>}
                 </div>

@@ -5,8 +5,11 @@ function ProductivityChart({ tasks }) {
   const weekData = weekDays.map((_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
     const dateStr = d.toISOString().split('T')[0]
-    const dayTasks = tasks.filter(t => t.dueDate === dateStr)
-    const completed = dayTasks.filter(t => t.completed).length
+    const dayTasks = tasks.filter(t => {
+      const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : ''
+      return d === dateStr
+    })
+    const completed = dayTasks.filter(t => t.status === 'done').length
     return dayTasks.length > 0 ? Math.round((completed / dayTasks.length) * 100) : 0
   })
   const maxVal = Math.max(...weekData, 100)

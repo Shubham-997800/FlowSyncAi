@@ -1,7 +1,22 @@
 import { Clock, Coffee } from 'lucide-react'
 
+function mapItem(item) {
+  const task = item.title || item.task || ''
+  const start = item.startTime || item.time || ''
+  const end = item.endTime ? `-${item.endTime}` : ''
+  return {
+    task,
+    time: end ? `${start}${end}` : start,
+    duration: item.duration || '',
+    isBreak: item.type === 'break' || item.type === 'Break' || task.toLowerCase().includes('break'),
+  }
+}
+
 function ScheduleCard({ schedule }) {
-  const isOverloaded = schedule.filter(s => !s.task.includes('Break')).length > 4
+  if (!schedule || schedule.length === 0) return null
+
+  const items = schedule.map(mapItem)
+  const isOverloaded = items.filter(s => !s.isBreak).length > 4
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
@@ -20,23 +35,20 @@ function ScheduleCard({ schedule }) {
       </div>
 
       <div className="relative pl-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-zinc-700">
-        {schedule.map((item, i) => {
-          const isBreak = item.task.includes('Break')
-          return (
-            <div key={i} className="relative pb-4 last:pb-0">
-              <div className={`absolute -left-[18px] w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-900 ${isBreak ? 'bg-slate-100 dark:bg-zinc-800' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
-                {isBreak ? <Coffee size={10} className="text-slate-400" /> : <Clock size={10} className="text-indigo-600 dark:text-indigo-400" />}
-              </div>
-              <div className="ml-3 flex items-start justify-between">
-                <div>
-                  <span className={`text-xs font-medium ${isBreak ? 'text-slate-400 dark:text-slate-500' : 'text-indigo-600 dark:text-indigo-400'}`}>{item.time}</span>
-                  <p className={`text-sm font-medium mt-0.5 ${isBreak ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}>{item.task}</p>
-                </div>
-                <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap ml-3 mt-1">{item.duration}</span>
-              </div>
+        {items.map((item, i) => (
+          <div key={i} className="relative pb-4 last:pb-0">
+            <div className={`absolute -left-[18px] w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-zinc-900 ${item.isBreak ? 'bg-slate-100 dark:bg-zinc-800' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
+              {item.isBreak ? <Coffee size={10} className="text-slate-400" /> : <Clock size={10} className="text-indigo-600 dark:text-indigo-400" />}
             </div>
-          )
-        })}
+            <div className="ml-3 flex items-start justify-between">
+              <div>
+                <span className={`text-xs font-medium ${item.isBreak ? 'text-slate-400 dark:text-slate-500' : 'text-indigo-600 dark:text-indigo-400'}`}>{item.time}</span>
+                <p className={`text-sm font-medium mt-0.5 ${item.isBreak ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}`}>{item.task}</p>
+              </div>
+              {item.duration && <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap ml-3 mt-1">{item.duration}</span>}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

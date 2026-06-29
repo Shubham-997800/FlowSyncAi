@@ -5,8 +5,11 @@ function WeeklyChart({ tasks }) {
   const weekData = weekDays.map((_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
     const dateStr = d.toISOString().split('T')[0]
-    const dayTasks = tasks.filter(t => t.dueDate === dateStr)
-    const completed = dayTasks.filter(t => t.completed).length
+    const dayTasks = tasks.filter(t => {
+      const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : ''
+      return d === dateStr
+    })
+    const completed = dayTasks.filter(t => t.status === 'done').length
     return { total: dayTasks.length, completed, pending: dayTasks.length - completed }
   })
   const maxTasks = Math.max(...weekData.map(d => d.total), 1)

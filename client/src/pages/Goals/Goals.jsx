@@ -119,7 +119,7 @@ function Goals() {
             const daysLeft = goal.targetDate ? Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
             const isOverdue = daysLeft !== null && daysLeft < 0
             return (
-              <div key={goal._id} className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:shadow-sm transition">
+              <div key={goal._id} className="group bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:shadow-sm transition">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${ss.bg} ${ss.color}`}><Target size={12} /> {goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}</span>
