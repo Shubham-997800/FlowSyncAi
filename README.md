@@ -21,7 +21,7 @@
   <img src="https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
   <img src="https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white" />
   <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" />
-  <img src="https://img.shields.io/badge/Gemini-2.0_Flash-8E75B2?style=flat-square&logo=googlegemini&logoColor=white" />
+  <img src="https://img.shields.io/badge/Grok-xAI-1DA1F2?style=flat-square&logo=x&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT-auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
 </p>
 
@@ -47,7 +47,7 @@
 
 ## Overview
 
-FlowSync AI is a **full-stack MERN application** enhanced with **Google Gemini AI** that transforms how you manage tasks, goals, and habits. It goes beyond simple to-do lists by using artificial intelligence to:
+FlowSync AI is a **full-stack MERN application** enhanced with **xAI Grok AI** that transforms how you manage tasks, goals, and habits. It goes beyond simple to-do lists by using artificial intelligence to:
 
 - **Predict deadline risks** before they happen
 - **Build optimal daily schedules** based on your workload
@@ -122,7 +122,7 @@ The app features a **Pomodoro focus timer**, **smart calendar views**, **habit t
 
 | Tool | Usage |
 |------|-------|
-| Google Gemini 2.0 Flash | AI chat, planning, prioritization, rescue mode |
+| xAI Grok 4.3 | AI chat, planning, prioritization, rescue mode |
 | Railway | Backend hosting with auto-deploy from GitHub |
 | Vercel | Frontend hosting with auto-deploy from GitHub |
 
@@ -130,101 +130,162 @@ The app features a **Pomodoro focus timer**, **smart calendar views**, **habit t
 
 ## Architecture
 
+```mermaid
+graph TB
+    subgraph Frontend["✦ Frontend — Vercel"]
+        direction TB
+        R[React 19 + Vite 8]
+        TW[Tailwind CSS 4]
+        RT[React Router 7]
+        A[Axios + JWT]
+    end
+
+    subgraph Backend["✦ Backend — Railway"]
+        direction TB
+        E[Express 4 + Helmet]
+        M[Mongoose 9 ODM]
+        J[JWT Auth Middleware]
+        AI[xAI Grok Service]
+        RL[Rate Limiter]
+    end
+
+    subgraph Database["✦ Database"]
+        Mongo[(MongoDB Atlas)]
+    end
+
+    subgraph AIProvider["✦ AI Provider"]
+        Grok[xAI Grok 4.3]
+    end
+
+    subgraph Monitoring["✦ Monitoring"]
+        Morgan[Morgan Logger]
+    end
+
+    Frontend -->|HTTPS + JWT Bearer| Backend
+    Backend -->|Mongoose ODM| Database
+    Backend -->|OpenAI SDK| AIProvider
+    Backend --> Monitoring
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Vercel (CDN)                         │
-│              React 19 + Vite 8 + Tailwind               │
-│                    flowsyncai30.vercel.app              │
-│                                                        │
-│  ┌───────────┐  ┌───────────┐  ┌───────────┐          │
-│  │ Dashboard │  │  Tasks    │  │ Calendar  │          │
-│  │  + Stats  │  │  + Goals  │  │  + Views  │          │
-│  ├───────────┤  ├───────────┤  ├───────────┤          │
-│  │AI Planner │  │ Focus     │  │ Analytics │          │
-│  │ Chat+Plan │  │ Timer     │  │ + Reports │          │
-│  ├───────────┤  ├───────────┤  ├───────────┤          │
-│  │  Habits   │  │ Settings  │  │ Notificat.│          │
-│  │ + Streaks │  │ + Profile │  │    + Popup│          │
-│  └───────────┘  └───────────┘  └───────────┘          │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-           HTTPS + JSON + JWT Bearer Token
-                        │
-┌───────────────────────▼─────────────────────────────────┐
-│                   Railway (Node.js)                     │
-│             Express 4 + Mongoose 9 + Helmet             │
-│           flowsync-ai-production.up.railway.app         │
-│                                                        │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │  Auth    │  │  Tasks   │  │  Goals   │              │
-│  │  Ctrl    │  │  Ctrl    │  │  Ctrl    │              │
-│  ├──────────┤  ├──────────┤  ├──────────┤              │
-│  │  Habits  │  │Analytics │  │ Settings │              │
-│  │  Ctrl    │  │  Ctrl    │  │  Ctrl    │              │
-│  ├──────────┤  ├──────────┤  ├──────────┤              │
-│  │Notificat.│  │   AI     │  │  AI      │              │
-│  │  Ctrl    │  │ Service  │  │  Ctrl    │              │
-│  └──────────┘  └──────────┘  └──────────┘              │
-│                                                        │
-│  Middleware: JWT Auth │ Rate Limiter │ Helmet │ CORS   │
-└───────────────────────┬─────────────────────────────────┘
-                        │
-               Mongoose ODM (6 models)
-                        │
-┌───────────────────────▼─────────────────────────────────┐
-│                 MongoDB Atlas (Cloud)                   │
-│                                                        │
-│    Users ── Tasks ── Goals ── Habits ── Notifications   │
-└─────────────────────────────────────────────────────────┘
+
+### Data Model
+
+```mermaid
+erDiagram
+    User ||--o{ Task : creates
+    User ||--o{ Goal : sets
+    User ||--o{ Habit : tracks
+    User ||--o{ Notification : receives
+    User {
+        string name
+        string email
+        string password_hash
+        string profilePicture
+        string bio
+        string phone
+        string location
+        string jobTitle
+    }
+    Task {
+        string title
+        enum priority
+        enum status
+        date deadline
+        string description
+    }
+    Goal {
+        string title
+        date targetDate
+        number progress
+    }
+    Habit {
+        string title
+        enum frequency
+        number streak
+        array logs
+    }
+    Notification {
+        enum type
+        string title
+        string message
+        boolean read
+    }
 ```
 
 ### Authentication Flow
 
-```
-Client                    Server                     MongoDB
-  │                         │                          │
-  │  POST /api/auth/login   │                          │
-  │  { email, password }   │                          │
-  │────────────────────────>│                          │
-  │                         │  FIND user by email      │
-  │                         │─────────────────────────>│
-  │                         │  <── user document ──────│
-  │                         │                          │
-  │                         │  bcrypt.compare(password)│
-  │                         │  jwt.sign({ id, email }) │
-  │                         │                          │
-  │  <── { token, user } ──│                          │
-  │                         │                          │
-  │  [Stores token in      │                          │
-  │   axios default headers]│                          │
-  │                         │                          │
-  │  GET /api/tasks         │                          │
-  │  Authorization: Bearer  │                          │
-  │────────────────────────>│                          │
-  │                         │  jwt.verify(token)        │
-  │                         │  FIND tasks by user      │
-  │                         │─────────────────────────>│
-  │  <── [tasks array] ────│                          │
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    participant DB as MongoDB
+    participant JWT as JWT
+
+    C->>S: POST /api/auth/login { email, password }
+    S->>DB: FIND user by email
+    DB-->>S: User document
+    S->>S: bcrypt.compare(password)
+    S->>JWT: jwt.sign({ id })
+    JWT-->>S: Token (30d expiry)
+    S-->>C: { token, user }
+
+    Note over C: Store in axios defaults
+
+    C->>S: GET /api/tasks (Bearer token)
+    S->>JWT: jwt.verify(token)
+    JWT-->>S: Decoded payload
+    S->>DB: FIND tasks by userId
+    DB-->>S: Task array
+    S-->>C: [tasks]
 ```
 
 ### AI Integration Flow
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    participant AI as xAI Grok
+
+    C->>S: POST /api/ai/chat { message }
+    S->>S: Build prompt with tasks context
+    S->>AI: chat.completions.create (grok-4.3)
+    AI-->>S: Structured JSON response
+    S->>S: Parse & validate JSON
+    S-->>C: { reply, tasks, suggestions }
+
+    C->>S: POST /api/ai/plan
+    S->>AI: Generate optimized schedule
+    AI-->>S: Priority + time blocks
+    S-->>C: { schedule, priority, suggestions }
+
+    C->>S: POST /api/ai/prioritize
+    S->>AI: Rank tasks by urgency
+    AI-->>S: Priority scores + risks
+    S-->>C: { rankings, suggestedOrder }
+
+    C->>S: POST /api/ai/rescue
+    S->>AI: Emergency replanning
+    AI-->>S: Compressed schedule
+    S-->>C: { criticalTasks, compressedSchedule }
 ```
-Client                    Server                    Gemini API
-  │                         │                          │
-  │  POST /api/ai/chat      │                          │
-  │  { message }           │                          │
-  │────────────────────────>│                          │
-  │                         │  Build prompt with       │
-  │                         │  user's tasks context    │
-  │                         │                          │
-  │                         │  Google GenAI SDK        │
-  │                         │─────────────────────────>│
-  │                         │  <── Gemini response ────│
-  │                         │                          │
-  │                         │  Parse & structure reply │
-  │                         │                          │
-  │  <── { reply, tasks } ─│                          │
+
+### Request Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Incoming: HTTP Request
+    Incoming --> RateCheck: Rate Limiter
+    RateCheck --> JWTVerify: Auth Required?
+    JWTVerify --> Controller: Token Valid
+    JWTVerify --> Rejected: Invalid/Expired
+    Controller --> Validation: Parse Body
+    Validation --> DatabaseOp: Valid
+    Validation --> Rejected: Bad Request
+    DatabaseOp --> Response: Success
+    DatabaseOp --> Error: DB Error
+    Error --> Response: Error Handler
+    Response --> [*]: JSON Response
+    Rejected --> [*]: Error JSON
 ```
 
 ---
@@ -235,7 +296,7 @@ Client                    Server                    Gemini API
 
 - **Node.js** 18+ (tested on 24+)
 - **MongoDB Atlas** account (free tier works)
-- **Google Gemini API key** — get one free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+- **xAI API key** — get one at [console.x.ai](https://console.x.ai)
 
 ### Clone & Setup
 
@@ -273,7 +334,7 @@ PORT=5000
 NODE_ENV=development
 MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/flowsync?retryWrites=true&w=majority
 JWT_SECRET=<your_secret_key>
-GEMINI_API_KEY=<your_gemini_api_key>
+XAI_API_KEY=<your_xai_api_key>
 CLIENT_URL=http://localhost:5173
 ```
 
@@ -295,6 +356,8 @@ All protected endpoints require `Authorization: Bearer <token>` header.
 |--------|----------|------|------|----------|
 | POST | `/api/auth/signup` | ❌ | `{ name, email, password }` | `{ token, user }` |
 | POST | `/api/auth/login` | ❌ | `{ email, password }` | `{ token, user }` |
+| POST | `/api/auth/forgot-password` | ❌ | `{ email }` | `{ message }` |
+| POST | `/api/auth/reset-password` | ❌ | `{ token, password }` | `{ message }` |
 | GET | `/api/auth/ping` | ❌ | — | `{ message: "pong" }` |
 
 ### Tasks
@@ -396,7 +459,7 @@ FlowSync-Ai/
 │   │   │   └── ui/                 # Card, Badge, StatCard, ProgressBar, etc.
 │   │   ├── pages/
 │   │   │   ├── Landing/            # Hero, Features, HowItWorks, CTA, Footer
-│   │   │   ├── Authentication/     # Login, Register
+│   │   │   ├── Authentication/     # Login, Register, ForgotPassword, ResetPassword
 │   │   │   ├── Dashboard/          # Stats cards, charts, AI risk, recommendations
 │   │   │   ├── TaskManager/        # Task list + Goal list combined
 │   │   │   ├── Calendar/           # Monthly/weekly/daily views
@@ -417,7 +480,7 @@ FlowSync-Ai/
 │   ├── server.js                   # App entry, middleware setup, route mounting
 │   ├── config/
 │   │   ├── db.js                   # Mongoose connection with retry logic
-│   │   └── aiConfig.js             # Gemini AI client initialization
+│   │   └── aiConfig.js             # xAI Grok client initialization
 │   ├── middleware/
 │   │   ├── auth.js                 # JWT verification middleware
 │   │   └── rateLimiter.js          # Rate limiting strategies
@@ -428,7 +491,7 @@ FlowSync-Ai/
 │   │   ├── Habit.js                # title, frequency, streak, logs[]
 │   │   └── Notification.js         # type, title, message, status, userId
 │   ├── controllers/
-│   │   ├── authController.js       # signup, login
+│   │   ├── authController.js       # signup, login, forgotPassword, resetPassword
 │   │   ├── taskController.js       # CRUD with field sanitization
 │   │   ├── goalController.js       # CRUD with field sanitization
 │   │   ├── habitController.js      # CRUD + check-in + streak calculation
@@ -446,7 +509,8 @@ FlowSync-Ai/
 │   │   ├── settingsRoutes.js
 │   │   └── aiRoutes.js
 │   ├── services/
-│   │   └── aiService.js           # Gemini API prompt engineering + response parsing
+│   │   ├── aiService.js           # xAI Grok API prompt engineering + response parsing
+│   │   └── emailService.js        # Nodemailer — password reset emails
 │   └── package.json
 │
 ├── .gitignore
@@ -466,7 +530,7 @@ The backend auto-deploys from the GitHub repository via Railway.
 2. Select "Deploy from GitHub repo" → choose `FlowSync-Ai`
 3. Set root directory to `flowsync-backend`
 4. Add environment variables in Railway dashboard:
-   - `MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`, `CLIENT_URL`
+   - `MONGODB_URI`, `JWT_SECRET`, `XAI_API_KEY`, `CLIENT_URL`
 5. Railway detects Node.js and auto-builds with Nixpacks
 6. Each `git push` to `main` triggers a new deployment
 

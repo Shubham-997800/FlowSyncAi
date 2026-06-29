@@ -2,15 +2,15 @@ const { getAI } = require('../config/aiConfig')
 
 const SYSTEM_PROMPT = `You are FlowSync AI, a productivity engine. Always respond with valid JSON only. No markdown, no explanations.`
 
-async function callGemini(prompt) {
+async function callGrok(prompt) {
   const ai = getAI()
   try {
-    const res = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      config: { temperature: 0.3 },
+    const res = await ai.chat.completions.create({
+      model: 'grok-4.3',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
     })
-    return res.text || ''
+    return res.choices[0]?.message?.content || ''
   } catch (err) {
     if (err.message && err.message.includes('429')) {
       throw new Error('AI_SERVICE_UNAVAILABLE')
@@ -46,7 +46,7 @@ Respond EXACTLY:
   "confidence": 0-100
 }`
 
-  const raw = await callGemini(fullPrompt)
+  const raw = await callGrok(fullPrompt)
   return parseJSON(raw) || { priority: [], schedule: [], suggestions: ['Could not generate plan'], confidence: 0 }
 }
 
@@ -64,7 +64,7 @@ Respond EXACTLY:
   "summary": ""
 }`
 
-  const raw = await callGemini(prompt)
+  const raw = await callGrok(prompt)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.rankings)) return parsed
   return {
@@ -90,7 +90,7 @@ Respond EXACTLY:
   "estimatedRecoveryHours": 0
 }`
 
-  const raw = await callGemini(prompt)
+  const raw = await callGrok(prompt)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.criticalTasks)) return parsed
   return { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 }
@@ -115,7 +115,7 @@ Respond EXACTLY with this JSON format:
 }
 If the user doesn't ask to create tasks, return "tasks" as empty array [].`
 
-  const raw = await callGemini(prompt)
+  const raw = await callGrok(prompt)
   const parsed = parseJSON(raw)
   if (parsed && parsed.reply) return parsed
   return { reply: "I understand what you're saying. Could you be more specific about what you'd like me to help with?", tasks: [], suggestions: [] }

@@ -16,7 +16,7 @@ function Privacy() {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">2. Data Storage</h2>
           <p>Your data is stored securely in MongoDB Atlas with encryption. We do not share your personal data with third parties.</p>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">3. AI Processing</h2>
-          <p>Task and schedule data may be processed through Google Gemini AI to provide planning suggestions. No personal identifiers are sent.</p>
+          <p>Task and schedule data may be processed through xAI Grok AI to provide planning suggestions. No personal identifiers are sent.</p>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">4. Your Rights</h2>
           <p>You can access, modify, or delete your data anytime through your account settings or by contacting us.</p>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">5. Contact</h2>

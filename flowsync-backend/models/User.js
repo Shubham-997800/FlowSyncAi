@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, default: '' },
   location: { type: String, default: '' },
   jobTitle: { type: String, default: '' },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {

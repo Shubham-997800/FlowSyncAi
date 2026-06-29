@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, Lock, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { forgotPassword } from '../../services/authService'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -12,10 +13,15 @@ function ForgotPassword() {
     e.preventDefault()
     if (!email) return toast.error('Please enter your email')
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
-    setSent(true)
-    setLoading(false)
-    toast.success('Reset link sent to your email')
+    try {
+      await forgotPassword(email)
+      setSent(true)
+      toast.success('Reset link sent to your email')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send reset link')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (sent) {
