@@ -23,9 +23,9 @@
   <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white" />
   <img src="https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white" />
   <img src="https://img.shields.io/badge/MongoDB_Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" />
-  <img src="https://img.shields.io/badge/Grok_xAI-1DA1F2?style=flat-square&logo=x&logoColor=white" />
+  <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
-  <img src="https://img.shields.io/badge/Render-46E3B7?style=flat-square&logo=render&logoColor=black" />
+  <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/License-MIT-22c55e?style=flat-square" />
@@ -102,7 +102,7 @@ FlowSync AI:  Input → AI Analysis → Priority Engine → Rescue Mode → Exec
 ```
 
 > [!NOTE]
-> FlowSync AI is not a to-do list. It is a **decision engine** that uses xAI's Grok to understand context, predict risk, and optimize every minute of your day.
+> FlowSync AI is not a to-do list. It is a **decision engine** that uses AI (OpenRouter + Qwen 2.5 7B) to understand context, predict risk, and optimize every minute of your day.
 
 ---
 
@@ -214,9 +214,9 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Technology | Purpose |
 |------------|---------|
-| **xAI Grok 4.3** | AI chat, planning, prioritization, rescue mode — accessed via OpenAI-compatible SDK |
+| **OpenRouter** | AI chat, planning, prioritization, rescue mode — Qwen 2.5 7B via OpenAI-compatible SDK |
 | **Vercel** | Frontend hosting with auto-deploy from GitHub, edge CDN |
-| **Render** | Backend hosting with auto-deploy from GitHub, HTTPS, zero-downtime deploys |
+| **Railway** | Backend hosting with auto-deploy from GitHub, HTTPS, zero-downtime deploys |
 
 ---
 
@@ -246,7 +246,7 @@ We believe productivity tools should work **for** you, not the other way around.
 │                                  │                                       │
 │                    HTTPS + JSON + JWT Bearer Token                       │
 │                                  ▼                                       │
-│  ┌───────────────────── BACKEND (Render) ────────────────────────────┐  │
+│  ┌───────────────────── BACKEND (Railway) ───────────────────────────┐  │
 │  │                                                                   │  │
 │  │  Express 4 + Mongoose 9 + Helmet 8 + Rate Limiter                │  │
 │  │                                                                   │  │
@@ -264,7 +264,7 @@ We believe productivity tools should work **for** you, not the other way around.
 │                     ┌────────────┴────────────┐                         │
 │                     ▼                         ▼                         │
 │  ┌────────────────────────┐    ┌────────────────────────┐               │
-│  │   🗄️ MongoDB Atlas     │    │   🤖 xAI Grok 4.3     │               │
+│  │   🗄️ MongoDB Atlas     │    │   🤖 OpenRouter AI    │               │
 │  │                        │    │                        │               │
 │  │   Users    Tasks       │    │  OpenAI-compatible     │               │
 │  │   Goals    Habits      │    │  chat.completions      │               │
@@ -312,7 +312,7 @@ We believe productivity tools should work **for** you, not the other way around.
               │                     │            │
               │  Prompt Engineering │            │
               │         ▼           │            │
-              │  xAI Grok 4.3 API   │            │
+               │  OpenRouter API     │            │
               │         ▼           │            │
               │  Structured JSON    │            │
               │         ▼           │            │
@@ -419,7 +419,7 @@ flowsync-ai/
 │   │
 │   ├── config/
 │   │   ├── db.js                          # Mongoose connection with retry logic
-│   │   └── aiConfig.js                    # xAI Grok client (OpenAI SDK)
+│   │   └── aiConfig.js                    # OpenRouter client (OpenAI SDK)
 │   │
 │   ├── middleware/
 │   │   ├── auth.js                        # JWT verification
@@ -573,7 +573,7 @@ erDiagram
                       HTTPS / JSON
                             │
 ┌───────────────────────────▼──────────────────────────────────────────┐
-│                         🖥️ EXPRESS SERVER (Render)                    │
+│                         🖥️ EXPRESS SERVER (Railway)                   │
 │                                                                      │
 │   ┌──────────────────────────────────────────────────────┐          │
 │   │                 MIDDLEWARE PIPELINE                   │          │
@@ -606,7 +606,7 @@ erDiagram
 └─────────────────────────┼───────────────┼──────────────────────────┘
                           ▼               ▼
               ┌────────────────────┐  ┌────────────────────┐
-              │   🗄️ MongoDB Atlas │  │  🤖 xAI Grok 4.3  │
+               │   🗄️ MongoDB Atlas │  │  🤖 OpenRouter AI │
               │                    │  │                    │
               │  5 Collections    │  │  OpenAI SDK        │
               │  Indexed Queries  │  │  Structured JSON   │
@@ -617,7 +617,7 @@ erDiagram
 
 ## 🤖 AI Architecture
 
-FlowSync AI's intelligence is powered by **xAI's Grok 4.3** accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, and graceful fallbacks.
+FlowSync AI's intelligence is powered by **OpenRouter** with the **Qwen 2.5 7B** model, accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, and graceful fallbacks.
 
 ### Architecture Overview
 
@@ -642,10 +642,10 @@ FlowSync AI's intelligence is powered by **xAI's Grok 4.3** accessed through the
 │  └──────────────────────────┬───────────────────────────────┘        │
 │                             │                                         │
 │  ┌──────────────────────────▼───────────────────────────────┐        │
-│  │              xAI GROK API (via OpenAI SDK)                │        │
+│  │              OpenRouter API (via OpenAI SDK)               │        │
 │  │                                                            │        │
-│  │  Endpoint: https://api.x.ai/v1                             │        │
-│  │  Model:    grok-4.3                                       │        │
+│  │  Endpoint: https://openrouter.ai/api/v1                    │        │
+│  │  Model:    qwen/qwen-2.5-7b-instruct                      │        │
 │  │  Temp:     0.3 (deterministic output)                     │        │
 │  │                                                            │        │
 │  │  Response: structured JSON string                          │        │
@@ -723,7 +723,7 @@ FlowSync AI's intelligence is powered by **xAI's Grok 4.3** accessed through the
               ┌───────────────┼───────────────┐
               │               │               │
         ┌─────▼─────┐  ┌─────▼─────┐  ┌─────▼─────┐
-        │  MongoDB  │  │  Grok AI  │  │  Email    │
+         │  MongoDB  │  │ OpenRouter│  │  Email    │
         │  Query    │  │  API Call │  │  Service  │
         └─────┬─────┘  └─────┬─────┘  └─────┬─────┘
               │               │               │
@@ -814,7 +814,7 @@ FlowSync AI's intelligence is powered by **xAI's Grok 4.3** accessed through the
 
 - **Node.js** 18+ (tested on 24+)
 - **MongoDB Atlas** account (free tier works)
-- **xAI API key** — get one at [console.x.ai](https://console.x.ai)
+- **OpenRouter API key** — get one at [openrouter.ai/keys](https://openrouter.ai/keys) (free tier available)
 - **Git**
 
 ### Clone the Repository
@@ -871,7 +871,7 @@ The frontend runs on `http://localhost:5173` and the backend on `http://localhos
 | `NODE_ENV` | No | `development` | Environment mode |
 | `MONGODB_URI` | **Yes** | — | MongoDB Atlas connection string |
 | `JWT_SECRET` | **Yes** | — | Secret key for JWT signing (use a strong random string) |
-| `XAI_API_KEY` | **Yes** | — | Your xAI Grok API key |
+| `OPENROUTER_API_KEY` | **Yes** | — | Your OpenRouter API key (get at [openrouter.ai/keys](https://openrouter.ai/keys)) |
 | `CLIENT_URL` | **Yes** | `http://localhost:5173` | Frontend URL (CORS origin) |
 | `SMTP_HOST` | No | `smtp.gmail.com` | SMTP server for password reset emails |
 | `SMTP_PORT` | No | `587` | SMTP port |
@@ -884,7 +884,7 @@ PORT=5000
 NODE_ENV=development
 MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/flowsync?retryWrites=true&w=majority
 JWT_SECRET=<your_strong_random_secret>
-XAI_API_KEY=<your_xai_api_key>
+OPENROUTER_API_KEY=sk-or-v1-<your_openrouter_key>
 CLIENT_URL=http://localhost:5173
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
@@ -1064,7 +1064,7 @@ Modals:         Full      Centered  Centered  Centered      Centered
                 │                │                │
                 ▼                ▼                ▼
       ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
-      │   ▲ Vercel     │ │   ■ Render     │ │   ● MongoDB   │
+       │   ▲ Vercel     │ │   ■ Railway    │ │   ● MongoDB   │
       │                │ │                │ │     Atlas     │
       │  React 19     │ │  Express 4     │ │               │
       │  Vite 8       │ │  Mongoose 9    │ │  Auto-scale   │
@@ -1075,20 +1075,16 @@ Modals:         Full      Centered  Centered  Centered      Centered
       └────────────────┘ └────────────────┘ └────────────────┘
 ```
 
-### Backend → Render
+### Backend → Railway
 
-1. Create a [Render](https://render.com) account
-2. Click **New +** → **Web Service**
+1. Create a [Railway](https://railway.com) account
+2. Click **New Project** → **Deploy from GitHub repo**
 3. Connect your GitHub repository (`FlowSync-Ai`)
 4. Configure:
-   - **Name:** `flowsync-ai-backend`
    - **Root Directory:** `flowsync-backend`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
+   - **Start Command:** `node server.js`
 5. Add environment variables (see [Environment Variables](#-environment-variables))
-6. Click **Create Web Service**
-
-Render auto-deploys on every `git push` to `main`.
+6. Railway auto-deploys on every `git push` to `main`.
 
 ### Frontend → Vercel
 
@@ -1099,7 +1095,7 @@ Render auto-deploys on every `git push` to `main`.
    - **Root Directory:** `client`
    - **Build Command:** `npm run build` (auto-detected)
    - **Output Directory:** `dist` (auto-detected)
-5. Add environment variable: `VITE_API_URL` = your Render backend URL
+5. Add environment variable: `VITE_API_URL` = your Railway backend URL
 6. Click **Deploy**
 
 Vercel auto-deploys on every `git push` to `main`.
@@ -1236,9 +1232,9 @@ copies or substantial portions of the Software.
 
 ## 🙏 Acknowledgements
 
-- **[xAI](https://x.ai)** — For the Grok API that powers our AI engine
+- **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (Qwen 2.5 7B)
 - **[Vercel](https://vercel.com)** — For the incredible frontend deployment platform
-- **[Render](https://render.com)** — For reliable backend hosting with zero-downtime deploys
+- **[Railway](https://railway.com)** — For reliable backend hosting with zero-downtime deploys
 - **[MongoDB Atlas](https://mongodb.com/atlas)** — For the generous free tier and global database infrastructure
 - **[Tailwind CSS](https://tailwindcss.com)** — For the most productive CSS framework ever built
 - **[Framer Motion](https://framer.com/motion)** — For making animations a joy
