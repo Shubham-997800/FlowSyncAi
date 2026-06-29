@@ -8,11 +8,10 @@ const Login = lazy(() => import('../pages/Authentication/Login'))
 const Register = lazy(() => import('../pages/Authentication/Register'))
 const ForgotPassword = lazy(() => import('../pages/Authentication/ForgotPassword'))
 const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard'))
-const TaskManager = lazy(() => import('../pages/TaskManager/TaskManager'))
+const TaskAndGoals = lazy(() => import('../pages/TaskManager/TaskAndGoals'))
 const AIPlanner = lazy(() => import('../pages/AIPlanner/AIPlanner'))
 const Calendar = lazy(() => import('../pages/Calendar/Calendar'))
 const FocusMode = lazy(() => import('../pages/FocusMode/FocusMode'))
-const Goals = lazy(() => import('../pages/Goals/Goals'))
 const Habits = lazy(() => import('../pages/Habits/Habits'))
 const Notifications = lazy(() => import('../pages/Notifications/Notifications'))
 const Analytics = lazy(() => import('../pages/Analytics/Analytics'))
@@ -20,6 +19,8 @@ const Settings = lazy(() => import('../pages/Settings/Settings'))
 const Profile = lazy(() => import('../pages/Profile/Profile'))
 const NotFound = lazy(() => import('../pages/Error/NotFound'))
 const Unauthorized = lazy(() => import('../pages/Error/Unauthorized'))
+const Terms = lazy(() => import('../pages/Legal/Terms'))
+const Privacy = lazy(() => import('../pages/Legal/Privacy'))
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -46,17 +47,18 @@ function AppRoutes() {
       <Route path="forgot-password" element={<PublicRoute><Lazy><ForgotPassword /></Lazy></PublicRoute>} />
       <Route element={<MainLayout />}>
         <Route path="dashboard" element={<ProtectedRoute><Lazy><Dashboard /></Lazy></ProtectedRoute>} />
-        <Route path="tasks" element={<ProtectedRoute><Lazy><TaskManager /></Lazy></ProtectedRoute>} />
+        <Route path="tasks" element={<ProtectedRoute><Lazy><TaskAndGoals /></Lazy></ProtectedRoute>} />
         <Route path="ai-planner" element={<ProtectedRoute><Lazy><AIPlanner /></Lazy></ProtectedRoute>} />
         <Route path="calendar" element={<ProtectedRoute><Lazy><Calendar /></Lazy></ProtectedRoute>} />
         <Route path="focus" element={<ProtectedRoute><Lazy><FocusMode /></Lazy></ProtectedRoute>} />
-        <Route path="goals" element={<ProtectedRoute><Lazy><Goals /></Lazy></ProtectedRoute>} />
         <Route path="habits" element={<ProtectedRoute><Lazy><Habits /></Lazy></ProtectedRoute>} />
         <Route path="notifications" element={<ProtectedRoute><Lazy><Notifications /></Lazy></ProtectedRoute>} />
         <Route path="analytics" element={<ProtectedRoute><Lazy><Analytics /></Lazy></ProtectedRoute>} />
         <Route path="profile" element={<ProtectedRoute><Lazy><Profile /></Lazy></ProtectedRoute>} />
         <Route path="settings" element={<ProtectedRoute><Lazy><Settings /></Lazy></ProtectedRoute>} />
       </Route>
+      <Route path="terms" element={<Lazy><Terms /></Lazy>} />
+      <Route path="privacy" element={<Lazy><Privacy /></Lazy>} />
       <Route path="unauthorized" element={<Lazy><Unauthorized /></Lazy>} />
       <Route path="*" element={<Lazy><NotFound /></Lazy>} />
     </Routes>

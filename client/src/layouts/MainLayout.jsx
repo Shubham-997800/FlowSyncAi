@@ -10,11 +10,10 @@ import api from '../services/api'
 
 const pageTitles = {
   '/dashboard': 'Dashboard',
-  '/tasks': 'Tasks',
+  '/tasks': 'Tasks & Goals',
   '/ai-planner': 'AI Chat',
   '/calendar': 'Calendar',
   '/focus': 'Focus Mode',
-  '/goals': 'Goals',
   '/habits': 'Habits',
   '/analytics': 'Analytics',
   '/notifications': 'Notifications',

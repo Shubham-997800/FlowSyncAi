@@ -8,11 +8,10 @@ import {
 
 const links = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/tasks', label: 'Tasks', icon: ListTodo },
+  { to: '/tasks', label: 'Tasks & Goals', icon: ListTodo },
   { to: '/ai-planner', label: 'AI Chat', icon: Brain },
   { to: '/calendar', label: 'Calendar', icon: Calendar },
   { to: '/focus', label: 'Focus Mode', icon: Clock },
-  { to: '/goals', label: 'Goals', icon: Target },
   { to: '/habits', label: 'Habits', icon: Flame },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/notifications', label: 'Notifications', icon: Bell },
