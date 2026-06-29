@@ -19,8 +19,6 @@
     "dotenv": "^17.4.2",
     "express": "^4.21.0",
     "express-rate-limit": "^8.5.2",
-    "express-validator": "^7.3.2",
-    "gcp-metadata": "^7.0.1",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.3",
