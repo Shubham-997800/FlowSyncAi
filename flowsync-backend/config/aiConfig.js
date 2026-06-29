@@ -6,6 +6,8 @@ const getAI = () => {
   return new OpenAI({
     apiKey,
     baseURL: 'https://openrouter.ai/api/v1',
+    timeout: 25000,
+    maxRetries: 1,
   })
 }
 

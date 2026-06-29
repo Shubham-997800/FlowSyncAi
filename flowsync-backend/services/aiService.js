@@ -6,14 +6,22 @@ async function callGrok(prompt) {
   const ai = getAI()
   try {
     const res = await ai.chat.completions.create({
-      model: 'mistralai/mistral-nemo',
+      model: 'meta-llama/llama-3.1-8b-instruct',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
+      max_tokens: 2048,
     })
     return res.choices[0]?.message?.content || ''
   } catch (err) {
-    const msg = err.message || ''
-    if (msg.includes('429') || msg.includes('401') || msg.includes('402') || msg.includes('insufficient_quota') || msg.includes('invalid_api_key') || msg.includes('Incorrect API key')) {
+    const status = err.status || err.error?.code || 0
+    const msg = (err.message || '') + (err.error?.message || '')
+    if (
+      status === 429 || status === 401 || status === 402 ||
+      msg.includes('429') || msg.includes('401') || msg.includes('402') ||
+      msg.includes('insufficient_quota') || msg.includes('invalid_api_key') ||
+      msg.includes('Incorrect API key') || msg.includes('rate limited') ||
+      msg.includes('quota') || msg.includes('Payment Required')
+    ) {
       throw new Error('AI_SERVICE_UNAVAILABLE')
     }
     throw err
