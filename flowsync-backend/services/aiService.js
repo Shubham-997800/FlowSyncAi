@@ -6,7 +6,7 @@ async function callGrok(prompt) {
   const ai = getAI()
   try {
     const res = await ai.chat.completions.create({
-      model: 'grok-2-latest',
+      model: 'mistralai/mistral-nemo',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
     })

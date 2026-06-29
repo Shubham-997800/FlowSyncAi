@@ -1,11 +1,11 @@
 const OpenAI = require('openai')
 
 const getAI = () => {
-  const apiKey = process.env.XAI_API_KEY
-  if (!apiKey) throw new Error('XAI_API_KEY not set')
+  const apiKey = process.env.OPENROUTER_API_KEY || process.env.XAI_API_KEY
+  if (!apiKey) throw new Error('AI API key not set. Set OPENROUTER_API_KEY in .env')
   return new OpenAI({
     apiKey,
-    baseURL: 'https://api.x.ai/v1',
+    baseURL: 'https://openrouter.ai/api/v1',
   })
 }
 
