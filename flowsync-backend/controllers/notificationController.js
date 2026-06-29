@@ -1,6 +1,6 @@
 const Notification = require('../models/Notification')
 
-const allowedFields = ['type', 'title', 'message']
+const allowedFields = ['type', 'title', 'message', 'link']
 
 function sanitize(body) {
   const safe = {}

@@ -1,44 +1,10 @@
-import { useState, useEffect } from 'react'
 import { CheckSquare, Square, Trash2, ListTodo, Clock } from 'lucide-react'
 import PriorityBadge from '../../components/ui/PriorityBadge'
-import { getTasks, updateTask, deleteTask } from '../../services/taskService'
 
-function TodayTasks() {
-  const [tasks, setTasks] = useState([])
-
-  useEffect(() => {
-    let mounted = true
-    const fetch = async () => {
-      try {
-        const all = await getTasks()
-        if (!mounted) return
-        const today = new Date().toISOString().split('T')[0]
-        setTasks(all.filter(t => { if (!t.deadline) return false; const d = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return d === today }))
-      } catch {}
-    }
-    fetch()
-    const interval = setInterval(fetch, 10000)
-    return () => { mounted = false; clearInterval(interval) }
-  }, [])
-
-  const toggleComplete = async (id) => {
-    const task = tasks.find(t => t._id === id)
-    if (!task) return
-    const newStatus = task.status === 'done' ? 'todo' : 'done'
-    try {
-      await updateTask(id, { status: newStatus })
-      setTasks(prev => prev.map(t => t._id === id ? { ...t, status: newStatus } : t))
-    } catch {}
-  }
-
-  const handleDelete = async (id) => {
-    try {
-      await deleteTask(id)
-      setTasks(prev => prev.filter(t => t._id !== id))
-    } catch {}
-  }
-
-  const remaining = tasks.filter(t => t.status !== 'done').length
+function TodayTasks({ tasks, onToggle, onDelete }) {
+  const today = new Date().toISOString().split('T')[0]
+  const todayTasks = tasks.filter(t => { if (!t.deadline) return false; const d = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return d === today })
+  const remaining = todayTasks.filter(t => t.status !== 'done').length
 
   return (
     <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">
@@ -46,7 +12,7 @@ function TodayTasks() {
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Today's Tasks</h2>
         <span className="text-sm text-slate-500 dark:text-slate-400">{remaining} remaining</span>
       </div>
-      {tasks.length === 0 ? (
+      {todayTasks.length === 0 ? (
         <div className="text-center py-10 text-slate-400 dark:text-slate-500">
           <ListTodo size={40} className="mx-auto mb-3 opacity-50" />
           <p className="text-sm font-medium">You're all caught up!</p>
@@ -54,11 +20,11 @@ function TodayTasks() {
         </div>
       ) : (
         <div className="space-y-3">
-          {tasks.map(task => (
+          {todayTasks.map(task => (
             <div key={task._id} className={`flex items-start gap-3 p-3 rounded-xl border transition ${
               task.status === 'done' ? 'bg-slate-50 dark:bg-zinc-800 border-slate-100 dark:border-zinc-700 opacity-60' : 'bg-white dark:bg-zinc-900 border-slate-100 dark:border-zinc-700 hover:border-slate-200 dark:hover:border-zinc-600'
             }`}>
-              <button onClick={() => toggleComplete(task._id)} className="mt-0.5 flex-shrink-0">
+              <button onClick={() => onToggle(task._id)} className="mt-0.5 flex-shrink-0">
                 {task.status === 'done'
                   ? <CheckSquare size={18} className="text-indigo-500" />
                   : <Square size={18} className="text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition" />
@@ -81,7 +47,7 @@ function TodayTasks() {
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <button onClick={() => handleDelete(task._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+                <button onClick={() => onDelete(task._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                   <Trash2 size={14} />
                 </button>
               </div>

@@ -37,7 +37,7 @@ function NotificationPopup() {
       } catch { /* ignore */ }
     }
     fetch()
-    const interval = setInterval(fetch, 5000)
+    const interval = setInterval(fetch, 30000)
     return () => clearInterval(interval)
   }, [])
 

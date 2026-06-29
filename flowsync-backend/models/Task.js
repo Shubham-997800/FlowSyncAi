@@ -12,4 +12,7 @@ const taskSchema = new mongoose.Schema({
   aiSuggestedOrder: { type: Number, default: null },
 }, { timestamps: true })
 
+taskSchema.index({ user: 1, createdAt: -1 })
+taskSchema.index({ user: 1, status: 1, deadline: 1 })
+
 module.exports = mongoose.model('Task', taskSchema)

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Info, Timer, Bell, AlertTriangle, Sparkles } from 'lucide-react'
 
 const typeIconMap = {
@@ -31,7 +32,17 @@ const bgColorMap = {
   alert: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 }
 
+const actionMap = {
+  deadline_alert: '/tasks',
+  ai_suggestion: '/ai-planner',
+  reminder: '/habits',
+  success: '/dashboard',
+  info: '/dashboard',
+  alert: '/tasks',
+}
+
 function NotificationCard({ notification, onMarkRead }) {
+  const navigate = useNavigate()
   const { title, message, type, read, time } = notification
   const Icon = typeIconMap[type] || Info
   const border = borderColorMap[type] || borderColorMap.system
@@ -39,8 +50,13 @@ function NotificationCard({ notification, onMarkRead }) {
   const id = notification.id || notification._id
   const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time])
 
+  const handleClick = () => {
+    const path = notification.link || actionMap[type] || '/dashboard'
+    navigate(path)
+  }
+
   return (
-    <div className={`flex items-start gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900 border-l-4 ${border} shadow-sm transition-all duration-300 hover:scale-[1.02] ${read ? 'opacity-60' : ''}`}>
+    <div onClick={handleClick} className={`flex items-start gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900 border-l-4 ${border} shadow-sm transition-all duration-300 hover:scale-[1.02] cursor-pointer ${read ? 'opacity-60' : ''}`}>
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colors.split(' ')[0]} ${colors.split(' ')[1]}`}>
         <Icon size={18} className={colors.split(' ').slice(2).join(' ')} />
       </div>
@@ -50,7 +66,7 @@ function NotificationCard({ notification, onMarkRead }) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-[10px] text-slate-400 dark:text-slate-500">{timeAgo < 1 ? 'now' : timeAgo < 60 ? `${timeAgo}m ago` : `${Math.floor(timeAgo / 60)}h ago`}</span>
             {!read && (
-              <button onClick={() => onMarkRead(id)} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors duration-200">
+              <button onClick={(e) => { e.stopPropagation(); onMarkRead(id) }} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors duration-200">
                 <CheckCircle size={14} className="text-indigo-500" />
               </button>
             )}

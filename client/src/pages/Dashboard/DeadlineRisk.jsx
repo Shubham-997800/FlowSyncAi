@@ -1,38 +1,20 @@
-import { useState, useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { getTasks } from '../../services/taskService'
 
-function DeadlineRisk() {
-  const [atRisk, setAtRisk] = useState([])
-  const [risk, setRisk] = useState(0)
+function DeadlineRisk({ tasks }) {
+  const today = new Date().toISOString().split('T')[0]
+  const getDate = (t) => t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : null
+  const overdue = tasks.filter(t => { const d = getDate(t); return d && t.status !== 'done' && d < today })
+  const dueToday = tasks.filter(t => { const d = getDate(t); return d === today && t.status !== 'done' })
 
-  useEffect(() => {
-    let mounted = true
-    const update = async () => {
-      try {
-        const tasks = await getTasks()
-        if (!mounted) return
-        const today = new Date().toISOString().split('T')[0]
-        const getDate = (t) => t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : null
-        const overdue = tasks.filter(t => { const d = getDate(t); return d && t.status !== 'done' && d < today })
-        const dueToday = tasks.filter(t => { const d = getDate(t); return d === today && t.status !== 'done' })
+  const atRisk = [...overdue, ...dueToday].slice(0, 3).map(t => ({
+    name: t.title,
+    remaining: getDate(t) < today ? 'Overdue' : 'Due today',
+    progress: getDate(t) < today ? 100 : 65,
+    action: getDate(t) < today ? 'Complete ASAP' : 'Focus now',
+  }))
 
-        const atRiskTasks = [...overdue, ...dueToday].slice(0, 3).map(t => ({
-          name: t.title,
-          remaining: getDate(t) < today ? 'Overdue' : 'Due today',
-          progress: getDate(t) < today ? 100 : 65,
-          action: getDate(t) < today ? 'Complete ASAP' : 'Focus now',
-        }))
-        setAtRisk(atRiskTasks)
-
-        const active = tasks.filter(t => t.deadline && t.status !== 'done').length
-        setRisk(active > 0 ? Math.round((atRiskTasks.length / active) * 100) : 0)
-      } catch {}
-    }
-    update()
-    const interval = setInterval(update, 10000)
-    return () => { mounted = false; clearInterval(interval) }
-  }, [])
+  const active = tasks.filter(t => t.deadline && t.status !== 'done').length
+  const risk = active > 0 ? Math.round((atRisk.length / active) * 100) : 0
 
   const riskLevel = risk <= 25 ? 'Low Risk' : risk <= 50 ? 'Moderate Risk' : 'High Risk'
   const riskColor = risk <= 25 ? 'text-indigo-600 dark:text-indigo-400' : risk <= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'

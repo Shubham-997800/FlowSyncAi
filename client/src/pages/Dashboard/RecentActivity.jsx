@@ -1,34 +1,19 @@
-import { useState, useEffect } from 'react'
 import { CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { getTasks } from '../../services/taskService'
 
-function RecentActivity() {
-  const [activities, setActivities] = useState([])
+function RecentActivity({ tasks }) {
   const navigate = useNavigate()
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const data = await getTasks()
-        const tasks = Array.isArray(data) ? data : []
-        const recent = tasks
-          .filter(t => t.status === 'done' || t.deadline)
-          .sort((a, b) => new Date(b.createdAt || b.deadline) - new Date(a.createdAt || a.deadline))
-          .slice(0, 5)
-          .map(t => ({
-            id: t._id,
-            text: t.status === 'done' ? `"${t.title}" completed` : `"${t.title}" scheduled`,
-            type: t.status === 'done' ? 'completed' : 'added',
-            time: t.status === 'done' ? new Date(t.deadline || t.createdAt) : new Date(t.createdAt || t.deadline),
-          }))
-        setActivities(recent)
-      } catch { /* ignore */ }
-    }
-    fetchTasks()
-    const interval = setInterval(fetchTasks, 10000)
-    return () => clearInterval(interval)
-  }, [])
+  const activities = tasks
+    .filter(t => t.status === 'done' || t.deadline)
+    .sort((a, b) => new Date(b.createdAt || b.deadline) - new Date(a.createdAt || a.deadline))
+    .slice(0, 5)
+    .map(t => ({
+      id: t._id,
+      text: t.status === 'done' ? `"${t.title}" completed` : `"${t.title}" scheduled`,
+      type: t.status === 'done' ? 'completed' : 'added',
+      time: t.status === 'done' ? new Date(t.deadline || t.createdAt) : new Date(t.createdAt || t.deadline),
+    }))
 
   const getIcon = (type) => {
     if (type === 'completed') return { icon: CheckCircle, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' }
