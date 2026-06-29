@@ -1,24 +1,45 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Trash2, Download, EyeOff } from 'lucide-react'
+import { Shield, Trash2, Download, EyeOff, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { updateProfile, deleteAccount as deleteAccountApi } from '../../services/settingsService'
+import { getTasks } from '../../services/taskService'
+import { getGoals } from '../../services/goalService'
+import { getHabits } from '../../services/habitService'
 
 function AccountSettings() {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
-  const handleExport = () => {
-    const data = {}
-    const keys = ['flowsync_tasks', 'flowsync_goals', 'flowsync_habits', 'flowsync_notifications', 'flowsync_focus_sessions', 'flowsync_focus_minutes']
-    keys.forEach(k => { try { data[k] = JSON.parse(localStorage.getItem(k) || '[]') } catch { data[k] = [] } })
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = 'flowsync_export.json'; a.click()
-    URL.revokeObjectURL(url)
-    toast.success('Data exported successfully')
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const [tasks, goals, habits] = await Promise.all([
+        getTasks().catch(() => []),
+        getGoals().catch(() => []),
+        getHabits().catch(() => []),
+      ])
+      const data = {
+        exportedAt: new Date().toISOString(),
+        tasks,
+        goals,
+        habits,
+        focusSessions: parseInt(localStorage.getItem('flowsync_focus_sessions') || '0'),
+        focusMinutes: parseInt(localStorage.getItem('flowsync_focus_minutes') || '0'),
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a'); a.href = url; a.download = `flowsync_export_${new Date().toISOString().split('T')[0]}.json`; a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Data exported successfully')
+    } catch {
+      toast.error('Failed to export data')
+    } finally {
+      setExporting(false)
+    }
   }
 
   const handleClearData = () => {
@@ -53,14 +74,14 @@ function AccountSettings() {
         </div>
 
         <div className="space-y-3">
-          <button onClick={handleExport} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200">
+          <button onClick={handleExport} disabled={exporting} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200 disabled:opacity-60">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
-                <Download size={13} className="text-slate-500" />
+                {exporting ? <Loader2 size={13} className="text-indigo-500 animate-spin" /> : <Download size={13} className="text-slate-500" />}
               </div>
               <div className="text-left">
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Export Data</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">Download your data as JSON</p>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{exporting ? 'Exporting...' : 'Export Data'}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Download your tasks, goals & habits as JSON</p>
               </div>
             </div>
             <span className="text-xs text-slate-400">&rarr;</span>

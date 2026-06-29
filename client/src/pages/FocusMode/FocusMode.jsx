@@ -3,7 +3,6 @@ import { Brain, ListTodo } from 'lucide-react'
 import Timer from './Timer'
 import CurrentTask from './CurrentTask'
 import SessionStats from './SessionStats'
-import FocusMusic from './FocusMusic'
 import toast from 'react-hot-toast'
 import { getTasks } from '../../services/taskService'
 
@@ -25,7 +24,6 @@ function FocusMode() {
   const [mode, setMode] = useState('focus')
   const [sessions, setSessions] = useState(() => parseInt(localStorage.getItem('flowsync_focus_sessions') || '0'))
   const [totalFocusMinutes, setTotalFocusMinutes] = useState(() => parseInt(localStorage.getItem('flowsync_focus_minutes') || '0'))
-  const [showMusic, setShowMusic] = useState(false)
   const [sessionComplete, setSessionComplete] = useState(false)
 
   const handleSessionComplete = () => {
@@ -56,11 +54,7 @@ function FocusMode() {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Focus Mode</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Deep work with AI-adjusted Pomodoro sessions</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowMusic(!showMusic)} className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors duration-300 ${showMusic ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600' : 'border-slate-300 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}>
-            {showMusic ? 'Hide Music' : 'Ambient Sounds'}
-          </button>
-        </div>
+        <div className="flex items-center gap-3" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -88,7 +82,6 @@ function FocusMode() {
 
         <div className="space-y-6">
           <SessionStats sessions={sessions} totalMinutes={totalFocusMinutes} mode={mode} />
-          {showMusic && <FocusMusic />}
           {selectedTask && (
             <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
               <div className="flex items-center gap-2 mb-3">

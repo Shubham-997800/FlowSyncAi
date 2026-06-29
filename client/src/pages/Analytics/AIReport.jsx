@@ -1,6 +1,37 @@
-import { Brain, Lightbulb, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Brain, Lightbulb, TrendingUp, AlertTriangle, Download } from 'lucide-react'
 
 function AIReport({ tasks, completionRate, overdue, focusSessions, habitStreaks }) {
+  const handleDownload = () => {
+    const now = new Date().toLocaleDateString()
+    const text = [
+      `AI Productivity Report - ${now}`,
+      `Completion Rate: ${completionRate}%`,
+      `Overdue Tasks: ${overdue}`,
+      `Focus Sessions: ${focusSessions}`,
+      `Habit Streaks: ${habitStreaks}`,
+      `Total Tasks: ${tasks.length}`,
+      '',
+      '--- Strengths ---',
+      ...(completionRate >= 70 ? ['- High task completion rate'] : []),
+      ...(focusSessions >= 10 ? ['- Strong focus discipline'] : []),
+      ...(habitStreaks >= 3 ? ['- Building good habit streaks'] : []),
+      '',
+      '--- Areas to Improve ---',
+      ...(completionRate < 50 ? ['- Task completion rate needs improvement'] : []),
+      ...(overdue > 3 ? [`- ${overdue} overdue tasks`] : []),
+      ...(focusSessions < 5 ? ['- Low focus session count'] : []),
+      '',
+      '--- Recommendations ---',
+      ...(overdue > 0 ? [`- Focus on ${overdue} overdue tasks`] : []),
+      ...(completionRate < 70 ? ['- Break large tasks into smaller subtasks'] : []),
+      '- Take a 5-minute break every 25 minutes',
+    ].join('\n')
+
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = `productivity_report_${new Date().toISOString().split('T')[0]}.txt`; a.click()
+    URL.revokeObjectURL(url)
+  }
   const morningTasks = tasks.filter(t => {
     if (!t.createdAt) return false
     const h = new Date(t.createdAt).getHours()
@@ -44,9 +75,14 @@ function AIReport({ tasks, completionRate, overdue, focusSessions, habitStreaks 
         <div className="flex-1">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Productivity Report</h2>
         </div>
-        <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-medium flex items-center gap-1">
-          <Brain size={10} /> AI Generated
-        </span>
+        <div className="flex items-center gap-2">
+          <button onClick={handleDownload} className="px-2 py-1 rounded-lg text-[10px] font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition flex items-center gap-1">
+            <Download size={10} /> Download
+          </button>
+          <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-medium flex items-center gap-1">
+            <Brain size={10} /> AI Generated
+          </span>
+        </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4 mb-4">

@@ -3,12 +3,14 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Mail, Lock, Eye, EyeOff, User, Loader2, Brain, AlertTriangle, BarChart3, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
+import LegalModal from '../../components/LegalModal'
 
 function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [agree, setAgree] = useState(false)
+  const [legal, setLegal] = useState(null)
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -119,7 +121,7 @@ function Register() {
               <label className="flex items-start gap-2 cursor-pointer">
                 <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 mt-0.5 cursor-pointer" />
-                <span className="text-sm text-slate-600 dark:text-slate-400">I agree to <Link to="/terms" className="text-indigo-600 dark:text-indigo-400 hover:underline">Terms</Link> &amp; <Link to="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</Link></span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">I agree to <button type="button" onClick={() => setLegal('terms')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Terms</button> &amp; <button type="button" onClick={() => setLegal('privacy')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Privacy Policy</button></span>
               </label>
 
               <button type="submit" disabled={loading}
@@ -136,6 +138,7 @@ function Register() {
           <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">Your data stays private and secure.</p>
         </div>
       </div>
+      {legal && <LegalModal type={legal} onClose={() => setLegal(null)} />}
     </div>
   )
 }

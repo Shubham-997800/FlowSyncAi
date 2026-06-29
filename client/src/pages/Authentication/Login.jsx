@@ -3,12 +3,14 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Mail, Lock, Eye, EyeOff, Loader2, Brain, Clock, AlertTriangle, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
+import LegalModal from '../../components/LegalModal'
 
 function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(false)
   const [agree, setAgree] = useState(false)
+  const [legal, setLegal] = useState(null)
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -108,7 +110,7 @@ function Login() {
               <label className="flex items-start gap-2 cursor-pointer">
                 <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 mt-0.5 cursor-pointer" />
-                <span className="text-sm text-slate-600 dark:text-slate-400">I agree to <Link to="/terms" className="text-indigo-600 dark:text-indigo-400 hover:underline">Terms</Link> &amp; <Link to="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</Link></span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">I agree to <button type="button" onClick={() => setLegal('terms')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Terms</button> &amp; <button type="button" onClick={() => setLegal('privacy')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Privacy Policy</button></span>
               </label>
 
               <button type="submit" disabled={loading || !agree}
@@ -125,6 +127,7 @@ function Login() {
           <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">Protected by secure authentication.</p>
         </div>
       </div>
+      {legal && <LegalModal type={legal} onClose={() => setLegal(null)} />}
     </div>
   )
 }

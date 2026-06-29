@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { subscribeToPush, unsubscribeFromPush } from '../services/pushService'
 
 export function usePushNotifications() {
   const { user } = useAuth()
@@ -27,9 +28,19 @@ export function usePushNotifications() {
   }, [])
 
   useEffect(() => {
-    if (user) {
-      requestPermission()
+    if (!user) {
+      unsubscribeFromPush()
+      return
     }
+    let mounted = true
+    const setup = async () => {
+      const granted = await requestPermission()
+      if (mounted && granted) {
+        await subscribeToPush()
+      }
+    }
+    setup()
+    return () => { mounted = false }
   }, [user, requestPermission])
 
   return { requestPermission, sendNotification }
