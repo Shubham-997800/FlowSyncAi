@@ -59,6 +59,30 @@ function Notifications() {
     setNotifications([])
   }
 
+  const unread = notifications.filter(n => !n.read).length
+
+  const today = notifications.filter(n => {
+    const d = new Date(n.time)
+    const now = new Date()
+    return d.toDateString() === now.toDateString()
+  })
+
+  const thisWeek = notifications.filter(n => {
+    const d = new Date(n.time)
+    const now = new Date()
+    const weekAgo = new Date(now)
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    return d > weekAgo && d.toDateString() !== now.toDateString()
+  })
+
+  const earlier = notifications.filter(n => {
+    const d = new Date(n.time)
+    const now = new Date()
+    const weekAgo = new Date(now)
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    return d <= weekAgo
+  })
+
   const sampleTypes = ['task', 'goal', 'habit', 'focus', 'overdue']
 
   return (

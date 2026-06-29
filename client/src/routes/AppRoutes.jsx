@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
 import Home from '../pages/Home'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const Login = lazy(() => import('../pages/Authentication/Login'))
 const Register = lazy(() => import('../pages/Authentication/Register'))
@@ -25,18 +26,18 @@ const Privacy = lazy(() => import('../pages/Legal/Privacy'))
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <LoadingSpinner />
   return user ? children : <Navigate to="/login" replace />
 }
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return null
+  if (loading) return <LoadingSpinner />
   return user ? <Navigate to="/dashboard" replace /> : children
 }
 
 function Lazy({ children }) {
-  return <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-zinc-950" />}>{children}</Suspense>
+  return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
 }
 
 function AppRoutes() {
