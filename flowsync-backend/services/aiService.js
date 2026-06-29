@@ -1,13 +1,14 @@
 const { getAI } = require('../config/aiConfig')
 
-const SYSTEM_PROMPT = `You are FlowSync AI, a productivity engine. Always respond with valid JSON only. No markdown, no explanations.`
-
-async function callGrok(prompt) {
+async function callGrok(systemMsg, userMsg) {
   const ai = getAI()
   try {
     const res = await ai.chat.completions.create({
-      model: 'meta-llama/llama-3.1-8b-instruct',
-      messages: [{ role: 'user', content: prompt }],
+      model: 'qwen/qwen-2.5-7b-instruct',
+      messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: userMsg },
+      ],
       temperature: 0.3,
       max_tokens: 2048,
     })
@@ -39,15 +40,12 @@ function parseJSON(text) {
 }
 
 async function generatePlan(prompt, tasks = []) {
-  const fullPrompt = `${SYSTEM_PROMPT}
-
-Generate a daily plan.
-
-USER: "${prompt}"
+  const sysMsg = `You are FlowSync AI, a productivity engine. Generate a daily plan in JSON. Always respond with valid JSON only.`
+  const userMsg = `USER: "${prompt}"
 
 TASKS: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, deadline: t.deadline })))}
 
-Respond EXACTLY:
+Respond EXACTLY with this JSON:
 {
   "priority": [{ "taskId": "", "title": "", "reason": "", "score": 0 }],
   "schedule": [{ "startTime": "HH:MM", "endTime": "HH:MM", "taskId": "", "title": "", "type": "work|break|buffer" }],
@@ -55,25 +53,24 @@ Respond EXACTLY:
   "confidence": 0-100
 }`
 
-  const raw = await callGrok(fullPrompt)
+  const raw = await callGrok(sysMsg, userMsg)
   return parseJSON(raw) || { priority: [], schedule: [], suggestions: ['Could not generate plan'], confidence: 0 }
 }
 
 async function prioritizeTasks(tasks) {
-  const prompt = `${SYSTEM_PROMPT}
-
-Rank these tasks by urgency and importance.
+  const sysMsg = `You are FlowSync AI, a productivity engine. Rank tasks by urgency and importance in JSON. Always respond with valid JSON only.`
+  const userMsg = `Rank these tasks:
 
 ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
 
-Respond EXACTLY:
+Respond EXACTLY with this JSON:
 {
   "rankings": [{ "taskId": "", "title": "", "priorityScore": 0-100, "riskScore": 0-100, "reason": "" }],
   "suggestedOrder": ["taskId1"],
   "summary": ""
 }`
 
-  const raw = await callGrok(prompt)
+  const raw = await callGrok(sysMsg, userMsg)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.rankings)) return parsed
   return {
@@ -84,13 +81,10 @@ Respond EXACTLY:
 }
 
 async function rescueMode(tasks) {
-  const prompt = `${SYSTEM_PROMPT}
+  const sysMsg = `You are FlowSync AI, a productivity engine. EMERGENCY: User is overloaded with only a 48h window. Respond with JSON only.`
+  const userMsg = `Tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
 
-EMERGENCY: User is overloaded. Only 48h window.
-
-${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
-
-Respond EXACTLY:
+Respond EXACTLY with this JSON:
 {
   "criticalTasks": [{ "taskId": "", "title": "", "reason": "" }],
   "compressedSchedule": [{ "startTime": "HH:MM", "endTime": "HH:MM", "taskId": "", "title": "" }],
@@ -99,20 +93,16 @@ Respond EXACTLY:
   "estimatedRecoveryHours": 0
 }`
 
-  const raw = await callGrok(prompt)
+  const raw = await callGrok(sysMsg, userMsg)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.criticalTasks)) return parsed
   return { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 }
 }
 
 async function chat(message, tasks = []) {
-  const prompt = `${SYSTEM_PROMPT}
+  const sysMsg = `You are FlowSync AI, a friendly productivity assistant inside a task management app. You help users plan, organize, and create tasks. If the user asks you to create a task, respond with a "tasks" array. Always respond with valid JSON only.`
 
-You are a productivity assistant inside a task management app called FlowSync.
-You help users plan, organize, and create tasks.
-If the user asks you to create a task, respond with a "tasks" array in your JSON.
-
-Current tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
+  const userMsg = `Current tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
 
 User said: "${message}"
 
@@ -124,7 +114,7 @@ Respond EXACTLY with this JSON format:
 }
 If the user doesn't ask to create tasks, return "tasks" as empty array [].`
 
-  const raw = await callGrok(prompt)
+  const raw = await callGrok(sysMsg, userMsg)
   const parsed = parseJSON(raw)
   if (parsed && parsed.reply) return parsed
   return { reply: "I understand what you're saying. Could you be more specific about what you'd like me to help with?", tasks: [], suggestions: [] }
