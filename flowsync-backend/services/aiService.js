@@ -1,16 +1,18 @@
 const { getAI } = require('../config/aiConfig')
 
-async function callGrok(systemMsg, userMsg) {
+const AI_MODEL = process.env.AI_MODEL || 'qwen/qwen-2.5-72b-instruct'
+
+async function callAI(systemMsg, userMsg, temperature = 0.7) {
   const ai = getAI()
   try {
     const res = await ai.chat.completions.create({
-      model: 'qwen/qwen-2.5-7b-instruct',
+      model: AI_MODEL,
       messages: [
         { role: 'system', content: systemMsg },
         { role: 'user', content: userMsg },
       ],
-      temperature: 0.3,
-      max_tokens: 2048,
+      temperature,
+      max_tokens: 4096,
     })
     return res.choices[0]?.message?.content || ''
   } catch (err) {
@@ -53,7 +55,7 @@ Respond EXACTLY with this JSON:
   "confidence": 0-100
 }`
 
-  const raw = await callGrok(sysMsg, userMsg)
+  const raw = await callAI(sysMsg, userMsg, 0.3)
   return parseJSON(raw) || { priority: [], schedule: [], suggestions: ['Could not generate plan'], confidence: 0 }
 }
 
@@ -70,7 +72,7 @@ Respond EXACTLY with this JSON:
   "summary": ""
 }`
 
-  const raw = await callGrok(sysMsg, userMsg)
+  const raw = await callAI(sysMsg, userMsg, 0.3)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.rankings)) return parsed
   return {
@@ -93,28 +95,38 @@ Respond EXACTLY with this JSON:
   "estimatedRecoveryHours": 0
 }`
 
-  const raw = await callGrok(sysMsg, userMsg)
+  const raw = await callAI(sysMsg, userMsg, 0.3)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.criticalTasks)) return parsed
   return { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 }
 }
 
 async function chat(message, tasks = []) {
-  const sysMsg = `You are FlowSync AI, a friendly productivity assistant inside a task management app. You help users plan, organize, and create tasks. If the user asks you to create a task, respond with a "tasks" array. Always respond with valid JSON only.`
+  const sysMsg = `You are FlowSync AI, a friendly and conversational productivity assistant inside a task management app. Your tone is warm, helpful, and natural — like a smart coworker.
 
-  const userMsg = `Current tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
+Your job:
+- Answer questions about tasks, productivity, and planning.
+- If the user asks to create a task, extract it into the "tasks" JSON array.
+- Give concise, practical advice. Use natural language, not robotic phrases.
+- Suggest follow-up actions when appropriate.
 
-User said: "${message}"
-
-Respond EXACTLY with this JSON format:
+When you respond, output ONLY valid JSON — no markdown, no extra text. Use this format:
 {
-  "reply": "your friendly conversational response here",
-  "tasks": [{ "title": "task title", "description": "", "priority": "low|medium|high", "deadline": null }],
-  "suggestions": ["optional follow-up suggestions"]
+  "reply": "your warm, natural conversational response here",
+  "tasks": [{ "title": "task title", "description": "optional description", "priority": "low|medium|high", "deadline": null }],
+  "suggestions": ["follow-up suggestion 1", "follow-up suggestion 2"]
 }
-If the user doesn't ask to create tasks, return "tasks" as empty array [].`
 
-  const raw = await callGrok(sysMsg, userMsg)
+If the user does NOT ask to create any tasks, set "tasks" to an empty array [].`
+
+  const userMsg = `Here are the user's current tasks for context:
+${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
+
+User message: "${message}"
+
+Remember: Respond with **natural, conversational** language in the "reply" field. Be concise but human.`
+
+  const raw = await callAI(sysMsg, userMsg, 0.7)
   const parsed = parseJSON(raw)
   if (parsed && parsed.reply) return parsed
   return { reply: "I understand what you're saying. Could you be more specific about what you'd like me to help with?", tasks: [], suggestions: [] }
