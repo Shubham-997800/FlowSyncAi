@@ -81,11 +81,17 @@ function Register() {
     }
     setLoading(true)
     try {
-      await register(form.name, form.email, form.password)
-      toast.success('Account created!')
-      navigate('/dashboard')
+      const data = await register(form.name, form.email, form.password)
+      toast.success('Account created! Check your email for the OTP.')
+      navigate(`/verify-email?email=${encodeURIComponent(data.email)}`)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed')
+      const serverMsg = err.response?.data?.message
+      if (err.response?.data?.email) {
+        navigate(`/verify-email?email=${encodeURIComponent(err.response.data.email)}`)
+        toast.error(serverMsg || 'Account found. Verify your email.')
+      } else {
+        toast.error(serverMsg || 'Registration failed. Check your details and try again.')
+      }
     } finally { setLoading(false) }
   }
 

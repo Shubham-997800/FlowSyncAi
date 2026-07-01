@@ -14,6 +14,11 @@ const highlights = {
     { icon: AlertTriangle, title: 'Deadline Prediction', desc: 'Never miss an important deadline' },
     { icon: BarChart3, title: 'Productivity Insights', desc: 'Track what matters with analytics' },
   ],
+  verify: [
+    { icon: Brain, text: 'AI Task Prioritization' },
+    { icon: Clock, text: 'Smart Scheduling' },
+    { icon: AlertTriangle, text: 'Focus Mode' },
+  ],
 }
 
 function AuthLayout({ mode, title, subtitle, children, footer }) {

@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import NotificationPopup from '../components/NotificationPopup'
+import PermissionMonitor from '../components/PermissionMonitor'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { usePushNotifications } from '../hooks/usePushNotifications'
@@ -78,6 +79,7 @@ function MainLayout() {
             <h1 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">{pageTitle}</h1>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <PermissionMonitor />
             <NotificationPopup />
             <button onClick={toggle} className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300 flex-shrink-0">
               {dark ? <Sun size={18} /> : <Moon size={18} />}

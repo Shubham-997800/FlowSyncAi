@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ShieldAlert } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
@@ -14,6 +14,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [legal, setLegal] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [needsVerification, setNeedsVerification] = useState(null)
   const { login } = useAuth()
   const navigate = useNavigate()
   const emailRef = useRef(null)
@@ -38,7 +39,13 @@ function Login() {
       toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Invalid email or password')
+      const msg = err.response?.data
+      if (msg?.needsVerification) {
+        setNeedsVerification(msg.email)
+        toast.error('Email not verified. Check your inbox or resend OTP.')
+      } else {
+        toast.error(msg?.message || 'Invalid email or password')
+      }
     } finally {
       setLoading(false)
     }
@@ -94,6 +101,19 @@ function Login() {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </Field>
+
+          {needsVerification && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50">
+              <ShieldAlert size={16} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-700 dark:text-amber-400">
+                <p className="font-medium mb-1">Email not verified</p>
+                <p>Please verify before signing in.</p>
+                <Link to={`/verify-email?email=${encodeURIComponent(needsVerification)}`} className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline mt-1 inline-block">
+                  Verify now →
+                </Link>
+              </div>
+            </motion.div>
+          )}
 
           <div className="flex items-center justify-end">
             <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300">Forgot Password?</Link>

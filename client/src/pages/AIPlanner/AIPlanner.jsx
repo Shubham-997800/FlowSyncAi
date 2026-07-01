@@ -42,6 +42,8 @@ function AIPlanner() {
   const [showSessions, setShowSessions] = useState(false)
   const [listening, setListening] = useState(false)
   const recognitionRef = useRef(null)
+  const silenceTimerRef = useRef(null)
+  const lastResultRef = useRef('')
   const bottomRef = useRef(null)
 
   const checkMicPermission = useCallback(async () => {
@@ -53,10 +55,19 @@ function AIPlanner() {
     }
   }, [])
 
+  const stopVoice = useCallback(() => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current)
+      silenceTimerRef.current = null
+    }
+    recognitionRef.current?.stop()
+    recognitionRef.current = null
+    setListening(false)
+  }, [])
+
   const toggleVoice = useCallback(async () => {
     if (listening) {
-      recognitionRef.current?.stop()
-      setListening(false)
+      stopVoice()
       return
     }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -76,9 +87,22 @@ function AIPlanner() {
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results).map(r => r[0].transcript).join('')
       setInput(transcript)
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+      if (transcript !== lastResultRef.current) {
+        lastResultRef.current = transcript
+        silenceTimerRef.current = setTimeout(() => {
+          if (recognitionRef.current) {
+            recognition.stop()
+          }
+        }, 2000)
+      }
     }
     recognition.onerror = (event) => {
-      setListening(false)
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = null
+      }
+      stopVoice()
       switch (event.error) {
         case 'not-allowed':
           toast.error('Microphone permission was denied. Allow access in your browser settings, then reload the page.')
@@ -101,11 +125,28 @@ function AIPlanner() {
           toast.error('Microphone error. Check permissions.')
       }
     }
-    recognition.onend = () => setListening(false)
+    recognition.onend = () => {
+      setListening(false)
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = null
+      }
+    }
     recognitionRef.current = recognition
+    lastResultRef.current = ''
     recognition.start()
     setListening(true)
-  }, [listening, checkMicPermission])
+  }, [listening, checkMicPermission, stopVoice])
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden && listening) {
+        stopVoice()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [listening, stopVoice])
 
   const loadSession = useCallback(async (sid) => {
     setInitialLoading(true)

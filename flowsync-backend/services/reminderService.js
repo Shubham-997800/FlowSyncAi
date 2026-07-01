@@ -1,6 +1,7 @@
 const Task = require('../models/Task')
 const User = require('../models/User')
 const Notification = require('../models/Notification')
+const { sendPushToUser } = require('../controllers/pushController')
 const { sendResetEmail } = require('./emailService')
 
 const CHECK_INTERVAL = 30 * 60 * 1000
@@ -38,6 +39,11 @@ function startReminderService() {
           title: `Deadline approaching: "${task.title}"`,
           message: `Due in ${hoursLeft > 24 ? `${Math.round(hoursLeft / 24)} days` : `${hoursLeft} hours`} (${new Date(task.deadline).toLocaleDateString()})`,
           link: '/tasks',
+        })
+        await sendPushToUser(task.user._id, {
+          title: `Deadline approaching: "${task.title}"`,
+          body: `Due in ${hoursLeft > 24 ? `${Math.round(hoursLeft / 24)} days` : `${hoursLeft} hours`}`,
+          url: '/tasks',
         })
       }
     } catch (err) {

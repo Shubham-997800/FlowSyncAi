@@ -30,4 +30,22 @@ const sendResetEmail = async (to, token) => {
   })
 }
 
-module.exports = { sendResetEmail }
+const sendVerificationEmail = async (to, otp) => {
+  await transporter.sendMail({
+    from: `"FlowSync AI" <${process.env.SMTP_FROM || 'noreply@flowsync.ai'}>`,
+    to,
+    subject: 'Verify your email — FlowSync AI',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #6366f1;">FlowSync AI</h2>
+        <p>Welcome! Use the OTP below to verify your email address.</p>
+        <div style="background: #f0f0ff; border-radius: 12px; padding: 20px; text-align: center; margin: 16px 0;">
+          <span style="font-size: 36px; font-weight: bold; color: #6366f1; letter-spacing: 8px;">${otp}</span>
+        </div>
+        <p style="color: #666; font-size: 14px;">This OTP expires in 10 minutes. If you didn't create this account, ignore this email.</p>
+      </div>
+    `,
+  })
+}
+
+module.exports = { sendResetEmail, sendVerificationEmail }

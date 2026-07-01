@@ -12,6 +12,9 @@ const userSchema = new mongoose.Schema({
   jobTitle: { type: String, default: '' },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  isVerified: { type: Boolean, default: false },
+  verificationOTP: String,
+  verificationOTPExpire: Date,
   aiConsent: { type: Boolean, default: false },
   achievements: [{ name: String, unlockedAt: Date }],
 }, { timestamps: true })
