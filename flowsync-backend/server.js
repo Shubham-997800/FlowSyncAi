@@ -15,6 +15,7 @@ const habitRoutes = require('./routes/habitRoutes')
 const settingsRoutes = require('./routes/settingsRoutes')
 const pushRoutes = require('./routes/pushRoutes')
 const chatRoutes = require('./routes/chatRoutes')
+const { startReminderService } = require('./services/reminderService')
 
 dotenv.config()
 connectDB()
@@ -58,5 +59,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`FlowSync AI server running on port ${PORT}`)
+  startReminderService()
 })
 

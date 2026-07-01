@@ -93,4 +93,19 @@ const toggleAIConsent = async (req, res) => {
   }
 }
 
-module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, toggleAIConsent }
+const updateAchievements = async (req, res) => {
+  try {
+    const { achievements } = req.body
+    if (!Array.isArray(achievements)) return res.status(400).json({ message: 'Achievements array required' })
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { achievements },
+      { new: true }
+    )
+    res.json({ achievements: user.achievements })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, toggleAIConsent, updateAchievements }

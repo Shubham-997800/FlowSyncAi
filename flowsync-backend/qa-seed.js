@@ -253,7 +253,46 @@ async function seed() {
     console.log(`⚠ Settings error: ${e.message}`)
   }
 
-  // === 10. TEST NOTIFICATION READ ===
+  // === 10. ENABLE AI CONSENT ===
+  try {
+    await req('PUT', '/api/settings/ai-consent', { consent: true }, token)
+    console.log('✓ AI consent enabled')
+  } catch (e) {
+    console.log(`⚠ AI consent error: ${e.message}`)
+  }
+
+  // === 11. TEST AI SUGGEST TASK ===
+  try {
+    const suggestion = await req('POST', '/api/ai/suggest-task', { title: 'Prepare quarterly report for board meeting' }, token)
+    console.log(`✓ AI suggest-task: priority=${suggestion.suggestedPriority}, tags=${suggestion.suggestedTags?.join(',') || 'none'}`)
+  } catch (e) {
+    console.log(`⚠ AI suggest-task error: ${e.message}`)
+  }
+
+  // === 12. TEST AI USAGE ===
+  try {
+    const usage = await req('GET', '/api/ai/usage', null, token)
+    console.log(`✓ AI usage: ${usage.used}/${usage.limit} today`)
+  } catch (e) {
+    console.log(`⚠ AI usage error: ${e.message}`)
+  }
+
+  // === 13. TEST CHAT HISTORY ===
+  try {
+    const aiResp = await req('POST', '/api/ai/chat', { message: 'What are my top priorities today?' }, token)
+    console.log(`✓ AI chat works! Reply: "${aiResp.reply?.slice(0, 80)}..."`)
+  } catch (e) {
+    console.log(`⚠ AI chat error: ${e.message}`)
+  }
+
+  try {
+    const sessions = await req('GET', '/api/chat/sessions', null, token)
+    console.log(`✓ Chat sessions: ${sessions.length} session(s)`)
+  } catch (e) {
+    console.log(`⚠ Chat sessions error: ${e.message}`)
+  }
+
+  // === 14. TEST NOTIFICATION READ ===
   try {
     const notifs = await req('GET', '/api/notifications', null, token)
     if (notifs.length > 0) {
@@ -264,17 +303,14 @@ async function seed() {
     console.log(`⚠ Notification error: ${e.message}`)
   }
 
-  console.log('\n=== QA SEED COMPLETE ===')
-  console.log(`Email:      ${TEST_EMAIL}`)
-  console.log(`Password:   ${TEST_PASSWORD}`)
-  console.log(`Tasks:      ${totalTasks}`)
-  console.log(`  Done:      ${completedCount}`)
-  console.log(`  Pending:   ${pendingCount}`)
-  console.log(`  Overdue:   ${overdueCount}`)
-  console.log(`Goals:      ${goals.length}`)
-  console.log(`Habits:     ${habits.length}`)
-  console.log(`Notifs:     ${notifs.length}`)
-  console.log('=========================')
+  console.log('\n=== ✅ QA SEED COMPLETE ===')
+  console.log(`🔑 Email:      ${TEST_EMAIL}`)
+  console.log(`🔑 Password:   ${TEST_PASSWORD}`)
+  console.log(`📊 Tasks:      ${totalTasks} (${completedCount} done, ${pendingCount} pending, ${overdueCount} overdue)`)
+  console.log(`🎯 Goals:      ${goals.length}`)
+  console.log(`🔄 Habits:     ${habits.length}`)
+  console.log(`🔔 Notifs:     ${notifs.length}`)
+  console.log('============================')
 }
 
 seed().catch(err => {

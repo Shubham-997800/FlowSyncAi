@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   aiConsent: { type: Boolean, default: false },
+  achievements: [{ name: String, unlockedAt: Date }],
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {

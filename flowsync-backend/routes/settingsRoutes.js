@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, toggleAIConsent } = require('../controllers/settingsController')
+const { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, toggleAIConsent, updateAchievements } = require('../controllers/settingsController')
 const { protect } = require('../middleware/auth')
 
 const router = Router()
@@ -10,6 +10,7 @@ router.put('/profile', updateProfile)
 router.put('/avatar', uploadAvatar)
 router.put('/password', updatePassword)
 router.put('/ai-consent', toggleAIConsent)
+router.put('/achievements', updateAchievements)
 router.delete('/account', deleteAccount)
 
 module.exports = router

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Search, X, AlertCircle, CheckCircle2, Clock, Flag, Target, Calendar as CalIcon } from 'lucide-react'
+import { Plus, Trash2, Search, X, AlertCircle, CheckCircle2, Clock, Flag, Target, Calendar as CalIcon, Brain, Loader2, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { getTasks, createTask, updateTask, deleteTask } from '../../services/taskService'
 import { getGoals, createGoal, updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '../../services/goalService'
+import { suggestTask } from '../../services/aiService'
 
 const priorityConfig = {
   high: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30', label: 'High' },
@@ -17,11 +18,26 @@ function TaskForm({ task, onSave, onClose }) {
   const [description, setDescription] = useState(task?.description || '')
   const [priority, setPriority] = useState(task?.priority || 'medium')
   const [deadline, setDeadline] = useState(task?.deadline ? task.deadline.split('T')[0] : '')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState(null)
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!title.trim()) return toast.error('Task title is required')
     onSave({ title: title.trim(), description: description.trim(), priority, deadline: deadline || null })
+  }
+
+  const handleAiSuggest = async () => {
+    if (!title.trim()) return toast.error('Enter a task title first')
+    setAiLoading(true)
+    setAiSuggestion(null)
+    try {
+      const res = await suggestTask(title.trim())
+      setAiSuggestion(res)
+      if (res.suggestedPriority) setPriority(res.suggestedPriority)
+    } catch {
+      toast.error('AI suggest failed')
+    } finally { setAiLoading(false) }
   }
 
   return (
@@ -34,8 +50,23 @@ function TaskForm({ task, onSave, onClose }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title</label>
-            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter task title" className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" autoFocus />
+            <div className="flex gap-2">
+              <input value={title} onChange={e => { setTitle(e.target.value); setAiSuggestion(null) }} placeholder="Enter task title" className="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" autoFocus />
+              <button type="button" onClick={handleAiSuggest} disabled={aiLoading} className="px-3 py-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition disabled:opacity-50 flex items-center gap-1.5 text-sm font-medium">
+                {aiLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                AI
+              </button>
+            </div>
           </div>
+          {aiSuggestion && (
+            <div className="bg-indigo-50 dark:bg-indigo-900/10 rounded-xl p-3 border border-indigo-200 dark:border-indigo-900/30 space-y-1.5">
+              <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center gap-1"><Brain size={12} /> AI Suggestion</p>
+              {aiSuggestion.suggestedPriority && <p className="text-xs text-slate-600 dark:text-slate-400">Priority: <span className="font-medium text-slate-800 dark:text-slate-200">{aiSuggestion.suggestedPriority}</span></p>}
+              {aiSuggestion.suggestedEstimatedTime && <p className="text-xs text-slate-600 dark:text-slate-400">Estimated: <span className="font-medium text-slate-800 dark:text-slate-200">{aiSuggestion.suggestedEstimatedTime} min</span></p>}
+              {aiSuggestion.suggestedTags?.length > 0 && <p className="text-xs text-slate-600 dark:text-slate-400">Tags: <span className="font-medium text-slate-800 dark:text-slate-200">{aiSuggestion.suggestedTags.join(', ')}</span></p>}
+              {aiSuggestion.reason && <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">{aiSuggestion.reason}</p>}
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" rows={3} className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none" />

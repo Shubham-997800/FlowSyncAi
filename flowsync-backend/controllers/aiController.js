@@ -115,4 +115,20 @@ const getUsage = async (req, res) => {
   }
 }
 
-module.exports = { plan, prioritize, rescue, chatAI, suggestTaskAI, getUsage }
+const analyticsInsights = async (req, res) => {
+  try {
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${DAILY_LIMIT}) reached. Try again tomorrow.` })
+    const [tasks, habits, goals] = await Promise.all([
+      Task.find({ user: req.user._id }),
+      Habit.find({ user: req.user._id }),
+      Goal.find({ user: req.user._id }),
+    ])
+    const result = await aiService.generateAnalyticsInsights(tasks, habits, goals)
+    res.json(result)
+  } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service unavailable' })
+    res.status(500).json({ message: error.message })
+  }
+}
+
+module.exports = { plan, prioritize, rescue, chatAI, suggestTaskAI, getUsage, analyticsInsights }

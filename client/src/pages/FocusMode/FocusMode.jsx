@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Brain, ListTodo } from 'lucide-react'
+import { Brain, ListTodo, Lightbulb, Clock, Zap } from 'lucide-react'
 import Timer from './Timer'
 import CurrentTask from './CurrentTask'
 import SessionStats from './SessionStats'
@@ -47,6 +47,48 @@ function FocusMode() {
 
   const activeTasks = tasks.filter(t => t.status !== 'done')
 
+  const overdueCount = activeTasks.filter(t => t.deadline && new Date(t.deadline) < new Date()).length
+  const highPriorityCount = activeTasks.filter(t => t.priority === 'high').length
+
+  const getAiSuggestion = () => {
+    if (!selectedTask) return null
+    const taskPriority = selectedTask.priority || 'medium'
+    const isOverdue = selectedTask.deadline && new Date(selectedTask.deadline) < new Date()
+
+    if (isOverdue) {
+      return {
+        icon: Zap,
+        title: 'Urgent: Overdue Task',
+        desc: `"${selectedTask.title}" is overdue. Set shorter focus blocks (15 min) to power through it.`,
+        breakSuggestion: 'Take shorter 3-min breaks to maintain momentum',
+      }
+    }
+    if (taskPriority === 'high') {
+      return {
+        icon: Clock,
+        title: 'High Priority Focus',
+        desc: `"${selectedTask.title}" is high priority. Use 25 min focus blocks to make significant progress.`,
+        breakSuggestion: 'Take 7-min breaks to recharge after intense focus',
+      }
+    }
+    if (taskPriority === 'low') {
+      return {
+        icon: Lightbulb,
+        title: 'Low Momentum Task',
+        desc: `"${selectedTask.title}" is low priority. Use 20 min blocks to build momentum without burnout.`,
+        breakSuggestion: 'Extend breaks to 10 min for relaxed pacing',
+      }
+    }
+    return {
+      icon: Brain,
+      title: 'Steady Focus',
+      desc: `Focus on "${selectedTask.title}" with standard 25 min blocks.`,
+      breakSuggestion: 'Standard 5-min breaks recommended',
+    }
+  }
+
+  const aiSuggestion = getAiSuggestion()
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
@@ -82,18 +124,33 @@ function FocusMode() {
 
         <div className="space-y-6">
           <SessionStats sessions={sessions} totalMinutes={totalFocusMinutes} mode={mode} />
-          {selectedTask && (
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                  <Brain size={15} className="text-indigo-600 dark:text-indigo-400" />
+          {selectedTask && aiSuggestion && (
+            <>
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                    <Brain size={15} className="text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Suggestion</h3>
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Suggestion</h3>
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center mb-2 ${selectedTask.priority === 'high' || (selectedTask.deadline && new Date(selectedTask.deadline) < new Date()) ? 'bg-red-100 dark:bg-red-900/30' : selectedTask.priority === 'medium' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
+                  <aiSuggestion.icon size={15} className={
+                    selectedTask.priority === 'high' || (selectedTask.deadline && new Date(selectedTask.deadline) < new Date()) ? 'text-red-600 dark:text-red-400' : selectedTask.priority === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400'
+                  } />
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">{aiSuggestion.desc}</p>
+                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
+                  <Clock size={14} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{aiSuggestion.breakSuggestion}</p>
+                </div>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Focus on <strong className="text-indigo-600 dark:text-indigo-400">{selectedTask.title}</strong> first due to its {selectedTask.priority === 'high' ? 'high priority and risk level' : selectedTask.priority === 'medium' ? 'medium priority' : 'low priority — good for momentum building'}.
-              </p>
-            </div>
+              {overdueCount > 0 && (
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-900/50 p-4">
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">{overdueCount} overdue task{overdueCount > 1 ? 's' : ''}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400">Consider focusing on overdue items first for maximum impact.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
