@@ -7,10 +7,13 @@ function FloatingCard({ icon: Icon, text, sub, delay, className }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay, ease: 'easeOut' }}
-      className={`absolute hidden lg:flex items-center gap-3 bg-white dark:bg-zinc-900 rounded-2xl px-5 py-3 shadow-lg border border-slate-200 dark:border-zinc-800 animate-float will-change-transform ${className}`}
-      style={{ animationDelay: `${delay}s` }}
+      animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
+      transition={{
+        opacity: { duration: 0.5, delay, ease: 'easeOut' },
+        scale: { duration: 0.5, delay, ease: 'easeOut' },
+        y: { duration: 3, delay: delay + 0.5, repeat: Infinity, ease: 'easeInOut' },
+      }}
+      className={`absolute hidden lg:flex items-center gap-3 bg-white dark:bg-zinc-900 rounded-2xl px-5 py-3 shadow-lg border border-slate-200 dark:border-zinc-800 will-change-transform ${className}`}
     >
       <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
         <Icon size={20} className="text-indigo-600 dark:text-indigo-400" />
