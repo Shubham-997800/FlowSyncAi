@@ -974,47 +974,6 @@ The Dashboard received a complete rewrite with production-grade features:
 
 ---
 
-## 📊 Hardened Testing & Quality Report
-
-Final audit results after comprehensive security hardening, dead code removal, and code quality improvements:
-
-| Category | Score | Details |
-|----------|:-----:|---------|
-| **Frontend Build** | 🟢 10/10 | 0 errors, 258ms build time, 529 modules, 3.0MB total |
-| **Responsive Design** | 🟢 10/10 | All 56+ pages verified at 320px–1920px+ |
-| **Backend Stability** | 🟢 9/10 | All 10 controllers load, no syntax errors, centralized error handling |
-| **Security** | 🟡 7/10 | CSP, HSTS, rate limiting, user enumeration fix, ErrorBoundary, OTP crypto, helmet. Remaining: JWT in localStorage, no refresh tokens, no account lockout |
-| **Frontend Code Quality** | 🟢 8/10 | Unused imports removed, comments added to all 56+ files, empty catches fixed |
-| **Backend Code Quality** | 🟢 8/10 | Dead code removed (chat(), ping routes, stopReminderService, unused imports), centralized `handleError` utility, all `error.message` leaks fixed |
-| **Accessibility** | 🟡 7/10 | Skip-to-content, focus trap, prefers-reduced-motion, aria-live regions |
-| **Performance** | 🟢 8/10 | Optimized polling intervals (30s), lazy loading, AI caching (5min sessionStorage) |
-
-### Issues Closed This Session
-
-| Issue | Fix |
-|-------|-----|
-| `error.message` leaked in production (51 instances) | Centralized `handleError()` utility — returns "Server error" in production |
-| `chat()` function unused in aiService.js | Removed (replaced by `chatWithContext`) |
-| `stopReminderService()` exported but never imported | Removed |
-| `Notification` model missing import in reminderService | Added `require('../models/Notification')` |
-| `cookie-parser` unused dependency | Removed from package.json |
-| Ping/ping-async dev routes left in authRoutes | Removed |
-| `AI_PROVIDER` env var never read | Removed from .env |
-| Commented-out AI_MODEL / GOOGLE_CLIENT_ID in .env | Cleaned |
-| `Unused `desc` variable in qa-seed.js | Removed |
-| `notificationTypes` array unused in seed.js | Removed |
-| `AnimatePresence` unused in Dashboard.jsx | Removed |
-| `MessageSquare` unused in Dashboard.jsx | Removed |
-| `ChevronLeft` unused in AIPlanner.jsx | Removed |
-| `Timer` unused in NotificationCard.jsx | Removed |
-| 6 unused lucide icons in Profile.jsx | Removed |
-| `getProfile`/`deleteAccount` unused in Settings.jsx | Removed |
-| `updateProfile` unused in AccountSettings.jsx | Removed |
-| `Target` unused in Sidebar.jsx | Removed |
-| `handleValidationError` imported but unused in 3 controllers | Fixed imports |
-| `catch {}` empty blocks in 3 frontend files | Added console.warn |
-| chatController clearChatHistory could delete all sessions | Now requires sessionId |
-
 ---
 
 ## 📄 License & Usage
