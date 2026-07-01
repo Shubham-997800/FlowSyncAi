@@ -4,7 +4,16 @@ const bcrypt = require('bcryptjs')
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
-  password: { type: String, default: '' },
+  password: {
+    type: String, default: '',
+    validate: {
+      validator: function (v) {
+        if (!v) return true
+        return v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v)
+      },
+      message: 'Password must be at least 8 characters with an uppercase letter and a number',
+    },
+  },
   profilePicture: { type: String, default: '' },
   bio: { type: String, default: '' },
   phone: { type: String, default: '' },

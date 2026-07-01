@@ -1,8 +1,10 @@
 const { Router } = require('express')
 const { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, toggleAIConsent, updateAchievements } = require('../controllers/settingsController')
 const { protect } = require('../middleware/auth')
+const { generalLimiter } = require('../middleware/rateLimiter')
 
 const router = Router()
+router.use(generalLimiter)
 router.use(protect)
 
 router.get('/profile', getProfile)

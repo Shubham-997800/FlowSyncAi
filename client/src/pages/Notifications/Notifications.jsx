@@ -3,6 +3,8 @@ import { Bell, CheckCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
+
+const isDev = import.meta.env.DEV
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
@@ -121,13 +123,15 @@ function Notifications() {
         </div>
       </div>
 
-      <div className="mb-8 flex flex-wrap gap-2">
-        {sampleTypes.map(type => (
-          <button key={type} onClick={() => addNotification(type)} className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300 capitalize">
-            + {type}
-          </button>
-        ))}
-      </div>
+      {isDev && (
+        <div className="mb-8 flex flex-wrap gap-2">
+          {sampleTypes.map(type => (
+            <button key={type} onClick={() => addNotification(type)} className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300 capitalize">
+              + {type}
+            </button>
+          ))}
+        </div>
+      )}
 
       {notifications.length === 0 ? (
         <div className="text-center py-16">

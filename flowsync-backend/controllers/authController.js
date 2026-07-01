@@ -6,7 +6,7 @@ const { sendResetEmail, sendVerificationEmail } = require('../services/emailServ
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' })
 
 function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString()
+  return crypto.randomInt(100000, 999999).toString()
 }
 
 const signup = async (req, res) => {
@@ -141,7 +141,7 @@ const forgotPassword = async (req, res) => {
     if (!email) return res.status(400).json({ message: 'Email is required' })
 
     const user = await User.findOne({ email })
-    if (!user) return res.status(404).json({ message: 'No account with that email' })
+    if (!user) return res.status(200).json({ message: 'If an account exists, a reset link has been sent' })
 
     const resetToken = crypto.randomBytes(32).toString('hex')
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')

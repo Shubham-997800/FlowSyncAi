@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import ErrorBoundary from './components/ErrorBoundary'
 import App from './App.jsx'
 import './index.css'
 
@@ -14,15 +15,17 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <HelmetProvider>
-      <BrowserRouter>
-        <ThemeProvider>
-          <AuthProvider>
-            <App />
-            <Toaster position="top-center" toastOptions={{ duration: 2000 }} />
-          </AuthProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <BrowserRouter>
+          <ThemeProvider>
+            <AuthProvider>
+              <App />
+              <Toaster position="top-center" toastOptions={{ duration: 2000 }} />
+            </AuthProvider>
+          </ThemeProvider>
+        </BrowserRouter>
+      </HelmetProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )
