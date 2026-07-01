@@ -68,19 +68,6 @@ function AIPlanner() {
     setListening(true)
   }, [listening])
 
-  useEffect(() => {
-    getChatSessions()
-      .then(s => {
-        setSessions(s)
-        if (s.length > 0) {
-          loadSession(s[0]._id)
-        } else {
-          setInitialLoading(false)
-        }
-      })
-      .catch(() => setInitialLoading(false))
-  }, [loadSession])
-
   const loadSession = useCallback(async (sid) => {
     setInitialLoading(true)
     setShowSessions(false)
@@ -94,6 +81,19 @@ function AIPlanner() {
       setInitialLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    getChatSessions()
+      .then(s => {
+        setSessions(s)
+        if (s.length > 0) {
+          loadSession(s[0]._id)
+        } else {
+          setInitialLoading(false)
+        }
+      })
+      .catch(() => setInitialLoading(false))
+  }, [loadSession])
 
   const newChat = useCallback(async () => {
     const sid = genId()
