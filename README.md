@@ -150,7 +150,7 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Category | Feature | Details |
 |----------|---------|---------|
-| 🔐 **Auth** | Secure Login / Signup | JWT-based with bcrypt hashing, forgot/reset password via email |
+| 🔐 **Auth** | Secure Login / Signup | JWT-based with bcrypt hashing, forgot/reset password via email, inline validation, password strength meter |
 | 📝 **Tasks** | Full CRUD | Priority levels, status tracking, deadlines, descriptions, field sanitization |
 | 🎯 **Goals** | Milestone Tracking | Target dates, progress percentage, aligned with tasks |
 | 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid |
@@ -389,6 +389,8 @@ flowsync-ai/
 │   │   ├── components/
 │   │   │   ├── Sidebar.jsx                # Navigation sidebar
 │   │   │   ├── NotificationPopup.jsx      # Real-time notification drawer
+│   │   │   ├── LegalModal.jsx             # Terms & Privacy popup (framer-motion)
+│   │   │   ├── AuthLayout.jsx             # Shared auth sidebar layout (Login/Register)
 │   │   │   └── ui/                        # Reusable primitives
 │   │   │       ├── Card.jsx
 │   │   │       ├── Badge.jsx
