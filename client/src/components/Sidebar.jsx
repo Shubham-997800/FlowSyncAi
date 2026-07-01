@@ -1,9 +1,8 @@
-import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, ListTodo, Brain, Calendar, Clock, Target,
-  BarChart3, Bell, Settings, LogOut, Menu, X, Flame, User,
+  BarChart3, Bell, Settings, LogOut, Flame, User,
 } from 'lucide-react'
 
 const links = [
@@ -19,12 +18,11 @@ const links = [
   { to: '/profile', label: 'Profile', icon: User },
 ]
 
-function Sidebar() {
+function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth()
   const location = useLocation()
-  const [open, setOpen] = useState(false)
 
-  const handleNavClick = () => setOpen(false)
+  const handleNavClick = () => onClose?.()
 
   const sidebarContent = (
     <>
@@ -68,12 +66,8 @@ function Sidebar() {
 
   return (
     <>
-      <button className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-sm" onClick={() => setOpen(!open)}>
-        {open ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
       {open && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={() => setOpen(false)} />
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={() => onClose?.()} />
       )}
 
       <aside className={`${

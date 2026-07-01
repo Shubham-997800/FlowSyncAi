@@ -14,6 +14,7 @@ const goalRoutes = require('./routes/goalRoutes')
 const habitRoutes = require('./routes/habitRoutes')
 const settingsRoutes = require('./routes/settingsRoutes')
 const pushRoutes = require('./routes/pushRoutes')
+const chatRoutes = require('./routes/chatRoutes')
 
 dotenv.config()
 connectDB()
@@ -42,6 +43,7 @@ app.use('/api/goals', goalRoutes)
 app.use('/api/habits', habitRoutes)
 app.use('/api/settings', settingsRoutes)
 app.use('/api/push', pushRoutes)
+app.use('/api/chat', chatRoutes)
 
 app.use((err, req, res, next) => {
   console.error(err.message)

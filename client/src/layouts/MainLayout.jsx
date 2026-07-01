@@ -5,7 +5,7 @@ import NotificationPopup from '../components/NotificationPopup'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { usePushNotifications } from '../hooks/usePushNotifications'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Menu, X } from 'lucide-react'
 import api from '../services/api'
 
 const pageTitles = {
@@ -27,6 +27,7 @@ function MainLayout() {
   const { sendNotification } = usePushNotifications()
   const location = useLocation()
   const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const pageTitle = pageTitles[location.pathname] || 'FlowSync AI'
 
   useEffect(() => {
@@ -63,10 +64,15 @@ function MainLayout() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-zinc-950">
-      <Sidebar />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-col flex-1 min-w-0">
         <header className="h-14 flex-shrink-0 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-10">
-          <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 ml-12 lg:ml-0">{pageTitle}</h1>
+          <div className="flex items-center gap-3">
+            <button className="lg:hidden p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors" onClick={() => setSidebarOpen(!sidebarOpen)}>
+              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{pageTitle}</h1>
+          </div>
           <div className="flex items-center gap-3">
             <NotificationPopup />
             <button onClick={toggle} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
