@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Plus, Trash2, Search, X, AlertCircle, CheckCircle2, Clock, Flag, Target, Calendar as CalIcon, Brain, Loader2, Sparkles } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
-import { getTasks, createTask, updateTask, deleteTask } from '../../services/taskService'
-import { getGoals, createGoal, updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '../../services/goalService'
 import { suggestTask } from '../../services/aiService'
+import { getGoals, createGoal, updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '../../services/goalService'
+import { getTasks, createTask, updateTask, deleteTask } from '../../services/taskService'
 
 const priorityConfig = {
   high: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30', label: 'High' },
@@ -143,6 +145,10 @@ function GoalForm({ goal, onSave, onClose }) {
   )
 }
 
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
+const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
+
 function TaskAndGoals() {
   const [tab, setTab] = useState('tasks')
   const [tasks, setTasks] = useState([])
@@ -274,7 +280,11 @@ function TaskAndGoals() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <motion.div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Tasks & Goals - FlowSync AI</title>
+        <meta name="description" content="Manage your tasks and goals" />
+      </Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Tasks & Goals</h1>
@@ -346,7 +356,7 @@ function TaskAndGoals() {
                 else if (dl) dl = new Date(dl).toISOString().split('T')[0]
                 const isOverdue = dl && task.status !== 'done' && dl < todayStr
                 return (
-                  <div key={task._id} className={`group bg-white dark:bg-zinc-900 rounded-xl px-5 py-4 border transition hover:shadow-sm ${task.status === 'done' ? 'border-slate-100 dark:border-zinc-700 opacity-70' : isOverdue ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200 dark:border-zinc-800'}`}>
+                  <motion.div key={task._id} variants={itemVariants} className={`group bg-white dark:bg-zinc-900 rounded-xl px-5 py-4 border transition hover:shadow-sm ${task.status === 'done' ? 'border-slate-100 dark:border-zinc-700 opacity-70' : isOverdue ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200 dark:border-zinc-800'}`}>
                     <div className="flex items-start gap-3">
                       <button onClick={() => toggleComplete(task._id)} className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition ${task.status === 'done' ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-300 dark:border-zinc-600 hover:border-indigo-400'}`}>
                         {task.status === 'done' && <CheckCircle2 size={14} />}
@@ -371,7 +381,7 @@ function TaskAndGoals() {
                         <button onClick={() => handleDeleteTask(task._id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"><Trash2 size={14} /></button>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>
@@ -401,7 +411,7 @@ function TaskAndGoals() {
                 const daysLeft = goal.targetDate ? Math.ceil((new Date(goal.targetDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
                 const isOverdue = daysLeft !== null && daysLeft < 0
                 return (
-                  <div key={goal._id} className="group bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:shadow-sm transition">
+                  <motion.div key={goal._id} variants={itemVariants} className="group bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800 hover:shadow-sm transition">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${ss.bg} ${ss.color}`}><Target size={12} /> {goal.status.charAt(0).toUpperCase() + goal.status.slice(1)}</span>
@@ -434,14 +444,14 @@ function TaskAndGoals() {
                         ))}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>
           )}
         </>
       )}
-    </div>
+    </motion.div>
   )
 }
 

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { User, Settings as SettingsIcon, LogOut } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import EditProfile from './EditProfile'
 import ChangePassword from './ChangePassword'
 import AvatarUpload from './AvatarUpload'
@@ -8,6 +10,9 @@ import UserStats from './UserStats'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { getTasks } from '../../services/taskService'
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 function Profile() {
   const { user, logout } = useAuth()
@@ -29,7 +34,11 @@ function Profile() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <motion.div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Profile - FlowSync AI</title>
+        <meta name="description" content="Manage your personal information" />
+      </Helmet>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Profile</h1>
@@ -60,7 +69,7 @@ function Profile() {
             </div>
             <nav className="space-y-1">
               {tabs.map(t => (
-                <button key={t.key} onClick={() => setTab(t.key)} className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-200 ${tab === t.key ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>{t.label}</button>
+                <motion.button key={t.key} variants={itemVariants} onClick={() => setTab(t.key)} className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors duration-200 ${tab === t.key ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>{t.label}</motion.button>
               ))}
             </nav>
           </div>
@@ -78,7 +87,7 @@ function Profile() {
           {tab === 'avatar' && <AvatarUpload avatar={avatar} setAvatar={setAvatar} />}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -120,11 +129,11 @@ function RecentActivity() {
       <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Recent Activity</h3>
       <div className="space-y-2">
         {activities.map(a => (
-          <div key={a.id} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200">
+          <motion.div key={a.id} variants={itemVariants} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200">
             <div className={`w-2 h-2 rounded-full flex-shrink-0 ${a.type === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             <p className="flex-1 text-sm text-slate-700 dark:text-slate-300 min-w-0 truncate">{a.text}</p>
             <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0">{a.date}</span>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>

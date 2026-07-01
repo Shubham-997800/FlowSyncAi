@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Bell, CheckCheck } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
@@ -25,6 +27,9 @@ function createLocalNotification(type) {
 }
 
 const isLocalId = (id) => typeof id === 'string' && id.startsWith('local_')
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 function Notifications() {
   const [notifications, setNotifications] = useState([])
@@ -86,7 +91,11 @@ function Notifications() {
   const sampleTypes = ['task', 'goal', 'habit', 'focus', 'overdue']
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <motion.div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Notifications - FlowSync AI</title>
+        <meta name="description" content="Stay updated on your progress" />
+      </Helmet>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-3">
@@ -128,7 +137,7 @@ function Notifications() {
           {activeTab === 'unread' ? (
             notifications.filter(n => !n.read).length > 0 ? (
               <div className="space-y-2">
-                {notifications.filter(n => !n.read).map(n => <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                {notifications.filter(n => !n.read).map(n => <motion.div key={n.id} variants={itemVariants}><NotificationCard notification={n} onMarkRead={markRead} /></motion.div>)}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -142,7 +151,7 @@ function Notifications() {
                 <div>
                   <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Today</h3>
                   <div className="space-y-2">
-                    {today.map(n => (n.type === 'alert' || n.type === 'deadline_alert') ? <AlertCard key={n.id} notification={n} onMarkRead={markRead} /> : n.type === 'reminder' ? <ReminderCard key={n.id} notification={n} onMarkRead={markRead} /> : <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                    {today.map(n => (n.type === 'alert' || n.type === 'deadline_alert') ? <motion.div key={n.id} variants={itemVariants}><AlertCard notification={n} onMarkRead={markRead} /></motion.div> : n.type === 'reminder' ? <motion.div key={n.id} variants={itemVariants}><ReminderCard notification={n} onMarkRead={markRead} /></motion.div> : <motion.div key={n.id} variants={itemVariants}><NotificationCard notification={n} onMarkRead={markRead} /></motion.div>)}
                   </div>
                 </div>
               )}
@@ -151,7 +160,7 @@ function Notifications() {
                 <div>
                   <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">This Week</h3>
                   <div className="space-y-2">
-                    {thisWeek.map(n => <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                    {thisWeek.map(n => <motion.div key={n.id} variants={itemVariants}><NotificationCard notification={n} onMarkRead={markRead} /></motion.div>)}
                   </div>
                 </div>
               )}
@@ -160,7 +169,7 @@ function Notifications() {
                 <div>
                   <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Earlier</h3>
                   <div className="space-y-2">
-                    {earlier.map(n => <NotificationCard key={n.id} notification={n} onMarkRead={markRead} />)}
+                    {earlier.map(n => <motion.div key={n.id} variants={itemVariants}><NotificationCard notification={n} onMarkRead={markRead} /></motion.div>)}
                   </div>
                 </div>
               )}
@@ -168,7 +177,7 @@ function Notifications() {
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

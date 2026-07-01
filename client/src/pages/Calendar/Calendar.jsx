@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react'
-import { Plus, Brain, X, Loader2 } from 'lucide-react'
-import MonthlyView from './MonthlyView'
-import WeeklyView from './WeeklyView'
 import DailyView from './DailyView'
+import MonthlyView from './MonthlyView'
 import SchedulePreview from './SchedulePreview'
-import toast from 'react-hot-toast'
-import { getTasks, createTask, updateTask, deleteTask } from '../../services/taskService'
+import WeeklyView from './WeeklyView'
 import { prioritizeTasks } from '../../services/aiService'
+import { getTasks, createTask, updateTask, deleteTask } from '../../services/taskService'
+import { motion } from 'framer-motion'
+import { Plus, Brain, X, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
+import toast from 'react-hot-toast'
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
+const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
+const modalVariants = { hidden: { opacity: 0, scale: 0.9, y: 30 }, visible: { opacity: 1, scale: 1, y: 0 } }
 
 function Calendar() {
   const [tasks, setTasks] = useState([])
@@ -94,7 +101,11 @@ function Calendar() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <motion.div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Calendar - FlowSync AI</title>
+        <meta name="description" content="Plan your work visually" />
+      </Helmet>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Calendar</h1>
@@ -134,7 +145,7 @@ function Calendar() {
 
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAddModal(false)}>
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-md mx-4 shadow-xl border border-slate-200 dark:border-zinc-800" onClick={e => e.stopPropagation()}>
+          <motion.div variants={modalVariants} initial="hidden" animate="visible" className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-md mx-4 shadow-xl border border-slate-200 dark:border-zinc-800" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{editingTask ? 'Edit Task' : 'New Task'}</h3>
               <button onClick={() => setShowAddModal(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"><X size={18} /></button>
@@ -155,10 +166,10 @@ function Calendar() {
                 {editingTask ? 'Update' : 'Create'}
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

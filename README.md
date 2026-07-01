@@ -150,18 +150,18 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Category | Feature | Details |
 |----------|---------|---------|
-| 🔐 **Auth** | Login / Signup / Forgot / Reset / 401 / 404 | JWT-based with bcrypt hashing, forgot/reset password via email, inline validation, password strength meter, framer-motion animations, Helmet SEO (all auth & error pages) |
-| 📝 **Tasks** | Full CRUD | Priority levels, status tracking, deadlines, descriptions, field sanitization |
-| 🎯 **Goals** | Milestone Tracking | Target dates, progress percentage, aligned with tasks |
-| 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid |
-| 📅 **Calendar** | Multi-View | Monthly, weekly, and daily views with AI-priority-ranked task suggestions |
-| ⏱️ **Focus Mode** | Pomodoro Timer | Configurable focus (1–180 min) and break (1–60 min) durations, ambient sounds, task integration, AI break timing suggestions |
-| 📊 **Analytics** | Deep Insights | Productivity score (animated ring chart), completion rates, weekly/monthly trends, focus session stats, AI-generated report |
+| 🔐 **Auth** | Login / Signup / Forgot / Reset / 401 / 404 | JWT-based with bcrypt hashing, forgot/reset password via email, inline validation, password strength meter (5 levels + colored bars), requirement checklist, framer-motion animations + Helmet SEO |
+| 📝 **Tasks** | Full CRUD + Goals | Priority levels, status tracking, deadlines, descriptions, field sanitization, AI suggested priority/estimate/tags, framer-motion staggered list + Helmet SEO |
+| 🎯 **Goals** | Milestone Tracking | Target dates, progress percentage, aligned with tasks, animated progress bars |
+| 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid, framer-motion card animations + Helmet SEO |
+| 📅 **Calendar** | Multi-View | Monthly, weekly, and daily views with AI-priority-ranked task suggestions, framer-motion page animation + Helmet SEO |
+| ⏱️ **Focus Mode** | Pomodoro Timer | Configurable focus/break durations, task integration, AI break timing suggestions, framer-motion entrance + Helmet SEO |
+| 📊 **Analytics** | Deep Insights | Productivity score (animated ring chart), completion rates, weekly/monthly trends, focus session stats, AI-generated report, framer-motion staggered cards + Helmet SEO |
 | 🏆 **Achievements** | Gamification | Milestone-based achievements (tasks, goals, focus) with MongoDB persistence |
-| 🔔 **Notifications** | Real-Time Drawer | All/Unread filters, grouped by Today / This Week / Earlier, auto deadline reminders |
-| 🏠 **Dashboard** | Command Center | Task stats, AI priority cards (live API), calendar preview, focus timer, productivity score, deadline risk indicators |
-| ⚙️ **Settings** | Full Control | Theme toggle (light/dark/system), AI consent toggle, profile editing, account deletion |
-| 👤 **Profile** | Customizable | Avatar upload, bio, phone, location, job title, password change |
+| 🔔 **Notifications** | Real-Time Drawer | All/Unread filters, grouped by Today / This Week / Earlier, auto deadline reminders, framer-motion list + Helmet SEO |
+| 🏠 **Dashboard** | Command Center | Task stats, AI priority cards (live API), productivity score, deadline risk indicators, animated counters with mini sparkline charts + trend indicators, inline task editing, bulk select/complete, collapse completed tasks, quick focus button, AI recommendation refresh + skeleton + error retry + sessionStorage cache (5 min), deadline risk pulse animation + inline mark-done + view all, recent activity grouped by Today/Yesterday/This Week, widget visibility toggle persisted to localStorage, date range filter (All/Week/Month), onboarding empty state with CTAs, ErrorBoundary for resilience, last sync timestamp, AnimatePresence page transitions |
+| ⚙️ **Settings** | Full Control | Theme toggle (light/dark/system), AI consent toggle, profile editing, account deletion, framer-motion sidebar stagger + Helmet SEO |
+| 👤 **Profile** | Customizable | Avatar upload, bio, phone, location, job title, password change, framer-motion tab animations + Helmet SEO |
 | 🎤 **Voice Input** | Speech-to-Text | Browser-native Web Speech API for AI chat and task creation |
 | 🌙 **Dark Mode** | Three Themes | Light, dark, and system-follow with smooth CSS transitions |
 | 📧 **Email Reminders** | Auto Notifications | Scheduled service that generates deadline alerts every 30 minutes |
@@ -808,7 +808,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 
 | Optimization | Implementation |
 |-------------|---------------|
-| **Code Splitting** | `manualChunks` splits vendor, router, motion, icons, utils into separate cacheable bundles |
+| **Code Splitting** | `manualChunks` splits vendor (181 kB), router (42 kB), motion (125 kB), icons (26 kB), utils (73 kB), app (57 kB). Dashboard chunk: 41.6 kB (9.9 kB gzip) — all features included |
 | **Lazy Loading** | All pages loaded via `React.lazy()` + `Suspense` — only requested code loads (auth pages ~2-3 kB gzip each) |
 | **Skeleton Loading** | `LoadingSpinner` with `page` prop renders full skeleton layout (pulse animation) instead of basic spinner |
 | **Font Loading** | Google Fonts (Inter) loaded via `<link preload>` + `preconnect` — no render blocking |
@@ -816,8 +816,22 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **Animation Performance** | All animations handled by framer-motion (GPU-accelerated) — zero CSS `@keyframes` |
 | **React.memo** | Dashboard sub-components wrapped with `React.memo` — prevent unnecessary re-renders |
 | **CSS Size** | Minimal CSS — Tailwind v4 purges unused styles; only ~63 kB (10.5 kB gzip) |
+| **Animated Counters** | Dashboard stat cards count up from 0 → value with cubic ease-out animation via requestAnimationFrame |
+| **Mini Sparkline Charts** | Each stat card shows a 7-day completion trend as an inline SVG sparkline (no extra libraries) |
+| **Trend Indicators** | Today's Tasks card shows ↑/↓ % change comparing first 3 vs last 3 days of weekly data |
+| **Inline Task Editing** | Click task title → inline input appears; Enter/Blur saves, Escape cancels — no modal needed |
+| **Bulk Actions** | Multi-select checkbox on Today's Tasks → "Complete N" button for batch operations |
+| **Collapse Completed** | Toggle to show/hide completed tasks below remaining tasks with AnimatePresence |
+| **Widget Customization** | Settings dropdown lets users toggle visibility of 7 dashboard sections, persisted to localStorage |
+| **Date Range Filter** | "All Time" / "This Week" / "This Month" toggle filters all dashboard data by task deadline |
+| **Error Resilience** | React ErrorBoundary wraps entire dashboard — one widget failure doesn't crash the page |
+| **Onboarding Empty State** | First-time users see welcome card with "Create Task" and "Talk to AI" CTAs instead of empty stats |
+| **AI Recommendation Caching** | sessionStorage caches AI responses for 5 minutes — no redundant API calls on tab switch |
+| **Deadline Risk Pulse** | Overdue items get red glow shadow + animated progress bars for urgency attention |
+| **Time-Grouped Activity** | Recent Activity grouped by "Today" / "Yesterday" / "This Week" with click-to-navigate |
+| **Last Sync Timestamp** | Header shows "Last updated 30s ago" with auto-updating counter |
 | **Auto-Refresh** | Dashboard auto-fetches tasks every 60s + on tab visibility change + manual refresh button — AI-created tasks appear instantly |
-| **SEO** | Dynamic `<title>`, meta description, OG tags, Twitter cards via `react-helmet-async` on all pages (landing, auth, legal, error) |
+| **SEO** | Dynamic `<title>`, meta description, OG tags, Twitter cards via `react-helmet-async` on all pages (landing, auth, legal, error, dashboard) |
 
 ---
 

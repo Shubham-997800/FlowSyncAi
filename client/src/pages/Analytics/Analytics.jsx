@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { TrendingUp, Clock, Brain, Flame, Download, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import ProductivityChart from './ProductivityChart'
 import WeeklyChart from './WeeklyChart'
 import MonthlyChart from './MonthlyChart'
@@ -10,6 +12,9 @@ import { getTasks } from '../../services/taskService'
 import { getGoals } from '../../services/goalService'
 import { getHabits } from '../../services/habitService'
 import toast from 'react-hot-toast'
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 function Analytics() {
   const [tasks, setTasks] = useState([])
@@ -74,7 +79,11 @@ function Analytics() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <motion.div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Analytics - FlowSync AI</title>
+        <meta name="description" content="Understand your productivity patterns" />
+      </Helmet>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
@@ -95,26 +104,26 @@ function Analytics() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {topCards.map(({ icon: Icon, label, value, sub, color, bg }) => (
-          <div key={label} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
+          <motion.div key={label} variants={itemVariants} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</span>
               <div className={`w-8 h-8 rounded-lg ${bg} flex items-center justify-center`}><Icon size={16} className={color} /></div>
             </div>
             <p className={`text-xl font-bold ${color}`}>{value}</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{sub}</p>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+      <motion.div className="grid lg:grid-cols-2 gap-6 mb-8" variants={containerVariants}>
         <ProductivityChart tasks={tasks} period={period} />
         <WeeklyChart tasks={tasks} />
-      </div>
+      </motion.div>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+      <motion.div className="grid lg:grid-cols-2 gap-6 mb-8" variants={containerVariants}>
         <MonthlyChart tasks={tasks} />
         <FocusChart focusMinutes={focusMinutes} focusSessions={focusSessions} />
-      </div>
+      </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2">
@@ -122,7 +131,7 @@ function Analytics() {
         </div>
         <Achievements tasks={tasks} goals={goals} habits={habits} />
       </div>
-    </div>
+    </motion.div>
   )
 }
 

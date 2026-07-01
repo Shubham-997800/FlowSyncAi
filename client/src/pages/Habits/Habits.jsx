@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Plus, X, Flame, CheckCircle2, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { getHabits, createHabit, updateHabit as updateHabitApi, deleteHabit as deleteHabitApi } from '../../services/habitService'
 
@@ -59,6 +61,10 @@ function HabitForm({ habit, onSave, onClose }) {
   )
 }
 
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
+const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
+
 function Habits() {
   const [habits, setHabits] = useState([])
   const [showForm, setShowForm] = useState(false)
@@ -111,7 +117,11 @@ function Habits() {
   const weekDates = getWeekDates()
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <motion.div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Habits - FlowSync AI</title>
+        <meta name="description" content="Track your daily habits" />
+      </Helmet>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Habits</h1>
@@ -136,7 +146,7 @@ function Habits() {
           {habits.map(habit => {
             const isDone = habit.logs?.includes(today)
             return (
-              <div key={habit._id} className={`bg-white dark:bg-zinc-900 rounded-2xl p-5 border transition ${isDone ? 'border-indigo-200 dark:border-indigo-800' : 'border-slate-200 dark:border-zinc-800'} hover:shadow-sm`}>
+              <motion.div key={habit._id} variants={itemVariants} className={`bg-white dark:bg-zinc-900 rounded-2xl p-5 border transition ${isDone ? 'border-indigo-200 dark:border-indigo-800' : 'border-slate-200 dark:border-zinc-800'} hover:shadow-sm`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <button onClick={() => toggleLog(habit._id)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${isDone ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'}`}>
@@ -168,12 +178,12 @@ function Habits() {
                     )
                   })}
                 </div>
-              </div>
+              </motion.div>
             )
           })}
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

@@ -1,5 +1,10 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Shield, Database, Eye, Mail, Lock, Cookie, Scale, Trash2 } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } }
+const itemVariants = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }
 
 const sections = [
   {
@@ -93,7 +98,11 @@ const sections = [
 
 function Privacy() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
+    <motion.div className="min-h-screen bg-slate-50 dark:bg-zinc-950" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Privacy Policy - FlowSync AI</title>
+        <meta name="description" content="Privacy policy for FlowSync AI" />
+      </Helmet>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Link to="/login" className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline mb-6">
           <ArrowLeft size={16} /> Back to Login
@@ -106,7 +115,7 @@ function Privacy() {
 
         <div className="space-y-6">
           {sections.map(({ icon: Icon, title, content }) => (
-            <div key={title} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
+            <motion.div key={title} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6" variants={itemVariants}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
                   <Icon size={15} className="text-indigo-600 dark:text-indigo-400" />
@@ -121,7 +130,7 @@ function Privacy() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -132,7 +141,7 @@ function Privacy() {
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

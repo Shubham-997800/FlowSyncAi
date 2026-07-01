@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, ChevronLeft, Clock, Mic, MicOff } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import { chatAI } from '../../services/aiService'
 import { createTask } from '../../services/taskService'
 import { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory } from '../../services/chatService'
@@ -25,6 +27,9 @@ function formatDate(d) {
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
   return date.toLocaleDateString()
 }
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 function AIPlanner() {
   const [sessionId, setSessionId] = useState(genId)
@@ -216,7 +221,11 @@ function AIPlanner() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] -m-4 sm:-m-6 lg:-m-8">
+    <motion.div className="flex h-[calc(100vh-8rem)] -m-4 sm:-m-6 lg:-m-8" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>AI Chat - FlowSync AI</title>
+        <meta name="description" content="Chat with AI to plan tasks" />
+      </Helmet>
       <div className={`${showSessions ? 'flex' : 'hidden'} md:flex flex-col w-64 flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800`}>
         <div className="flex items-center justify-between px-4 h-12 border-b border-slate-200 dark:border-zinc-800">
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Chat History</span>
@@ -427,7 +436,7 @@ function AIPlanner() {
           </>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 

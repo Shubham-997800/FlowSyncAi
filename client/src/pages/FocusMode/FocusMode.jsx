@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react'
-import { Brain, ListTodo, Lightbulb, Clock, Zap } from 'lucide-react'
-import Timer from './Timer'
 import CurrentTask from './CurrentTask'
 import SessionStats from './SessionStats'
-import toast from 'react-hot-toast'
+import Timer from './Timer'
 import { getTasks } from '../../services/taskService'
+import { motion } from 'framer-motion'
+import { Brain, ListTodo, Lightbulb, Clock, Zap } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
+import toast from 'react-hot-toast'
+
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
+const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
 
 function FocusMode() {
   const [tasks, setTasks] = useState([])
@@ -90,7 +96,11 @@ function FocusMode() {
   const aiSuggestion = getAiSuggestion()
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <motion.div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
+      <Helmet>
+        <title>Focus Mode - FlowSync AI</title>
+        <meta name="description" content="Deep work with AI-adjusted Pomodoro sessions" />
+      </Helmet>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Focus Mode</h1>
@@ -113,9 +123,9 @@ function FocusMode() {
                 <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No active tasks</p>
               ) : (
                 activeTasks.map(t => (
-                  <button key={t._id} onClick={() => setSelectedTask(t)} className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors duration-300 ${selectedTask?._id === t._id ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium border border-indigo-200 dark:border-indigo-900/50' : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
+                  <motion.button key={t._id} variants={itemVariants} onClick={() => setSelectedTask(t)} className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors duration-300 ${selectedTask?._id === t._id ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium border border-indigo-200 dark:border-indigo-900/50' : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
                     {t.title}
-                  </button>
+                  </motion.button>
                 ))
               )}
             </div>
@@ -126,7 +136,7 @@ function FocusMode() {
           <SessionStats sessions={sessions} totalMinutes={totalFocusMinutes} mode={mode} />
           {selectedTask && aiSuggestion && (
             <>
-              <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
+              <motion.div variants={fadeUp} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
                     <Brain size={15} className="text-indigo-600 dark:text-indigo-400" />
@@ -143,7 +153,7 @@ function FocusMode() {
                   <Clock size={14} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-slate-600 dark:text-slate-300">{aiSuggestion.breakSuggestion}</p>
                 </div>
-              </div>
+              </motion.div>
               {overdueCount > 0 && (
                 <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-900/50 p-4">
                   <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">{overdueCount} overdue task{overdueCount > 1 ? 's' : ''}</p>
@@ -154,7 +164,7 @@ function FocusMode() {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

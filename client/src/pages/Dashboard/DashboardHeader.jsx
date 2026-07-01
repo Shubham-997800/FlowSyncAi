@@ -1,19 +1,46 @@
+import { useState, useEffect } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
-function DashboardHeader({ onRefresh, refreshing }) {
+function DashboardHeader({ onRefresh, refreshing, lastSyncTime }) {
   const { user } = useAuth()
+  const [greeting, setGreeting] = useState('')
+  const [syncText, setSyncText] = useState('')
+
+  useEffect(() => {
+    const updateGreeting = () => {
+      const h = new Date().getHours()
+      setGreeting(h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening')
+    }
+    updateGreeting()
+    const interval = setInterval(updateGreeting, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (!lastSyncTime) { setSyncText(''); return }
+    const update = () => {
+      const diff = Math.floor((Date.now() - lastSyncTime) / 1000)
+      if (diff < 5) setSyncText('Just now')
+      else if (diff < 60) setSyncText(`${diff}s ago`)
+      else if (diff < 3600) setSyncText(`${Math.floor(diff / 60)}m ago`)
+      else setSyncText(`${Math.floor(diff / 3600)}h ago`)
+    }
+    update()
+    const interval = setInterval(update, 5000)
+    return () => clearInterval(interval)
+  }, [lastSyncTime])
+
   const now = new Date()
-  const hour = now.getHours()
-  const name = user?.name || 'there'
-  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening'
   const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  const name = user?.name || 'there'
 
   return (
     <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{greeting}, {name}</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{dateStr}</p>
+        {syncText && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Last updated {syncText}</p>}
       </div>
       <button
         onClick={onRefresh}
