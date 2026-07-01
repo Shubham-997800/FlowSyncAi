@@ -381,22 +381,40 @@ function AIPlanner() {
             )}
 
             <div className="mt-4 flex-shrink-0">
+              {listening && (
+                <div className="flex items-center gap-2 mb-2 text-xs text-red-500 font-medium animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                  Listening... Speak now
+                </div>
+              )}
               <div className="flex gap-2">
                 <input
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                  placeholder="Ask me anything..."
+                  placeholder={listening ? 'Speak now...' : 'Ask me anything...'}
                   className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:border-transparent text-sm"
                 />
-                <button
-                  onClick={toggleVoice}
-                  disabled={loading}
-                  className={`px-3 py-3 rounded-xl border transition-colors duration-300 flex items-center justify-center ${listening ? 'bg-red-500 border-red-500 text-white animate-pulse' : 'border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}
-                  title={listening ? 'Stop listening' : 'Voice input'}
-                >
-                  {listening ? <MicOff size={18} /> : <Mic size={18} />}
-                </button>
+                <div className="relative flex items-center">
+                  {listening && (
+                    <div className="absolute -left-1 -top-1 -bottom-1 flex items-center gap-[2px] px-2 bg-red-500/10 rounded-xl">
+                      <span className="w-[3px] bg-red-500 rounded-full animate-pulse" style={{height:'12px',animationDelay:'0s'}} />
+                      <span className="w-[3px] bg-red-500 rounded-full animate-pulse" style={{height:'18px',animationDelay:'0.2s'}} />
+                      <span className="w-[3px] bg-red-500 rounded-full animate-pulse" style={{height:'8px',animationDelay:'0.4s'}} />
+                      <span className="w-[3px] bg-red-500 rounded-full animate-pulse" style={{height:'16px',animationDelay:'0.1s'}} />
+                      <span className="w-[3px] bg-red-500 rounded-full animate-pulse" style={{height:'10px',animationDelay:'0.3s'}} />
+                    </div>
+                  )}
+                  <button
+                    onClick={toggleVoice}
+                    disabled={loading}
+                    className={`relative px-3 py-3 rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${listening ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/30 scale-105' : 'border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}
+                    title={listening ? 'Tap to stop recording' : 'Voice input'}
+                  >
+                    {listening ? <MicOff size={18} /> : <Mic size={18} />}
+                    {listening && <span className="text-xs font-medium hidden sm:inline">Stop</span>}
+                  </button>
+                </div>
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || loading}
