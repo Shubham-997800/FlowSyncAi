@@ -1,6 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { getNotifications } from '../services/notificationService'
 import {
   LayoutDashboard, ListTodo, Brain, Calendar, Clock, Target,
   BarChart3, Bell, Settings, LogOut, Flame, User,
@@ -25,6 +27,20 @@ const links = [
 function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const data = await getNotifications()
+        const items = Array.isArray(data) ? data : []
+        setUnreadCount(items.filter(n => !n.read).length)
+      } catch {}
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleNavClick = () => onClose?.()
 
@@ -45,7 +61,14 @@ function Sidebar({ open, onClose }) {
                   isActive ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
-                <Icon size={18} />
+                <div className="relative">
+                  <Icon size={18} />
+                  {label === 'Notifications' && unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </div>
                 {label}
               </Link>
             </motion.div>

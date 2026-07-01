@@ -74,7 +74,9 @@ function Habits() {
     try {
       const data = await getHabits()
       setHabits(Array.isArray(data) ? data : [])
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('Failed to load habits')
+    }
   }
 
   useEffect(() => { fetchHabits() }, [])
@@ -110,7 +112,7 @@ function Habits() {
       else break
     }
     setHabits(prev => prev.map(x => x._id === id ? { ...x, logs: sortedLogs, streak } : x))
-    try { await updateHabitApi(id, { logs: sortedLogs, streak }) } catch { /* ignore */ }
+    try { await updateHabitApi(id, { logs: sortedLogs, streak }) } catch { toast.error('Failed to update habit') }
   }
 
   const today = getToday()

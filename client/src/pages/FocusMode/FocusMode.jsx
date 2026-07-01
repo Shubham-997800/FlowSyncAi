@@ -3,7 +3,7 @@ import SessionStats from './SessionStats'
 import Timer from './Timer'
 import { getTasks } from '../../services/taskService'
 import { motion } from 'framer-motion'
-import { Brain, ListTodo, Lightbulb, Clock, Zap } from 'lucide-react'
+import { Brain, ListTodo, Lightbulb, Clock, Zap, Loader2 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
@@ -14,16 +14,21 @@ const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
 
 function FocusMode() {
   const [tasks, setTasks] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const data = await getTasks()
         setTasks(Array.isArray(data) ? data : [])
-      } catch { /* ignore */ }
+      } catch {
+        toast.error('Failed to load tasks')
+      } finally {
+        setLoading(false)
+      }
     }
     fetchTasks()
-    const interval = setInterval(fetchTasks, 5000)
+    const interval = setInterval(fetchTasks, 30000)
     return () => clearInterval(interval)
   }, [])
   const [selectedTask, setSelectedTask] = useState(null)
@@ -119,7 +124,11 @@ function FocusMode() {
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Focus on a task</span>
             </div>
             <div className="space-y-1">
-              {activeTasks.length === 0 ? (
+              {loading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 size={18} className="animate-spin text-slate-400" />
+                </div>
+              ) : activeTasks.length === 0 ? (
                 <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No active tasks</p>
               ) : (
                 activeTasks.map(t => (

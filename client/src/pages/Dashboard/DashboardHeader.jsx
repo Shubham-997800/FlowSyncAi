@@ -4,18 +4,18 @@ import { useAuth } from '../../context/AuthContext'
 
 function DashboardHeader({ onRefresh, refreshing, lastSyncTime }) {
   const { user } = useAuth()
-  const [greeting, setGreeting] = useState('')
+  const [now, setNow] = useState(Date.now())
   const [syncText, setSyncText] = useState('')
 
   useEffect(() => {
-    const updateGreeting = () => {
-      const h = new Date().getHours()
-      setGreeting(h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening')
-    }
-    updateGreeting()
-    const interval = setInterval(updateGreeting, 60000)
+    const tick = () => setNow(Date.now())
+    tick()
+    const interval = setInterval(tick, 60000)
     return () => clearInterval(interval)
   }, [])
+
+  const h = new Date(now).getHours()
+  const greeting = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening'
 
   useEffect(() => {
     if (!lastSyncTime) { setSyncText(''); return }
@@ -31,8 +31,7 @@ function DashboardHeader({ onRefresh, refreshing, lastSyncTime }) {
     return () => clearInterval(interval)
   }, [lastSyncTime])
 
-  const now = new Date()
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+  const dateStr = new Date(now).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
   const name = user?.name || 'there'
 
   return (

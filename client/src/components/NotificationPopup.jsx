@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info, Sparkles } from 'lucide-react'
 import { getNotifications } from '../services/notificationService'
+import toast from 'react-hot-toast'
 
 const typeIconMap = {
   deadline_alert: AlertTriangle,
@@ -34,7 +35,9 @@ function NotificationPopup() {
       try {
         const data = await getNotifications()
         setNotifications(Array.isArray(data) ? data : [])
-      } catch { /* ignore */ }
+      } catch {
+        toast.error('Failed to load notifications')
+      }
     }
     fetch()
     const interval = setInterval(fetch, 30000)

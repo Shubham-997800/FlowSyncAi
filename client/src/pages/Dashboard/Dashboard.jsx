@@ -13,6 +13,7 @@ import DeadlineRisk from './DeadlineRisk'
 import TodayTasks from './TodayTasks'
 import RecentActivity from './RecentActivity'
 import { getTasks, updateTask, deleteTask } from '../../services/taskService'
+import toast from 'react-hot-toast'
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -141,7 +142,9 @@ function Dashboard() {
       const data = await getTasks()
       setTasks(Array.isArray(data) ? data : [])
       setLastSyncTime(Date.now())
-    } catch { /* ignore */ }
+    } catch {
+      if (!silent) toast.error('Failed to load tasks')
+    }
     if (!silent) setLoading(false)
     else setRefreshing(false)
   }, [])
@@ -160,15 +163,28 @@ function Dashboard() {
   const handleToggle = useCallback(async (id) => {
     const task = tasks.find(t => t._id === id)
     if (!task) return
-    const newStatus = task.status === 'done' ? 'todo' : 'done'
+    const prevStatus = task.status
+    const newStatus = prevStatus === 'done' ? 'todo' : 'done'
     setTasks(prev => prev.map(t => t._id === id ? { ...t, status: newStatus } : t))
-    try { await updateTask(id, { status: newStatus }) } catch {}
+    try { await updateTask(id, { status: newStatus }) } catch { toast.error('Failed to update task') }
   }, [tasks])
 
   const handleDelete = useCallback(async (id) => {
+    const deleted = tasks.find(t => t._id === id)
     setTasks(prev => prev.filter(t => t._id !== id))
-    try { await deleteTask(id) } catch {}
-  }, [])
+    const undo = () => {
+      if (deleted) setTasks(prev => [...prev, deleted])
+      toast.dismiss()
+    }
+    toast(
+      <div className="flex items-center gap-3">
+        <span>Task deleted</span>
+        <button onClick={undo} className="text-indigo-400 hover:text-indigo-300 font-medium text-sm">Undo</button>
+      </div>,
+      { duration: 4000, style: { borderRadius: '12px', background: '#1e293b', color: '#f1f5f9', fontSize: '13px' } }
+    )
+    try { await deleteTask(id) } catch { toast.error('Failed to delete task') }
+  }, [tasks])
 
   const toggleWidget = (key) => {
     const next = { ...widgets, [key]: !widgets[key] }

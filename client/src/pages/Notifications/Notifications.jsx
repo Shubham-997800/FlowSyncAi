@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Bell, CheckCheck } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
+import toast from 'react-hot-toast'
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
@@ -41,7 +42,9 @@ function Notifications() {
         const data = await getNotifications()
         const items = (Array.isArray(data) ? data : []).map(normalizeNotification)
         setNotifications(items)
-      } catch { /* ignore */ }
+      } catch {
+        toast.error('Failed to load notifications')
+      }
     }
     fetchNotifications()
   }, [])
@@ -56,7 +59,7 @@ function Notifications() {
   const markRead = async (id) => {
     setNotifications(prev => prev.map(n => (n.id === id || n._id === id) ? { ...n, read: true, status: 'read' } : n))
     if (!isLocalId(id)) {
-      try { await markAsRead(id) } catch { /* ignore */ }
+      try { await markAsRead(id) } catch { toast.error('Failed to mark as read') }
     }
   }
 

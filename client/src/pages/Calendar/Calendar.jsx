@@ -25,6 +25,7 @@ function Calendar() {
   const [form, setForm] = useState({ title: '', description: '', priority: 'medium', deadline: '' })
   const [saving, setSaving] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null)
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -32,10 +33,12 @@ function Calendar() {
         const data = await getTasks()
         const mapped = (Array.isArray(data) ? data : []).map(t => ({ ...t, dueDate: t.deadline ? t.deadline.split('T')[0] : '' }))
         setTasks(mapped)
-      } catch { /* ignore */ }
+      } catch {
+        toast.error('Failed to load tasks')
+      }
     }
     fetchTasks()
-    const interval = setInterval(fetchTasks, 10000)
+    const interval = setInterval(fetchTasks, 30000)
     return () => clearInterval(interval)
   }, [])
 
@@ -76,7 +79,6 @@ function Calendar() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this task?')) return
     try {
       await deleteTask(id)
       toast.success('Task deleted')
@@ -84,6 +86,7 @@ function Calendar() {
     } catch {
       toast.error('Failed to delete')
     }
+    setDeleteConfirmId(null)
   }
 
   const handleAISchedule = async () => {
@@ -99,6 +102,8 @@ function Calendar() {
       toast.error('AI scheduling failed')
     } finally { setAiLoading(false) }
   }
+
+  const requestDelete = (id) => setDeleteConfirmId(id)
 
   return (
     <motion.div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
@@ -136,7 +141,7 @@ function Calendar() {
         <div className={`${showDaily || view === 'weekly' ? 'lg:col-span-2' : 'lg:col-span-2'}`}>
           {view === 'monthly' && !showDaily && <MonthlyView tasks={tasks} onDateClick={handleDateClick} />}
           {view === 'weekly' && !showDaily && <WeeklyView tasks={tasks} onDateClick={handleDateClick} />}
-          {showDaily && selectedDate && <DailyView tasks={tasks} date={selectedDate} onBack={() => setShowDaily(false)} onEdit={openEditModal} onDelete={handleDelete} />}
+           {showDaily && selectedDate && <DailyView tasks={tasks} date={selectedDate} onBack={() => setShowDaily(false)} onEdit={openEditModal} onDelete={requestDelete} />}
         </div>
         <div className="lg:col-span-1">
           <SchedulePreview tasks={tasks} selectedDate={selectedDate} />
@@ -164,6 +169,23 @@ function Calendar() {
               <button onClick={handleSave} disabled={saving} className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-sm font-medium transition-colors duration-300 disabled:opacity-50 flex items-center justify-center gap-2">
                 {saving && <Loader2 size={15} className="animate-spin" />}
                 {editingTask ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50" onClick={() => setDeleteConfirmId(null)}>
+          <motion.div variants={modalVariants} initial="hidden" animate="visible" className="bg-white dark:bg-zinc-900 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-xl border border-slate-200 dark:border-zinc-800" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Delete Task</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Are you sure you want to delete this task? This action cannot be undone.</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
+                Cancel
+              </button>
+              <button onClick={() => handleDelete(deleteConfirmId)} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white text-sm font-medium transition-colors">
+                Delete
               </button>
             </div>
           </motion.div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { TrendingUp, Clock, Brain, Flame, Download, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
+import toast from 'react-hot-toast'
 import ProductivityChart from './ProductivityChart'
 import WeeklyChart from './WeeklyChart'
 import MonthlyChart from './MonthlyChart'
@@ -11,7 +12,6 @@ import Achievements from './Achievements'
 import { getTasks } from '../../services/taskService'
 import { getGoals } from '../../services/goalService'
 import { getHabits } from '../../services/habitService'
-import toast from 'react-hot-toast'
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
@@ -30,10 +30,12 @@ function Analytics() {
         setTasks(Array.isArray(t) ? t : [])
         setGoals(Array.isArray(g) ? g : [])
         setHabits(Array.isArray(h) ? h : [])
-      } catch { /* ignore */ }
+      } catch {
+        toast.error('Failed to load analytics data')
+      }
     }
     fetch()
-    const interval = setInterval(fetch, 10000)
+    const interval = setInterval(fetch, 30000)
     return () => clearInterval(interval)
   }, [])
 

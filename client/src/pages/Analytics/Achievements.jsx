@@ -25,7 +25,9 @@ function Achievements({ tasks, goals, habits }) {
       try {
         const { data } = await api.get('/api/settings/profile')
         setSaved((data?.achievements || []).map(a => a.name))
-      } catch { /* ignore */ }
+      } catch {
+        toast.error('Failed to load achievements')
+      }
     })()
   }, [])
 

@@ -221,7 +221,7 @@ function AIPlanner() {
   }
 
   return (
-    <motion.div className="flex h-[calc(100vh-8rem)] -m-4 sm:-m-6 lg:-m-8" variants={containerVariants} initial="hidden" animate="visible">
+    <motion.div className="flex h-[calc(100vh-8rem)] sm:h-[calc(100vh-8rem)] -mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden" variants={containerVariants} initial="hidden" animate="visible">
       <Helmet>
         <title>AI Chat - FlowSync AI</title>
         <meta name="description" content="Chat with AI to plan tasks" />

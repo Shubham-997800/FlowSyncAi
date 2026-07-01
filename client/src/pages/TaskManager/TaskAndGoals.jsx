@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Plus, Trash2, Search, X, AlertCircle, CheckCircle2, Clock, Flag, Target, Calendar as CalIcon, Brain, Loader2, Sparkles } from 'lucide-react'
+import { Plus, Trash2, Search, X, AlertCircle, CheckCircle2, Clock, Flag, Target, Calendar as CalIcon, Brain, Loader2, Sparkles, ArrowUpDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
@@ -156,6 +156,7 @@ function TaskAndGoals() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
 
@@ -172,7 +173,9 @@ function TaskAndGoals() {
     try {
       const data = await getGoals()
       setGoals(Array.isArray(data) ? data : [])
-    } catch { /* ignore */ }
+    } catch {
+      toast.error('Failed to load goals')
+    }
   }
 
   useEffect(() => {
@@ -265,9 +268,29 @@ function TaskAndGoals() {
     }
   }
 
+  const sortOptions = [
+    { key: 'newest', label: 'Newest' },
+    { key: 'priority', label: 'Priority' },
+    { key: 'deadline', label: 'Deadline' },
+    { key: 'title', label: 'Title A-Z' },
+  ]
+
   const filtered = tasks
     .filter(t => filter === 'all' ? true : filter === 'active' ? t.status !== 'done' : t.status === 'done')
     .filter(t => !search || t.title.toLowerCase().includes(search.toLowerCase()) || t.description?.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === 'priority') {
+        const order = { high: 0, medium: 1, low: 2 }
+        return (order[a.priority] ?? 1) - (order[b.priority] ?? 1)
+      }
+      if (sortBy === 'deadline') {
+        if (!a.deadline) return 1
+        if (!b.deadline) return -1
+        return new Date(a.deadline) - new Date(b.deadline)
+      }
+      if (sortBy === 'title') return a.title.localeCompare(b.title)
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    })
 
   const todayStr = new Date().toISOString().split('T')[0]
   const todayCount = tasks.filter(t => { if (!t.deadline) return false; const d = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return d === todayStr && t.status !== 'done' }).length
@@ -329,14 +352,22 @@ function TaskAndGoals() {
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search tasks..." className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm" />
             </div>
-            <div className="flex gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
-              {[
-                { key: 'all', label: 'All' },
-                { key: 'active', label: 'Active' },
-                { key: 'completed', label: 'Completed' },
-              ].map(({ key, label }) => (
-                <button key={key} onClick={() => setFilter(key)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${filter === key ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{label}</button>
-              ))}
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="appearance-none px-3 py-2 pr-8 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-700 dark:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  {sortOptions.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                </select>
+                <ArrowUpDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+              <div className="flex gap-1.5 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'active', label: 'Active' },
+                  { key: 'completed', label: 'Completed' },
+                ].map(({ key, label }) => (
+                  <button key={key} onClick={() => setFilter(key)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${filter === key ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{label}</button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -438,10 +469,9 @@ function TaskAndGoals() {
                           <span className="flex items-center gap-1"><CalIcon size={12} />{isOverdue ? `${Math.abs(daysLeft)} days ago` : `${daysLeft} days left`}</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        {[0, 25, 50, 75, 100].map(pct => (
-                          <button key={pct} onClick={() => updateProgress(goal._id, pct)} className={`w-6 h-6 rounded-md text-[10px] font-medium border transition ${goal.progress >= pct ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-slate-200 dark:border-zinc-700 text-slate-400 dark:text-slate-500 hover:border-indigo-300'}`}>{pct === 0 ? '0' : pct < 100 ? `${pct}` : '100'}</button>
-                        ))}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 w-6 text-right">{goal.progress}%</span>
+                        <input type="range" min={0} max={100} step={5} value={goal.progress} onChange={e => updateProgress(goal._id, parseInt(e.target.value))} className="w-24 h-1.5 rounded-full appearance-none cursor-pointer bg-slate-200 dark:bg-zinc-700 accent-indigo-500" />
                       </div>
                     </div>
                   </motion.div>

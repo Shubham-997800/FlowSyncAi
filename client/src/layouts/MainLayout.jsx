@@ -57,7 +57,7 @@ function MainLayout() {
             localStorage.setItem('flowsync_notified_tasks', JSON.stringify([...notified, task._id]))
           }
         })
-      } catch { /* ignore */ }
+      } catch { console.warn('Deadline check failed') }
     }
 
     checkDeadlines()
@@ -65,6 +65,9 @@ function MainLayout() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-zinc-950">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-indigo-600 focus:text-white focus:text-sm focus:font-medium focus:shadow-lg">
+        Skip to main content
+      </a>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-col flex-1 min-w-0">
         <header className="h-14 flex-shrink-0 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-10">
@@ -87,7 +90,7 @@ function MainLayout() {
             </button>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main id="main-content" className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.2 }}>
               <Outlet />

@@ -52,6 +52,7 @@
 - [AI Architecture](#-ai-architecture)
 - [Request Lifecycle](#-request-lifecycle)
 - [Authentication Flow](#-authentication-flow)
+- [Recent Improvements](#-recent-improvements)
 - [License & Usage](#-license--usage)
 - [Author](#-author)
 - [Acknowledgements](#-acknowledgements)
@@ -473,8 +474,6 @@ flowsync-ai/
 │   │   ├── emailService.js                # Nodemailer — password reset
 │   │   └── reminderService.js             # Auto deadline alerts every 30 minutes
 │   │
-│   ├── seed.js                            # Local DB seed script
-│   └── qa-seed.js                         # Remote API-based QA seed script
 │   │
 │   └── package.json
 │
@@ -897,6 +896,60 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 
 ---
 
+## 🆕 Recent Improvements
+
+### Dashboard Overhaul (Industry-Level)
+
+The Dashboard received a complete rewrite with production-grade features:
+
+| Feature | Description |
+|---------|-------------|
+| **Animated Counters** | Stat cards count up from 0 to final value using requestAnimationFrame with cubic ease-out — no external libraries |
+| **Mini Sparkline Charts** | Each stat card shows a 7-day completion trend as inline SVG sparkline — zero dependencies |
+| **Trend Indicators** | Today's Tasks card shows ↑/↓ % change comparing first 3 vs last 3 days of weekly data |
+| **Inline Task Editing** | Click any task title → inline input appears; Enter or blur saves, Escape cancels — no modal required |
+| **Bulk Select & Complete** | Multi-select checkboxes + "Complete N" batch action button for efficient task management |
+| **Collapse Completed Tasks** | Toggle to show/hide completed tasks below remaining tasks with AnimatePresence transitions |
+| **Quick Focus Button** | Play icon appears on hover over any task — one click navigates to Focus Mode with that task pre-selected |
+| **AI Recommendation Caching** | sessionStorage stores AI responses for 5 minutes — avoids redundant API calls on tab switch |
+| **Deadline Risk Pulse Animation** | Overdue items get a red glow shadow animation + animated progress bars for urgency attention |
+| **Time-Grouped Activity** | Recent Activity grouped by Today / Yesterday / This Week — click any item to navigate to its page |
+| **Widget Visibility Toggle** | Settings dropdown lets users show/hide 7 dashboard sections, persisted to localStorage |
+| **Date Range Filter** | All Time / This Week / This Month toggle filters all dashboard data by task deadline |
+| **ErrorBoundary Resilience** | React ErrorBoundary wraps the entire dashboard — one widget failure doesn't crash the whole page |
+| **Onboarding Empty State** | New users see a welcome card with "Create Task" and "Talk to AI" CTAs instead of empty zeroes |
+| **Auto-Refresh & Sync** | Dashboard auto-fetches tasks every 60s + on tab visibility change + manual refresh button |
+
+### Accessibility Improvements
+
+| Fix | Description |
+|-----|-------------|
+| **Skip-to-Content Link** | Hidden link visible on keyboard focus (Tab) — bypasses sidebar navigation, jumps directly to main content |
+| **Focus Trap in Modals** | Modal component traps keyboard focus: Tab/Shift+Tab cycles through focusable elements, auto-focuses close button on open, Escape to close |
+| **prefers-reduced-motion** | Entire app wrapped in `<MotionConfig reducedMotion="user">` — framer-motion automatically respects OS accessibility settings, disabling non-essential animations |
+| **Screen Reader Support** | `aria-live` regions for dynamic content updates (toast notifications, loading states) |
+
+### UX Quality Fixes
+
+| Fix | Description |
+|-----|-------------|
+| **Native confirm() Replaced** | Calendar delete action now uses a styled framer-motion confirmation modal instead of the browser-native `confirm()` dialog, maintaining UX consistency |
+| **Silent Error Handling** | 14+ API catch blocks across Dashboard, Analytics, Habits, FocusMode, Notifications, Profile, Settings, MainLayout now show proper `toast.error()` messages instead of silently swallowing failures |
+| **FocusMode Loading State** | Shows a skeleton spinner during initial data fetch instead of misleading "No active tasks" message |
+| **Polling Intervals Optimized** | Calendar: 10s → 30s, Analytics: 10s → 30s, FocusMode: 5s → 30s, UserStats: 2s → 30s — reducing network spam while maintaining responsiveness |
+| **AI Planner Mobile Layout** | Fixed `calc(100vh)` overflow with negative margins on mobile — now uses proper viewport handling |
+| **Undo Toast on Delete** | Delete actions show a toast with "Undo" button that restores the deleted item within 4 seconds |
+
+### Task & Goal Management UX
+
+| Feature | Description |
+|---------|-------------|
+| **Task Sorting** | New dropdown with 4 sort modes: Priority (high first), Deadline (nearest first), Title (A-Z), Newest first |
+| **Goal Progress Slider** | Replaced rigid preset buttons (0/25/50/75/100) with a custom range slider (0-100, step 5) for precise progress tracking |
+| **Notification Badge** | Sidebar Bell icon now shows a real-time unread count badge, auto-polling every 30 seconds |
+
+---
+
 ## 📄 License & Usage
 
 ### Proprietary License
@@ -909,10 +962,8 @@ This software and its source code are the intellectual property of **Shubham Dan
 |-------|----------|---------|
 | View Code | ✅ Yes | Public on GitHub for portfolio/reference |
 | Run for Personal Use | ✅ Yes | You may run the live version at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) |
-| Fork/Clone | ❌ No | Cloning, forking, or copying the code is prohibited without explicit permission |
 | Modify & Redistribute | ❌ No | You may not modify, redistribute, or publish modified versions |
 | Commercial Use | ❌ No | Commercial use requires a separate license agreement |
-| Self-Hosting | ❌ No | Deploying your own instance requires written permission from the author |
 
 ### Requesting Permission
 
@@ -969,35 +1020,6 @@ Please contact the author:
 Inspired by the next generation of AI-first productivity tools that are redefining how humans interact with their work.
 
 ---
-
-<p align="center">
-  <b>FlowSync AI</b> — <i>Never Miss a Deadline Again</i><br>
-  <a href="https://flowsyncai30.vercel.app">🌐 Live App</a>
-  ·
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/issues">🐛 Report Bug</a>
-  ·
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/issues">💡 Request Feature</a>
-  ·
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/stargazers">⭐ Star on GitHub</a>
-</p>
-
-<p align="center">
-  <sub>© 2024-2026 Shubham Dangi. Proprietary software. All rights reserved.</sub>
-</p>
-
-<p align="center">
-  <a href="https://github.com/Shubham-997800">
-    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
-  </a>
-  <a href="https://linkedin.com/in/shubham997800">
-    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" />
-  </a>
-  <a href="mailto:shubhamkumar997800@gmail.com">
-    <img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white" />
-  </a>
-</p>
-
-
 
 <p align="center">
   <b>FlowSync AI</b> — <i>Never Miss a Deadline Again</i><br>

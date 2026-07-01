@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Flame, TrendingUp, Target } from 'lucide-react'
 import { getTasks } from '../../services/taskService'
+import toast from 'react-hot-toast'
 
 function UserStats() {
   const [stats, setStats] = useState({ total: 0, completed: 0, focusMinutes: 0, focusSessions: 0, streak: 0 })
@@ -30,10 +31,12 @@ function UserStats() {
           return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.status === 'done').length / dayTasks.length) * 100) : 0
         })
         setWeekData(wd)
-      } catch { /* ignore */ }
+      } catch {
+        toast.error('Failed to load stats')
+      }
     }
     fetchData()
-    const interval = setInterval(fetchData, 2000)
+    const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
   }, [])
 

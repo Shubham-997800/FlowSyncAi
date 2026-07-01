@@ -1,11 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 
 function Modal({ isOpen, onClose, title, children }) {
+  const modalRef = useRef(null)
+  const closeRef = useRef(null)
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
+      setTimeout(() => closeRef.current?.focus(), 50)
     } else {
       document.body.style.overflow = ''
     }
@@ -13,7 +17,16 @@ function Modal({ isOpen, onClose, title, children }) {
   }, [isOpen])
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e) => {
+      if (e.key === 'Escape') { onClose(); return }
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusable = modalRef.current.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus() }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus() }
+      }
+    }
     if (isOpen) window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [isOpen, onClose])
@@ -30,6 +43,7 @@ function Modal({ isOpen, onClose, title, children }) {
             onClick={onClose}
           />
           <motion.div
+            ref={modalRef}
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -38,7 +52,7 @@ function Modal({ isOpen, onClose, title, children }) {
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-zinc-800">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
+              <button ref={closeRef} onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
                 <X size={20} />
               </button>
             </div>
