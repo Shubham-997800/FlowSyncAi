@@ -952,28 +952,24 @@ The Dashboard received a complete rewrite with production-grade features:
 
 ## 📄 License & Usage
 
-### Proprietary License
+### Proprietary License — All Rights Reserved
 
 **Copyright © 2024-2026 Shubham Dangi. All rights reserved.**
 
-This software and its source code are the intellectual property of **Shubham Dangi**. It is **not** open-source software.
+This software and its source code are the intellectual property of **Shubham Dangi**. It is **not** open-source software. A [`LICENSE`](./LICENSE) file is included in the repository.
 
 | Right | Allowed? | Details |
 |-------|----------|---------|
 | View Code | ✅ Yes | Public on GitHub for portfolio/reference |
-| Run for Personal Use | ✅ Yes | You may run the live version at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) |
-| Modify & Redistribute | ❌ No | You may not modify, redistribute, or publish modified versions |
-| Commercial Use | ❌ No | Commercial use requires a separate license agreement |
+| Use Live App | ✅ Yes | You may use the hosted version at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) |
+| Copy / Download | ❌ No | Requires written permission from the author |
+| Clone / Fork | ❌ No | Requires written permission from the author |
+| Modify / Redistribute | ❌ No | Requires written permission from the author |
+| Commercial Use | ❌ No | Requires a separate commercial license |
 
-### Requesting Permission
+### How to Get Permission
 
-If you wish to:
-- Use this project for commercial purposes
-- Deploy your own instance
-- Reference substantial portions of the code in your own project
-- Collaborate or contribute directly
-
-Please contact the author:
+If you want to use, copy, or reference any part of this code, simply contact me:
 
 | Method | Contact |
 |--------|---------|
@@ -981,10 +977,10 @@ Please contact the author:
 | 💼 LinkedIn | [Shubham Dangi](https://linkedin.com/in/shubham997800) |
 | 🐙 GitHub | [Shubham-997800](https://github.com/Shubham-997800) |
 
+I'm happy to discuss collaboration, licensing, or any other use — just ask.
+
 > [!IMPORTANT]
-> By cloning, accessing, or using this repository, you agree to these terms. Unauthorized use, distribution, or reproduction will be considered a violation of intellectual property rights.
->
-> This project is shared publicly on GitHub for **portfolio and demonstration purposes only**. Any use beyond viewing requires explicit written consent from the author.
+> This repository is shared publicly for **portfolio and demonstration purposes only**. Viewing is free. Everything else requires my permission. Unauthorized copying, forking, or distribution will be considered a violation of intellectual property rights.
 
 ---
 
