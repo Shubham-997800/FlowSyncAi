@@ -133,10 +133,18 @@ We believe productivity tools should work **for** you, not the other way around.
 |---------|-------------|
 | **AI Chat Assistant** | Conversational interface — say "Schedule a standup at 10am tomorrow" and the task is created, prioritized, and slotted into your calendar. Chat history is persisted to the database across sessions. |
 | **AI Chat History** | Every conversation is saved to MongoDB — browse past chats, delete individual messages, or clear entire history with "New Chat" button. |
+| **Multilingual AI Chat** | Auto-detects user language (Hindi, Hinglish, English, Spanish, etc.) and responds in the same language — including Hinglish (Devanagari + English mix). |
 | **Smart Daily Planning** | AI analyzes all pending tasks, deadlines, and priorities to generate an optimal day schedule with focused work blocks, breaks, and buffers. |
 | **Task Prioritization Engine** | Every task receives a dynamic urgency score (0–100) and risk score (0–100) based on deadline proximity, dependencies, and current workload. |
-| **Rescue Mode** | When the day is overloaded, AI identifies what's critical, what can be dropped, and compresses the剩余 work into a survivable plan. |
-| **Productivity Coach** | Weekly AI-generated reports that highlight patterns, strengths, weaknesses, and actionable recommendations. |
+| **Rescue Mode** | When the day is overloaded, AI identifies what's critical, what can be dropped, and compresses the remaining work into a survivable plan. |
+| **AI Task Suggestions** | While typing a task title, AI suggests optimal priority, estimated time, and relevant tags in real-time. |
+| **AI Dashboard Coach** | AI-powered productivity recommendations on the dashboard based on actual task data, urgency scores, and risk analysis. |
+| **AI Calendar Preview** | Shows AI-priority-ranked tasks per day with risk scores for smarter scheduling. |
+| **AI Focus Mode** | Context-aware break timing suggestions based on task priority and overdue status (shorter blocks for urgent tasks, longer for deep work). |
+| **Productivity Coach** | AI-generated reports that highlight patterns, strengths, weaknesses, and actionable recommendations via the analytics-insights API. |
+| **AI Consent System** | Privacy-first opt-in for AI features, managed from Settings with full visibility. |
+| **200/day Usage Limit** | Per-user daily AI call quota with usage tracking via `/api/ai/usage` endpoint. |
+| **Voice Input** | Speech-to-text via Web Speech API in the AI chat interface for hands-free task creation. |
 
 ### 📋 Core Features
 
@@ -146,14 +154,17 @@ We believe productivity tools should work **for** you, not the other way around.
 | 📝 **Tasks** | Full CRUD | Priority levels, status tracking, deadlines, descriptions, field sanitization |
 | 🎯 **Goals** | Milestone Tracking | Target dates, progress percentage, aligned with tasks |
 | 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid |
-| 📅 **Calendar** | Multi-View | Monthly, weekly, and daily views with deadline highlighting |
-| ⏱️ **Focus Mode** | Pomodoro Timer | Configurable focus (1–180 min) and break (1–60 min) durations, ambient sounds, task integration |
-| 📊 **Analytics** | Deep Insights | Productivity score (animated ring chart), completion rates, weekly/monthly trends, focus session stats |
-| 🔔 **Notifications** | Real-Time Drawer | All/Unread filters, grouped by Today / This Week / Earlier |
-| 🏠 **Dashboard** | Command Center | Task stats, AI priority cards, calendar preview, focus timer, productivity score, deadline risk indicators |
-| ⚙️ **Settings** | Full Control | Theme toggle (light/dark/system), AI preferences, profile editing, account deletion |
+| 📅 **Calendar** | Multi-View | Monthly, weekly, and daily views with AI-priority-ranked task suggestions |
+| ⏱️ **Focus Mode** | Pomodoro Timer | Configurable focus (1–180 min) and break (1–60 min) durations, ambient sounds, task integration, AI break timing suggestions |
+| 📊 **Analytics** | Deep Insights | Productivity score (animated ring chart), completion rates, weekly/monthly trends, focus session stats, AI-generated report |
+| 🏆 **Achievements** | Gamification | Milestone-based achievements (tasks, goals, focus) with MongoDB persistence |
+| 🔔 **Notifications** | Real-Time Drawer | All/Unread filters, grouped by Today / This Week / Earlier, auto deadline reminders |
+| 🏠 **Dashboard** | Command Center | Task stats, AI priority cards (live API), calendar preview, focus timer, productivity score, deadline risk indicators |
+| ⚙️ **Settings** | Full Control | Theme toggle (light/dark/system), AI consent toggle, profile editing, account deletion |
 | 👤 **Profile** | Customizable | Avatar upload, bio, phone, location, job title, password change |
-| 🌙 **Dark Mode** | Three Themes | Light, dark, and system-follow with smooth transitions |
+| 🎤 **Voice Input** | Speech-to-Text | Browser-native Web Speech API for AI chat and task creation |
+| 🌙 **Dark Mode** | Three Themes | Light, dark, and system-follow with smooth CSS transitions |
+| 📧 **Email Reminders** | Auto Notifications | Scheduled service that generates deadline alerts every 30 minutes |
 
 ---
 
@@ -421,13 +432,14 @@ flowsync-ai/
 │   │   └── rateLimiter.js                 # Rate limiting strategies
 │   │
 │   ├── models/
-│   │   ├── User.js                        # name, email, hashed password, profile, resetToken
+│   │   ├── User.js                        # name, email, hashed password, profile, resetToken, achievements[], aiConsent
 │   │   ├── Task.js                        # title, priority, status, deadline, description
 │   │   ├── Goal.js                        # title, targetDate, progress
 │   │   ├── Habit.js                       # title, frequency, streak, logs[]
 │   │   ├── Notification.js                # type, title, message, status, userId
 │   │   ├── PushSubscription.js            # endpoint, keys for web push
-│   │   └── ChatMessage.js                 # role, text, tasks[], createdTasks[]
+│   │   ├── ChatMessage.js                 # role, text, tasks[], createdTasks[]
+│   │   └── AiUsage.js                     # user, date, count (200/day limit)
 │   │
 │   ├── controllers/
 │   │   ├── authController.js              # signup, login, forgotPassword, resetPassword
@@ -436,8 +448,8 @@ flowsync-ai/
 │   │   ├── habitController.js             # CRUD + check-in + streak calculation
 │   │   ├── analyticsController.js         # Stats, weekly, monthly aggregation
 │   │   ├── notificationController.js      # Create, list, mark-read
-│   │   ├── settingsController.js          # Profile, avatar, password, delete account
-│   │   ├── aiController.js               # Chat, plan, prioritize, rescue
+│   │   ├── settingsController.js          # Profile, avatar, password, delete account, achievements, AI consent
+│   │   ├── aiController.js               # Chat, plan, prioritize, rescue, suggest-task, usage, analytics-insights
 │   │   ├── pushController.js             # Web push subscribe/unsubscribe
 │   │   └── chatController.js             # Chat history get/save/delete/clear
 │   │
@@ -454,8 +466,9 @@ flowsync-ai/
 │   │   └── chatRoutes.js                 # Chat history CRUD
 │   │
 │   ├── services/
-│   │   ├── aiService.js                   # Prompt engineering + JSON parsing
-│   │   └── emailService.js                # Nodemailer — password reset
+│   │   ├── aiService.js                   # Prompt engineering + JSON parsing (7 models, multilingual, failover)
+│   │   ├── emailService.js                # Nodemailer — password reset
+│   │   └── reminderService.js             # Auto deadline alerts every 30 minutes
 │   │
 │   ├── seed.js                            # Local DB seed script
 │   └── qa-seed.js                         # Remote API-based QA seed script
@@ -539,6 +552,23 @@ erDiagram
         boolean read "default: false"
         date createdAt
     }
+
+    AiUsage {
+        ObjectId _id PK
+        ObjectId userId FK "ref User"
+        string date "YYYY-MM-DD"
+        number count "daily AI call count"
+    }
+
+    ChatMessage {
+        ObjectId _id PK
+        ObjectId userId FK "ref User"
+        string sessionId "chat session grouping"
+        string role "enum: user, assistant"
+        string text
+        array tasks "extracted tasks"
+        date createdAt
+    }
 ```
 
 ### Relationship Details
@@ -549,6 +579,8 @@ erDiagram
 | **User → Goal** | One-to-Many | `1 : N` | Goals are user-scoped. Tasks can optionally align to goals via title matching. |
 | **User → Habit** | One-to-Many | `1 : N` | Each habit is tracked independently per user. Streaks auto-calculate from log dates. |
 | **User → Notification** | One-to-Many | `1 : N` | Notifications are generated by the system (deadline alerts, achievement unlocks). |
+| **User → AiUsage** | One-to-Many | `1 : N` | Daily AI usage counters reset each day. |
+| **User → ChatMessage** | One-to-Many | `1 : N` | Chat history persisted per user session. |
 
 > [!NOTE]
 > The `password` field is excluded from all API responses via Mongoose's `toJSON` transform. The `resetPasswordToken` and `resetPasswordExpire` fields are cleared after a successful password reset.
@@ -621,7 +653,7 @@ erDiagram
 
 ## 🤖 AI Architecture
 
-FlowSync AI's intelligence is powered by **OpenRouter** with the **Qwen 2.5 7B** model, accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, and graceful fallbacks.
+FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in a failover chain (Llama 3.3 70B, GPT-4o-mini, Claude 3 Haiku, Gemini 2.0 Flash, Mistral 7B, DeepSeek V3, Qwen 2.5 7B), accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, graceful fallbacks, and multilingual support.
 
 ### Architecture Overview
 
@@ -681,9 +713,13 @@ FlowSync AI's intelligence is powered by **OpenRouter** with the **Qwen 2.5 7B**
 | Capability | Prompt Strategy | Response Format | Fallback |
 |------------|----------------|----------------|---------|
 | **Chat** | User message + current tasks context | `{ reply, tasks[], suggestions[] }` | Default polite response |
+| **Multilingual Chat** | Language detection from user input, responds in same language (Hinglish, Hindi, English, Spanish, etc.) | Same as Chat | Default English |
 | **Daily Plan** | User prompt + task list with deadlines | `{ priority[], schedule[], suggestions[], confidence }` | Empty plan |
 | **Prioritize** | Task list with IDs, titles, priorities | `{ rankings[], suggestedOrder[], summary }` | Equal scores |
 | **Rescue Mode** | Overloaded task list, 48h window | `{ criticalTasks[], compressedSchedule[], dropRecommendations[] }` | Empty arrays |
+| **Suggest Task** | Task title + existing tasks context | `{ suggestedPriority, suggestedEstimatedTime, suggestedTags[], reason }` | Medium priority defaults |
+| **Analytics Insights** | Full task/habit/goal data | `{ strengths[], weaknesses[], recommendations[], productivityScore, predictedCompletionRate }` | Static fallback |
+| **Voice Input** | Web Speech API → text → AI chat | Same as Chat | Text input fallback |
 
 ---
 
@@ -912,21 +948,7 @@ Inspired by the next generation of AI-first productivity tools that are redefini
   </a>
 </p>
 
----
 
-## 🙏 Acknowledgements
-
-- **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (Qwen 2.5 7B)
-- **[Vercel](https://vercel.com)** — For the incredible frontend deployment platform
-- **[Railway](https://railway.com)** — For reliable backend hosting with zero-downtime deploys
-- **[MongoDB Atlas](https://mongodb.com/atlas)** — For the generous free tier and global database infrastructure
-- **[Tailwind CSS](https://tailwindcss.com)** — For the most productive CSS framework ever built
-- **[Framer Motion](https://framer.com/motion)** — For making animations a joy
-- **[Lucide](https://lucide.dev)** — For the beautiful, consistent icon set
-
-Inspired by the next generation of AI-first productivity tools that are redefining how humans interact with their work.
-
----
 
 <p align="center">
   <b>FlowSync AI</b> — <i>Never Miss a Deadline Again</i><br>
@@ -940,5 +962,5 @@ Inspired by the next generation of AI-first productivity tools that are redefini
 </p>
 
 <p align="center">
-  <sub>Built with ❤️ by Shubham Dangi</sub>
+  <sub>© 2024-2026 Shubham Dangi. Proprietary software. All rights reserved.</sub>
 </p>
