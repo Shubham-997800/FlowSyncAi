@@ -3,8 +3,6 @@ const { getAI } = require('../config/aiConfig')
 const AI_MODELS = [
   process.env.AI_MODEL,
   'meta-llama/llama-3.3-70b-instruct',
-  'google/gemini-2.0-flash-lite-preview',
-  'mistralai/mistral-7b-instruct',
   'openai/gpt-4o-mini',
 ].filter(Boolean)
 
