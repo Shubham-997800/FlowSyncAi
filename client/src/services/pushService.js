@@ -2,6 +2,7 @@ const VAPID_PUBLIC_KEY = 'BKdxM2AQ4h4H8LwhaIx9eTEAkNyXnGh_D0TMvab7-Cmh4f8neF8_Zg
 
 import api from './api'
 
+// Web Push API subscription and unsubscription helpers
 function urlBase64ToUint8Array(base64) {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4)
   const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
+// Dashboard header with greeting, date, and refresh button
 function DashboardHeader({ onRefresh, refreshing, lastSyncTime }) {
   const { user } = useAuth()
   const [now, setNow] = useState(Date.now())

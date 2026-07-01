@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const User = require('../models/User')
 const { sendResetEmail, sendVerificationEmail } = require('../services/emailService')
+const { handleError } = require('../utils/errorHandler')
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' })
 
@@ -59,7 +60,7 @@ const signup = async (req, res) => {
     }
     if (error.code === 11000) return res.status(400).json({ message: 'Duplicate field' })
     if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid ID' })
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -83,8 +84,7 @@ const verifyEmail = async (req, res) => {
 
     res.json({ token: generateToken(user._id), user, message: 'Email verified successfully' })
   } catch (error) {
-    console.error('Verify email error:', error.message)
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -94,8 +94,8 @@ const resendOTP = async (req, res) => {
     if (!email) return res.status(400).json({ message: 'Email is required' })
 
     const user = await User.findOne({ email })
-    if (!user) return res.status(404).json({ message: 'No account with that email' })
-    if (user.isVerified) return res.status(400).json({ message: 'Email already verified' })
+    if (!user) return res.status(200).json({ message: 'If an account exists, an OTP has been sent' })
+    if (user.isVerified) return res.status(400).json({ message: 'Email already verified. Try signing in instead.' })
 
     const otp = generateOTP()
     user.verificationOTP = crypto.createHash('sha256').update(otp).digest('hex')
@@ -113,8 +113,7 @@ const resendOTP = async (req, res) => {
       res.status(500).json({ message: 'OTP could not be sent' })
     }
   } catch (error) {
-    console.error('Resend OTP error:', error.message)
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -130,8 +129,7 @@ const login = async (req, res) => {
     }
     res.json({ token: generateToken(user._id), user })
   } catch (error) {
-    console.error('Login error:', error.message)
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -159,8 +157,7 @@ const forgotPassword = async (req, res) => {
       res.status(500).json({ message: 'Email could not be sent' })
     }
   } catch (error) {
-    console.error('Forgot password error:', error.message)
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -183,8 +180,7 @@ const resetPassword = async (req, res) => {
 
     res.json({ message: 'Password reset successful' })
   } catch (error) {
-    console.error('Reset password error:', error.message)
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 

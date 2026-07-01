@@ -1,5 +1,6 @@
 import { Calendar } from 'lucide-react'
 
+// Calendar-style heatmap showing task activity across the month
 function getDayColor(count, max) {
   if (count === 0) return 'bg-slate-100 dark:bg-zinc-800'
   const ratio = count / max

@@ -3,6 +3,7 @@ import { ListTodo, CheckCircle, CalendarClock, Timer } from 'lucide-react'
 import { motion } from 'framer-motion'
 import StatCard from '../../components/ui/StatCard'
 
+// Stat cards with today's tasks, completions, upcoming deadlines, and focus time
 function getDateStr(d) {
   if (!d) return null
   if (typeof d === 'string') return d.split('T')[0]

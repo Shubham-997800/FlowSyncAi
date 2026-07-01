@@ -1,6 +1,7 @@
 import { ArrowLeft, Clock } from 'lucide-react'
 import EventCard from './EventCard'
 
+// Daily time-slot view for a selected date
 function DailyView({ tasks, date, onBack, onEdit, onDelete }) {
   const dayTasks = tasks.filter(t => t.dueDate === date)
   const today = new Date().toISOString().split('T')[0]

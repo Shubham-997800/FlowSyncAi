@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Sparkles, Brain, Clock, AlertTriangle, BarChart3 } from 'lucide-react'
 
+// Auth page layout (login/register/verify) with feature highlights sidebar
 const highlights = {
   login: [
     { icon: Brain, text: 'AI Task Prioritization' },

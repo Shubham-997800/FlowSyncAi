@@ -3,6 +3,7 @@ import { Trophy, Flame, Target, CheckCircle, Zap, Star, Loader2 } from 'lucide-r
 import api from '../../services/api'
 import toast from 'react-hot-toast'
 
+// Achievement badges and progress tracking for task/goal/habit milestones
 const milestones = [
   { id: '10_tasks', icon: CheckCircle, label: '10 Tasks', check: (t) => t.length >= 10, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
   { id: '50_tasks', icon: CheckCircle, label: '50 Tasks', check: (t) => t.length >= 50, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },

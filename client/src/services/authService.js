@@ -1,5 +1,6 @@
 import api from './api'
 
+// API functions for authentication (login, register, password reset)
 export const register = async (userData) => {
   const { data } = await api.post('/api/auth/signup', userData)
   return data

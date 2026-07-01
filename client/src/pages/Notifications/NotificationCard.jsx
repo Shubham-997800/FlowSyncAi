@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, Info, Timer, Bell, AlertTriangle, Sparkles } from 'lucide-react'
+import { CheckCircle, Info, Bell, AlertTriangle, Sparkles } from 'lucide-react'
 
+// Generic notification card with type-based icon, color, and navigation
 const typeIconMap = {
   deadline_alert: AlertTriangle,
   ai_suggestion: Sparkles,

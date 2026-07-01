@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { getHabits, createHabit, updateHabit as updateHabitApi, deleteHabit as deleteHabitApi } from '../../services/habitService'
 
+// Habit tracker with weekly calendar, logging, and streak tracking
 function getWeekDates() {
   const dates = []
   const now = new Date()

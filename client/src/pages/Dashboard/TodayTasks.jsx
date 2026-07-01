@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import PriorityBadge from '../../components/ui/PriorityBadge'
 
+// Displays today's incomplete tasks sorted by priority/deadline
 function getDateStr(d) {
   if (!d) return null
   if (typeof d === 'string') return d.split('T')[0]

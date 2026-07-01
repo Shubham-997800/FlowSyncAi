@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
+// Call-to-action section with sign-up and explore links
 function CTASection() {
   return (
     <section className="py-24 bg-slate-50 dark:bg-zinc-950">

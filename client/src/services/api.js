@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+// Axios instance with auth interceptor and base URL config
 const PROD_API = 'https://flowsync-ai-production.up.railway.app'
 const DEV_API = 'http://localhost:5000'
 const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? DEV_API : PROD_API)

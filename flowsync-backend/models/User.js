@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
     type: String, default: '',
     validate: {
       validator: function (v) {
-        if (!v) return true
+        if (!v && !this.isNew) return true
+        if (!v) return false
         return v.length >= 8 && /[A-Z]/.test(v) && /[0-9]/.test(v)
       },
       message: 'Password must be at least 8 characters with an uppercase letter and a number',

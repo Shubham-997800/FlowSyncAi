@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Bell, BellOff, X, ExternalLink, Smartphone, Settings as SettingsIcon } from 'lucide-react'
 
+// Banner alerting users when browser notifications are blocked
 const browserInstructions = {
   chrome: 'Settings → Privacy & Security → Site Settings → Notifications → Allow',
   edge: 'Settings → Cookies & Site Permissions → Notifications → Allow',
@@ -19,16 +20,13 @@ function getBrowser() {
 }
 
 function NotificationPermissionBanner({ permission, onDismiss }) {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem('flowsync_notif_banner_dismissed') === 'true'
-  )
+  const [dismissed, setDismissed] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
 
   useEffect(() => {
-    if (permission === 'granted') {
-      setDismissed(true)
-      localStorage.setItem('flowsync_notif_banner_dismissed', 'false')
-    }
+    if (permission === 'granted') setDismissed(true)
+    else if (permission === 'denied') setDismissed(false)
+    else setDismissed(true)
   }, [permission])
 
   if (dismissed || permission !== 'denied') return null
@@ -38,7 +36,6 @@ function NotificationPermissionBanner({ permission, onDismiss }) {
 
   const handleDismiss = () => {
     setDismissed(true)
-    localStorage.setItem('flowsync_notif_banner_dismissed', 'true')
     onDismiss?.()
   }
 

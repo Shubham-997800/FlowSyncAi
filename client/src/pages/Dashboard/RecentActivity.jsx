@@ -3,6 +3,7 @@ import { CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
+// Shows recent task completions and creations grouped by time
 const activityVariant = {
   hidden: { opacity: 0, x: -12 },
   show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08 } }),

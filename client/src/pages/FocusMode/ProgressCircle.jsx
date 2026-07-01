@@ -1,3 +1,4 @@
+// Animated circular progress indicator for the Pomodoro timer
 function ProgressCircle({ progress, size = 180, strokeWidth = 8 }) {
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius

@@ -1,5 +1,6 @@
 import { Clock, Timer, TrendingUp } from 'lucide-react'
 
+// Circular progress chart and stats for focus session performance
 function FocusChart({ focusMinutes: fm, focusSessions: fs }) {
   const focusMinutes = (fm || 0) || parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
   const focusSessions = (fs || 0) || parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')

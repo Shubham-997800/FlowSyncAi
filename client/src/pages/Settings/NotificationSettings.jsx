@@ -3,7 +3,7 @@ import { Bell, Mail, Smartphone, Calendar, Brain, AlertTriangle, CheckCircle2, X
 import toast from 'react-hot-toast'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import NotificationPermissionBanner from '../../components/NotificationPermissionBanner'
-
+// Notification channels, alert types, and browser push permission management
 const STORAGE_KEY = 'flowsync_notification_settings'
 
 function loadSettings() {

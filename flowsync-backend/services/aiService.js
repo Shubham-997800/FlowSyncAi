@@ -111,39 +111,6 @@ Respond EXACTLY with this JSON:
   return { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 }
 }
 
-async function chat(message, tasks = []) {
-  const sysMsg = `You are FlowSync AI, a friendly multilingual productivity assistant. 
-
-MULTILINGUAL RULE: Detect the user's language and ALWAYS respond in the same language. If user writes in Hinglish (Hindi+English mix), respond in Hinglish using Devanagari. If pure English, respond in English. If Spanish, respond in Spanish.
-
-Your job:
-- Answer questions about tasks, productivity, and planning.
-- If the user asks to create a task, extract it into the "tasks" JSON array.
-- Give concise, practical advice.
-- Suggest follow-up actions when appropriate.
-
-OUTPUT FORMAT (ONLY valid JSON):
-{
-  "reply": "your conversational response in same language as user",
-  "tasks": [{ "title": "task title", "description": "optional description", "priority": "low|medium|high", "deadline": null }],
-  "suggestions": ["follow-up suggestion 1", "follow-up suggestion 2"]
-}
-
-If no tasks to create, set "tasks" to [].`
-
-  const userMsg = `User's current tasks:
-${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
-
-User message: "${message}"
-
-IMPORTANT: Respond in the EXACT SAME language as the user's message above.`
-
-  const raw = await callAI(sysMsg, userMsg, 0.7)
-  const parsed = parseJSON(raw)
-  if (parsed && parsed.reply) return parsed
-  return { reply: "I understand. Could you be more specific about what you'd like help with?", tasks: [], suggestions: [] }
-}
-
 async function chatWithContext(message, tasks = [], goals = [], habits = []) {
   const sysMsg = `You are FlowSync AI, a friendly multilingual productivity assistant. Your tone is warm and helpful.
 
@@ -228,4 +195,4 @@ Respond EXACTLY with this JSON:
   }
 }
 
-module.exports = { generatePlan, prioritizeTasks, rescueMode, chat, chatWithContext, suggestTask, generateAnalyticsInsights }
+module.exports = { generatePlan, prioritizeTasks, rescueMode, chatWithContext, suggestTask, generateAnalyticsInsights }

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 
+// Urgent alert notification card with resolve and dismiss actions
 const actionMap = {
   deadline_alert: '/tasks',
   ai_suggestion: '/ai-planner',

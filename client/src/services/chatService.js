@@ -1,5 +1,6 @@
 import api from './api'
 
+// API functions for AI chat sessions and messages
 export const getChatSessions = async () => {
   const { data } = await api.get('/api/chat/sessions')
   return data

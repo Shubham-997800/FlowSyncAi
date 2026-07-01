@@ -4,6 +4,7 @@ const Habit = require('../models/Habit')
 const AiUsage = require('../models/AiUsage')
 const aiService = require('../services/aiService')
 
+const { handleError } = require('../utils/errorHandler')
 const DAILY_LIMIT = 200
 
 async function checkAiQuota(userId) {
@@ -30,7 +31,7 @@ const plan = async (req, res) => {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') {
       return res.status(503).json({ message: 'AI service is currently unavailable due to quota limits. Please try again later.', reply: "I'm currently unavailable due to API limits. Try again later.", tasks: [], suggestions: [] })
     }
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -47,7 +48,7 @@ const prioritize = async (req, res) => {
     res.json(result)
   } catch (error) {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service quota exceeded' })
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -63,7 +64,7 @@ const rescue = async (req, res) => {
     res.json(result)
   } catch (error) {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service quota exceeded' })
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -87,7 +88,7 @@ const chatAI = async (req, res) => {
     res.json(result)
   } catch (error) {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ reply: "AI service is currently unavailable due to quota limits. Please try again later or upgrade your API plan.", tasks: [], suggestions: [] })
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -101,7 +102,7 @@ const suggestTaskAI = async (req, res) => {
     res.json(result)
   } catch (error) {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service unavailable', suggestedPriority: 'medium', suggestedEstimatedTime: 30, suggestedTags: [], reason: '' })
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -111,7 +112,7 @@ const getUsage = async (req, res) => {
     const usage = await AiUsage.findOne({ user: req.user._id, date: today })
     res.json({ used: usage?.count || 0, limit: DAILY_LIMIT })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -127,7 +128,7 @@ const analyticsInsights = async (req, res) => {
     res.json(result)
   } catch (error) {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service unavailable' })
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 

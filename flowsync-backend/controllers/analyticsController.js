@@ -1,5 +1,6 @@
 const Task = require('../models/Task')
 
+const { handleError } = require('../utils/errorHandler')
 const getWeekly = async (req, res) => {
   try {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -25,7 +26,7 @@ const getWeekly = async (req, res) => {
       dailyBreakdown: daily,
     })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -56,7 +57,7 @@ const getMonthly = async (req, res) => {
       weeklyBreakdown: weekly,
     })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -78,7 +79,7 @@ const getStats = async (req, res) => {
       completionRate: total ? Math.round((all.filter(t => t.status === 'done').length / total) * 100) : 0,
     })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 

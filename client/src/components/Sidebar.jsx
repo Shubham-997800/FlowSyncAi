@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getNotifications } from '../services/notificationService'
 import {
-  LayoutDashboard, ListTodo, Brain, Calendar, Clock, Target,
+  LayoutDashboard, ListTodo, Brain, Calendar, Clock,
   BarChart3, Bell, Settings, LogOut, Flame, User,
 } from 'lucide-react'
 
+// Main sidebar navigation with links, notification badge, and user menu
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } }
 const itemVariants = { hidden: { opacity: 0, x: -16 }, visible: { opacity: 1, x: 0 } }
 
@@ -35,7 +36,7 @@ function Sidebar({ open, onClose }) {
         const data = await getNotifications()
         const items = Array.isArray(data) ? data : []
         setUnreadCount(items.filter(n => !n.read).length)
-      } catch {}
+      } catch { console.warn('Failed to fetch unread count') }
     }
     fetchUnread()
     const interval = setInterval(fetchUnread, 30000)

@@ -4,6 +4,7 @@ import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info, Sparkles 
 import { getNotifications } from '../services/notificationService'
 import toast from 'react-hot-toast'
 
+// Header dropdown showing recent notifications with unread badge
 const typeIconMap = {
   deadline_alert: AlertTriangle,
   ai_suggestion: Sparkles,

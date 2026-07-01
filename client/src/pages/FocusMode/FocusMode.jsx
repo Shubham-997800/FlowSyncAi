@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 
+// Focus mode page with Pomodoro timer, task selection, and AI suggestions
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }

@@ -2,7 +2,7 @@ import { ShieldAlert, Home, ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
-
+// 401 page shown when user lacks permission to access a route
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.12 } },

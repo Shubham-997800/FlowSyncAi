@@ -2,6 +2,7 @@ import { Plus, Brain, Timer, BarChart3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
+// Quick action buttons for adding tasks, AI planning, focus, and analytics
 const actions = [
   { to: '/tasks', icon: Plus, label: 'Add Task', desc: 'Create a new task', key: '⌘1' },
   { to: '/ai-planner', icon: Brain, label: 'Generate AI Plan', desc: 'Let AI plan your day', key: '⌘2' },

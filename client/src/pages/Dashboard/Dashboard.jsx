@@ -1,8 +1,8 @@
 import React from 'react'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
-import { Settings, Plus, MessageSquare, ListTodo, Brain } from 'lucide-react'
+import { Settings, Plus, ListTodo, Brain } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import DashboardHeader from './DashboardHeader'
 import DashboardCards from './DashboardCards'
@@ -15,6 +15,7 @@ import RecentActivity from './RecentActivity'
 import { getTasks, updateTask, deleteTask } from '../../services/taskService'
 import toast from 'react-hot-toast'
 
+// Main dashboard page with cards, widgets, AI recommendations, and activity feed
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props)

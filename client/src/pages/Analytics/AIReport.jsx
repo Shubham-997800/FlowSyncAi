@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Brain, Lightbulb, TrendingUp, AlertTriangle, Download, Loader2 } from 'lucide-react'
 import { getAnalyticsInsights } from '../../services/aiService'
 
+// AI-generated productivity insights, strengths, weaknesses, and recommendations
 function AIReport({ tasks, completionRate, overdue, focusSessions, habitStreaks }) {
   const [aiData, setAiData] = useState(null)
   const [loading, setLoading] = useState(true)

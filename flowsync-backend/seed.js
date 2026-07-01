@@ -219,7 +219,6 @@ async function seed() {
     console.log(`Created ${habits.length} habits`)
 
     // === NOTIFICATIONS ===
-    const notificationTypes = ['deadline_alert', 'ai_suggestion', 'reminder', 'system']
     const notificationData = [
       { title: 'Task Overdue: Q3 Financial Report', message: 'Your task "Complete Q3 financial report" is now overdue. Immediate attention required.', type: 'deadline_alert' },
       { title: 'AI Suggestion: Prioritize Fix Production Bug', message: 'Based on urgency analysis, "Fix payment gateway timeout" should be your top priority today.', type: 'ai_suggestion' },

@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 
+// React error boundary with fallback UI and reload/home options
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props)

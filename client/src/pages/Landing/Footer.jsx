@@ -2,6 +2,7 @@ import { useState, memo } from 'react'
 import { Shield, FileText } from 'lucide-react'
 import Modal from '../../components/ui/Modal'
 
+// Footer with quick links, legal modals, and copyright
 const quickLinks = [
   { label: 'Features', href: '#features' },
   { label: 'How It Works', href: '#how-it-works' },

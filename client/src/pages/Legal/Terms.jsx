@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 
+// Terms & Conditions page with full legal text
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } }
 const itemVariants = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }
 

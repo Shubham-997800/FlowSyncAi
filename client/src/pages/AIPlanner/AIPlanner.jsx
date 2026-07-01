@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, ChevronLeft, Clock, Mic, MicOff } from 'lucide-react'
+import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Clock, Mic, MicOff } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { chatAI } from '../../services/aiService'
 import { createTask } from '../../services/taskService'
 import { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory } from '../../services/chatService'
 import toast from 'react-hot-toast'
-
+// AI Planner with chat, voice input, task creation, and session management
 const defaultMessage = { role: 'ai', text: "Hi! I'm your AI assistant. Tell me what you're working on, or ask me to create tasks for you." }
 
 const suggestions = [
@@ -267,7 +267,7 @@ function AIPlanner() {
         <title>AI Chat - FlowSync AI</title>
         <meta name="description" content="Chat with AI to plan tasks" />
       </Helmet>
-      <div className={`${showSessions ? 'flex' : 'hidden'} md:flex flex-col w-64 flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800`}>
+      <div className={`${showSessions ? 'flex' : 'hidden'} md:flex flex-col w-64 flex-shrink-0 bg-white dark:bg-zinc-800/50 border-r border-slate-200 dark:border-zinc-700`}>
         <div className="flex items-center justify-between px-4 h-12 border-b border-slate-200 dark:border-zinc-800">
           <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Chat History</span>
           <button onClick={newChat} className="p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors" title="New Chat">
@@ -347,7 +347,7 @@ function AIPlanner() {
                         <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                           msg.role === 'user'
                             ? 'bg-indigo-600 text-white rounded-tr-md'
-                            : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-slate-300 rounded-tl-md'
+                            : 'bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 rounded-tl-md'
                         }`}>
                           {msg.text}
                         </div>
@@ -367,7 +367,7 @@ function AIPlanner() {
                           {msg.tasks.map((task, j) => {
                             const alreadyCreated = (msg.createdTasks || []).some(ct => ct.title === task.title)
                             return (
-                              <div key={j} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 flex items-center justify-between gap-3">
+                              <div key={j} className="bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl p-3 flex items-center justify-between gap-3">
                                 <div className="min-w-0 flex-1">
                                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{task.title}</p>
                                   <div className="flex items-center gap-2 mt-1">
@@ -407,7 +407,7 @@ function AIPlanner() {
                   <div className="w-8 h-8 rounded-xl bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center flex-shrink-0">
                     <Bot size={15} className="text-white" />
                   </div>
-                  <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl rounded-tl-md px-4 py-3">
+                  <div className="bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-2xl rounded-tl-md px-4 py-3">
                     <Loader2 size={16} className="animate-spin text-indigo-600 dark:text-indigo-400" />
                   </div>
                 </div>
@@ -422,7 +422,7 @@ function AIPlanner() {
                     key={i}
                     onClick={() => handleSend(s)}
                     disabled={loading}
-                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors duration-300 disabled:opacity-50 flex items-center gap-1"
+                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors duration-300 disabled:opacity-50 flex items-center gap-1"
                   >
                     <Sparkles size={10} /> {s}
                   </button>

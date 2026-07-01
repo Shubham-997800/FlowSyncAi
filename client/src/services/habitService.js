@@ -1,5 +1,6 @@
 import api from './api'
 
+// API functions for habits CRUD operations
 export const getHabits = async () => {
   const { data } = await api.get('/api/habits')
   return data

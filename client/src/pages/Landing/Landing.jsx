@@ -10,6 +10,7 @@ import HowItWorks from './HowItWorks'
 import CTASection from './CTASection'
 import Footer from './Footer'
 
+// Landing page composing Hero, Features, HowItWorks, CTA, and Footer sections
 function Landing() {
   const { dark, toggle } = useTheme()
   const [mobileOpen, setMobileOpen] = useState(false)

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Sparkles, Brain, Clock, CheckCircle, AlertTriangle, Target, BarChart3, Calendar, Timer, LayoutDashboard, ArrowRight, ListTodo, TrendingUp, Layers } from 'lucide-react'
 
+// Hero section with headline, floating cards, and animated dashboard preview
 function FloatingCard({ icon: Icon, text, sub, delay, className }) {
   return (
     <motion.div

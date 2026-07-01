@@ -105,7 +105,7 @@ async function seed() {
 
   for (let i = 0; i < realTasks.length; i++) {
     const t = realTasks[i]
-    let status, deadline, desc
+    let status, deadline
 
     if (i < 7) {
       // Overdue

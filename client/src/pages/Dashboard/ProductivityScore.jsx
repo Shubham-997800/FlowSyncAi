@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Plus, TrendingUp, TrendingDown, Award } from 'lucide-react'
 
+// Shows productivity score with animated ring chart and weekly trend
 function getDateStr(d) {
   if (!d) return null
   if (typeof d === 'string') return d.split('T')[0]

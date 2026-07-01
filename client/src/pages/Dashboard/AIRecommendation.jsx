@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { getTasks } from '../../services/taskService'
 import { prioritizeTasks } from '../../services/aiService'
 
+// AI-powered task recommendations and productivity coaching widget
 const recVariant = {
   hidden: { opacity: 0, x: -12 },
   show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08 } }),

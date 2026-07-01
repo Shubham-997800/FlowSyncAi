@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Save, User, Mail, Phone, Briefcase, MapPin, MessageSquare, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { updateProfile } from '../../services/settingsService'
-
+// Editable profile form with name, email, phone, bio fields
 const fields = [
   { key: 'name', label: 'Full Name', icon: User, type: 'text', required: true, placeholder: 'John Doe' },
   { key: 'email', label: 'Email', icon: Mail, type: 'email', required: true, placeholder: 'you@example.com' },

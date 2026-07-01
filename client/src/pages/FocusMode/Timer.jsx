@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Play, Pause, RotateCcw, Coffee, Brain, Settings, Check } from 'lucide-react'
 import ProgressCircle from './ProgressCircle'
 
+// Pomodoro timer with configurable focus/break intervals
 const STORAGE_KEY = 'flowsync_timer_settings'
 
 function loadSettings() {

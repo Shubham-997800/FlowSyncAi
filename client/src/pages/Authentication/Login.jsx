@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import AuthLayout from '../../components/AuthLayout'
 import LegalModal from '../../components/LegalModal'
 
+// Login page with email/password form and redirect to register
 function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})

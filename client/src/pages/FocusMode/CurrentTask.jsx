@@ -1,5 +1,6 @@
 import { Target, Clock, Brain } from 'lucide-react'
 
+// Displays the currently selected focus task with priority info
 const priorityConfig = {
   high: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30', label: 'High' },
   medium: { color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30', label: 'Medium' },

@@ -1,5 +1,6 @@
 import { BarChart3 } from 'lucide-react'
 
+// Stacked bar chart of completed vs pending tasks per day
 function WeeklyChart({ tasks }) {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const weekData = weekDays.map((_, i) => {

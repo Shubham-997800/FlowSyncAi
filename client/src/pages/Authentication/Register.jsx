@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import AuthLayout from '../../components/AuthLayout'
 import LegalModal from '../../components/LegalModal'
 
+// Registration page with name/email/password form, password strength, and legal agreement
 function passwordStrength(pw) {
   let score = 0
   if (pw.length >= 6) score++

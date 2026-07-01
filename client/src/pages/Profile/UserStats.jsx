@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Flame, TrendingUp, Target, ListTodo } from 'lucide-react'
 import { getTasks } from '../../services/taskService'
-
+// Stats dashboard showing task counts, weekly chart, focus time and streak
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function UserStats() {

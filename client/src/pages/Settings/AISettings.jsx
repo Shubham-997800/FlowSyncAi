@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Brain, Zap, Timer, ArrowDown, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { toggleAIConsent as toggleConsentApi, getProfile } from '../../services/settingsService'
-
+// AI preferences with consent toggle, aggressiveness levels, and feature toggles
 function AISettings() {
   const [aiConsent, setAiConsent] = useState(false)
   const [settings, setSettings] = useState({
@@ -66,7 +66,7 @@ function AISettings() {
         </span>
       </div>
 
-      <div className="mb-6 p-4 rounded-xl border-2 transition-all duration-300 ${aiConsent ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50'}">
+      <div className={`mb-6 p-4 rounded-xl border-2 transition-all duration-300 ${aiConsent ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50'}`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             {aiConsent ? <CheckCircle size={18} className="text-emerald-500" /> : <XCircle size={18} className="text-slate-400" />}

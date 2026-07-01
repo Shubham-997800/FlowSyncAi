@@ -13,6 +13,7 @@ import { getTasks } from '../../services/taskService'
 import { getGoals } from '../../services/goalService'
 import { getHabits } from '../../services/habitService'
 
+// Analytics dashboard with charts, AI insights, achievements, and export
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 

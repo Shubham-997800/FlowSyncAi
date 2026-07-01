@@ -1,21 +1,38 @@
 const User = require('../models/User')
 
+function isValidUrl(str) {
+  if (!str) return true
+  return /^https?:\/\/.+/.test(str) || /^data:image\//.test(str)
+}
+
 const getProfile = async (req, res) => {
   try {
     res.json(req.user)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Server error' })
   }
 }
 
 const updateProfile = async (req, res) => {
   try {
-    const { name, email, bio, phone, location, jobTitle } = req.body
+    const { name, email, bio, phone, location, jobTitle, currentPassword } = req.body
     const updates = {}
     if (name !== undefined) updates.name = name
-    if (email !== undefined) updates.email = email
-    if (bio !== undefined) updates.bio = bio
-    if (phone !== undefined) updates.phone = phone
+    if (email !== undefined && email !== req.user.email) {
+      if (!currentPassword) return res.status(400).json({ message: 'Current password required to change email' })
+      const user = await User.findById(req.user._id)
+      if (!(await user.comparePassword(currentPassword))) return res.status(400).json({ message: 'Password is incorrect' })
+      updates.email = email
+      updates.isVerified = false
+    }
+    if (bio !== undefined) {
+      if (bio.length > 500) return res.status(400).json({ message: 'Bio too long (max 500)' })
+      updates.bio = bio
+    }
+    if (phone !== undefined) {
+      if (phone && !/^[\d\s\-+().]{7,20}$/.test(phone)) return res.status(400).json({ message: 'Invalid phone number' })
+      updates.phone = phone
+    }
     if (location !== undefined) updates.location = location
     if (jobTitle !== undefined) updates.jobTitle = jobTitle
     const user = await User.findByIdAndUpdate(
@@ -25,21 +42,23 @@ const updateProfile = async (req, res) => {
     )
     res.json(user)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Server error' })
   }
 }
 
 const uploadAvatar = async (req, res) => {
   try {
     const { profilePicture } = req.body
+    if (!isValidUrl(profilePicture)) return res.status(400).json({ message: 'Invalid image URL' })
+    if (profilePicture && profilePicture.length > 500000) return res.status(400).json({ message: 'Image data too large' })
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { profilePicture },
+      { profilePicture: profilePicture || '' },
       { new: true }
     )
     res.json(user)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Server error' })
   }
 }
 
@@ -52,9 +71,9 @@ const updatePassword = async (req, res) => {
     }
     user.password = newPassword
     await user.save()
-    res.json({ message: 'Password updated' })
+    res.json({ message: 'Password updated successfully' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Server error' })
   }
 }
 
@@ -65,6 +84,10 @@ const Notification = require('../models/Notification')
 
 const deleteAccount = async (req, res) => {
   try {
+    const { password } = req.body
+    if (!password) return res.status(400).json({ message: 'Password required to delete account' })
+    const user = await User.findById(req.user._id)
+    if (!(await user.comparePassword(password))) return res.status(400).json({ message: 'Password is incorrect' })
     const userId = req.user._id
     await Promise.all([
       User.findByIdAndDelete(userId),
@@ -75,7 +98,7 @@ const deleteAccount = async (req, res) => {
     ])
     res.json({ message: 'Account deleted' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Server error' })
   }
 }
 
@@ -89,7 +112,7 @@ const toggleAIConsent = async (req, res) => {
     )
     res.json({ aiConsent: user.aiConsent })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Server error' })
   }
 }
 
@@ -97,6 +120,9 @@ const updateAchievements = async (req, res) => {
   try {
     const { achievements } = req.body
     if (!Array.isArray(achievements)) return res.status(400).json({ message: 'Achievements array required' })
+    for (const a of achievements) {
+      if (typeof a.name !== 'string' || a.name.length > 100) return res.status(400).json({ message: 'Invalid achievement name' })
+    }
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { achievements },
@@ -104,7 +130,7 @@ const updateAchievements = async (req, res) => {
     )
     res.json({ achievements: user.achievements })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Server error' })
   }
 }
 

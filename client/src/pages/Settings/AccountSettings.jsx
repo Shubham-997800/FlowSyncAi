@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Shield, Trash2, Download, EyeOff, Loader2 } from 'lucide-react'
+import { Shield, Trash2, Download, EyeOff, Loader2, Key } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
-import { updateProfile, deleteAccount as deleteAccountApi } from '../../services/settingsService'
+import { deleteAccount as deleteAccountApi } from '../../services/settingsService'
 import { getTasks } from '../../services/taskService'
 import { getGoals } from '../../services/goalService'
 import { getHabits } from '../../services/habitService'
-
+// Account management with data export, clear data, and delete account options
 function AccountSettings() {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
   const [exporting, setExporting] = useState(false)
 
   const handleExport = async () => {
@@ -49,13 +51,17 @@ function AccountSettings() {
   }
 
   const handleDeleteAccount = async () => {
+    if (!deletePassword) { toast.error('Enter your password to confirm deletion'); return }
+    setDeleting(true)
     try {
-      await deleteAccountApi()
+      await deleteAccountApi({ password: deletePassword })
       toast.success('Account deleted')
       logout()
       navigate('/')
-    } catch {
-      toast.error('Failed to delete account')
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to delete account')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -139,10 +145,23 @@ function AccountSettings() {
             </button>
           ) : (
             <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/50">
-              <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-3">Are you sure? This action cannot be undone.</p>
+              <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-3">This action cannot be undone.</p>
+              <div className="flex items-center gap-2 mb-3">
+                <Key size={14} className="text-red-500 flex-shrink-0" />
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={e => setDeletePassword(e.target.value)}
+                  placeholder="Enter your password to confirm"
+                  className="flex-1 px-3 py-2 rounded-lg border border-red-200 dark:border-red-900/50 bg-white dark:bg-zinc-900 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
               <div className="flex gap-2">
-                <button onClick={handleDeleteAccount} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors duration-200">Yes, delete my account</button>
-                <button onClick={() => setConfirmDelete(false)} className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors duration-200">Cancel</button>
+                <button onClick={handleDeleteAccount} disabled={deleting || !deletePassword} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 flex items-center gap-1.5">
+                  {deleting && <Loader2 size={13} className="animate-spin" />}
+                  {deleting ? 'Deleting...' : 'Yes, delete my account'}
+                </button>
+                <button onClick={() => { setConfirmDelete(false); setDeletePassword('') }} className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors duration-200">Cancel</button>
               </div>
             </div>
           )}

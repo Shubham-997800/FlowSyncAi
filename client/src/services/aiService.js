@@ -1,5 +1,6 @@
 import api from './api'
 
+// API functions for AI features (prioritization, chat, suggestions)
 export const prioritizeTasks = async () => {
   const { data } = await api.post('/api/ai/prioritize')
   return data

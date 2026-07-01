@@ -1,5 +1,6 @@
 import api from './api'
 
+// API functions for profile, password, avatar, and account settings
 export const getProfile = async () => {
   const { data } = await api.get('/api/settings/profile')
   return data

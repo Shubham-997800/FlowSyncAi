@@ -1,5 +1,6 @@
 import { TrendingUp } from 'lucide-react'
 
+// Bar chart showing daily productivity trend for the current week
 function ProductivityChart({ tasks }) {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const weekData = weekDays.map((_, i) => {

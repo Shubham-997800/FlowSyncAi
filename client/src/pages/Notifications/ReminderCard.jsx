@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCircle, Clock, XCircle } from 'lucide-react'
 
+// Reminder notification card with take-action, snooze, and dismiss buttons
 const actionMap = {
   deadline_alert: '/tasks',
   ai_suggestion: '/ai-planner',

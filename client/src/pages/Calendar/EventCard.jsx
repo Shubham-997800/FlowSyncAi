@@ -1,5 +1,6 @@
 import { Edit2, Trash2, Clock } from 'lucide-react'
 
+// Compact task card with priority indicator and edit/delete actions
 const priorityConfig = {
   high: { color: 'text-red-600 dark:text-red-400', bar: 'bg-red-500' },
   medium: { color: 'text-amber-600 dark:text-amber-400', bar: 'bg-amber-500' },

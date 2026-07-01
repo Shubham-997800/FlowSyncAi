@@ -3,6 +3,7 @@ import { AlertTriangle, CheckSquare, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
+// Highlights overdue and at-risk tasks with deadline warnings
 function getDateStr(d) {
   if (!d) return null
   if (typeof d === 'string') return d.split('T')[0]

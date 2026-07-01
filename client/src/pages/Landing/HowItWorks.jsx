@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { PenSquare, Brain, Calendar, CheckCircle, Clock, Target, Shield, ArrowRight } from 'lucide-react'
 
+// How-It-Works section showing 4-step process and benefit cards
 const steps = [
   { icon: PenSquare, title: 'Create Your Tasks', desc: 'Add tasks naturally — AI reads deadlines, priority, and dependencies automatically.' },
   { icon: Brain, title: 'AI Understands Priority', desc: 'Our engine analyzes urgency, workload, and risk to rank what matters most.' },

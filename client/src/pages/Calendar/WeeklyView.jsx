@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+// Weekly view showing 7-day task load overview
 function getWeekDates(refDate) {
   const start = new Date(refDate)
   start.setDate(start.getDate() - start.getDay())

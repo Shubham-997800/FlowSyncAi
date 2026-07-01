@@ -1,5 +1,6 @@
 const Goal = require('../models/Goal')
 
+const { handleError, handleValidationError } = require('../utils/errorHandler')
 const allowedFields = ['title', 'description', 'targetDate', 'status', 'progress']
 
 function sanitize(body) {
@@ -15,7 +16,7 @@ const getGoals = async (req, res) => {
     const goals = await Goal.find({ user: req.user._id }).sort({ createdAt: -1 })
     res.json(goals)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -24,11 +25,7 @@ const createGoal = async (req, res) => {
     const goal = await Goal.create({ ...sanitize(req.body), user: req.user._id })
     res.status(201).json(goal)
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const msgs = Object.values(error.errors).map(e => e.message).join(', ')
-      return res.status(400).json({ message: msgs })
-    }
-    res.status(500).json({ message: error.message })
+    return handleValidationError(res, error)
   }
 }
 
@@ -42,11 +39,7 @@ const updateGoal = async (req, res) => {
     if (!goal) return res.status(404).json({ message: 'Goal not found' })
     res.json(goal)
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const msgs = Object.values(error.errors).map(e => e.message).join(', ')
-      return res.status(400).json({ message: msgs })
-    }
-    res.status(500).json({ message: error.message })
+    return handleValidationError(res, error)
   }
 }
 
@@ -56,7 +49,7 @@ const deleteGoal = async (req, res) => {
     if (!goal) return res.status(404).json({ message: 'Goal not found' })
     res.json({ message: 'Goal deleted' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 

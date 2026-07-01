@@ -1,8 +1,6 @@
 const Task = require('../models/Task')
-const User = require('../models/User')
 const Notification = require('../models/Notification')
 const { sendPushToUser } = require('../controllers/pushController')
-const { sendResetEmail } = require('./emailService')
 
 const CHECK_INTERVAL = 30 * 60 * 1000
 
@@ -55,11 +53,4 @@ function startReminderService() {
   intervalId = setInterval(check, CHECK_INTERVAL)
 }
 
-function stopReminderService() {
-  if (intervalId) {
-    clearInterval(intervalId)
-    intervalId = null
-  }
-}
-
-module.exports = { startReminderService, stopReminderService }
+module.exports = { startReminderService }

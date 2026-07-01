@@ -10,6 +10,7 @@ import { usePushNotifications } from '../hooks/usePushNotifications'
 import { Sun, Moon, Menu, X } from 'lucide-react'
 import api from '../services/api'
 
+// Authenticated app shell with sidebar, header, and page transitions
 const pageTitles = {
   '/dashboard': 'Dashboard',
   '/tasks': 'Tasks & Goals',

@@ -7,6 +7,7 @@ import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import AuthLayout from '../../components/AuthLayout'
 
+// Email verification page with 6-digit OTP input and resend option
 function VerifyEmail() {
   const [searchParams] = useSearchParams()
   const { verifyEmail, resendOTP, login } = useAuth()

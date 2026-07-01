@@ -1,6 +1,6 @@
 import { useTheme } from '../../context/ThemeContext'
 import { Sun, Moon, Monitor, Check } from 'lucide-react'
-
+// Theme mode selector with light, dark, and system options
 function Palette(props) {
   return (
     <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

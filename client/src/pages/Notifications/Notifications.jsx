@@ -10,6 +10,7 @@ import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
 import { getNotifications, markAsRead, createNotification } from '../../services/notificationService'
 
+// Notifications page with grouped list, mark-as-read, and dev sample buttons
 function normalizeNotification(n) {
   const id = n._id
   const read = n.status === 'read'

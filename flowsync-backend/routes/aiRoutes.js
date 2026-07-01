@@ -4,8 +4,8 @@ const { protect } = require('../middleware/auth')
 const { aiLimiter } = require('../middleware/rateLimiter')
 
 const router = Router()
-router.use(protect)
 router.use(aiLimiter)
+router.use(protect)
 
 router.post('/plan', plan)
 router.post('/prioritize', prioritize)

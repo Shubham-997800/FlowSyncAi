@@ -1,5 +1,6 @@
 const Habit = require('../models/Habit')
 
+const { handleError, handleValidationError } = require('../utils/errorHandler')
 const allowedFields = ['title', 'frequency', 'streak', 'lastChecked', 'logs', 'status']
 
 function sanitize(body) {
@@ -15,7 +16,7 @@ const getHabits = async (req, res) => {
     const habits = await Habit.find({ user: req.user._id }).sort({ createdAt: -1 })
     res.json(habits)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -24,11 +25,7 @@ const createHabit = async (req, res) => {
     const habit = await Habit.create({ ...sanitize(req.body), user: req.user._id })
     res.status(201).json(habit)
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const msgs = Object.values(error.errors).map(e => e.message).join(', ')
-      return res.status(400).json({ message: msgs })
-    }
-    res.status(500).json({ message: error.message })
+    return handleValidationError(res, error)
   }
 }
 
@@ -42,11 +39,7 @@ const updateHabit = async (req, res) => {
     if (!habit) return res.status(404).json({ message: 'Habit not found' })
     res.json(habit)
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const msgs = Object.values(error.errors).map(e => e.message).join(', ')
-      return res.status(400).json({ message: msgs })
-    }
-    res.status(500).json({ message: error.message })
+    return handleValidationError(res, error)
   }
 }
 
@@ -56,7 +49,7 @@ const deleteHabit = async (req, res) => {
     if (!habit) return res.status(404).json({ message: 'Habit not found' })
     res.json({ message: 'Habit deleted' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -95,7 +88,7 @@ const checkInHabit = async (req, res) => {
     await habit.save()
     res.json(habit)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 

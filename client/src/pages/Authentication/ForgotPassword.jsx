@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { forgotPassword } from '../../services/authService'
 
+// Forgot password page with email input and reset link send confirmation
 function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')

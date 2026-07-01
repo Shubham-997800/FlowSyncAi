@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 
+// Modal for displaying Terms & Conditions or Privacy Policy
 const content = {
   terms: {
     title: 'Terms & Conditions',

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Palette, Bell, Brain, Shield } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
@@ -6,8 +6,8 @@ import ThemeSettings from './ThemeSettings'
 import NotificationSettings from './NotificationSettings'
 import AISettings from './AISettings'
 import AccountSettings from './AccountSettings'
-import { getProfile, deleteAccount } from '../../services/settingsService'
 
+// Main settings page with sidebar navigation for theme, notifications, AI, account
 const sidebarItems = [
   { key: 'theme', label: 'Theme', icon: Palette },
   { key: 'notifications', label: 'Notifications', icon: Bell },
@@ -19,7 +19,9 @@ const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, trans
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 
 function Settings() {
-  const [tab, setTab] = useState('theme')
+  const [tab, setTab] = useState(() => localStorage.getItem('flowsync_settings_tab') || 'theme')
+
+  useEffect(() => { localStorage.setItem('flowsync_settings_tab', tab) }, [tab])
 
   return (
     <motion.div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">

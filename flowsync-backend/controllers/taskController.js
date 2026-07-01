@@ -1,5 +1,6 @@
 const Task = require('../models/Task')
 
+const { handleError, handleValidationError } = require('../utils/errorHandler')
 const allowedTaskFields = ['title', 'description', 'priority', 'status', 'deadline', 'estimatedTime', 'tags']
 
 function sanitize(body) {
@@ -15,7 +16,7 @@ const getTasks = async (req, res) => {
     const tasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 })
     res.json(tasks)
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -24,11 +25,7 @@ const createTask = async (req, res) => {
     const task = await Task.create({ ...sanitize(req.body), user: req.user._id })
     res.status(201).json(task)
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const msgs = Object.values(error.errors).map(e => e.message).join(', ')
-      return res.status(400).json({ message: msgs })
-    }
-    res.status(500).json({ message: error.message })
+    return handleValidationError(res, error)
   }
 }
 
@@ -42,11 +39,7 @@ const updateTask = async (req, res) => {
     if (!task) return res.status(404).json({ message: 'Task not found' })
     res.json(task)
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const msgs = Object.values(error.errors).map(e => e.message).join(', ')
-      return res.status(400).json({ message: msgs })
-    }
-    res.status(500).json({ message: error.message })
+    return handleValidationError(res, error)
   }
 }
 
@@ -56,7 +49,7 @@ const deleteTask = async (req, res) => {
     if (!task) return res.status(404).json({ message: 'Task not found' })
     res.json({ message: 'Task deleted' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 

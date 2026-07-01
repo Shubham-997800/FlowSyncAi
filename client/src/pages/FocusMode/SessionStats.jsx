@@ -1,5 +1,6 @@
 import { Brain, Timer, Coffee, TrendingUp } from 'lucide-react'
 
+// Displays focus session statistics (sessions, time, mode, score)
 function SessionStats({ sessions, totalMinutes, mode }) {
   const stats = [
     { icon: Timer, label: 'Sessions', value: sessions.toString(), sub: 'completed', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },

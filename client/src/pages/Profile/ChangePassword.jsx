@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Lock, Eye, EyeOff, Shield, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { updatePassword } from '../../services/settingsService'
-
+// Password change form with strength meter and validation
 function getStrength(pw) {
   let score = 0
   if (pw.length >= 8) score++

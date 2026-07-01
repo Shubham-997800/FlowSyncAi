@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Bell, Mic, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react'
 
+// Status indicator for notification and microphone permissions
 function usePermission(name) {
   const [state, setState] = useState('prompt')
 

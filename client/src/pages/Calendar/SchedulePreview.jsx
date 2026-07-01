@@ -3,6 +3,7 @@ import { Brain, Clock, AlertTriangle, CheckCircle, Lightbulb, Loader2, Zap } fro
 import { getTasks } from '../../services/taskService'
 import { prioritizeTasks } from '../../services/aiService'
 
+// Sidebar panel showing AI task rankings and schedule suggestions
 function SchedulePreview({ tasks, selectedDate }) {
   const [aiRankings, setAiRankings] = useState([])
   const [loading, setLoading] = useState(false)

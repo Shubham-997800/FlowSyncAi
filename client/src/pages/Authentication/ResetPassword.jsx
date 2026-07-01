@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { resetPassword } from '../../services/authService'
 
+// Reset password page with new password form, strength indicator, and success state
 function passwordStrength(pw) {
   let score = 0
   if (pw.length >= 6) score++

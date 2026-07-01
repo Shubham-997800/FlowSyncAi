@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { Brain, Clock, AlertTriangle, Shield, Sparkles, Timer, BarChart3, Calendar, Layers, Zap } from 'lucide-react'
 
+// Features section displaying AI capabilities in a grid of cards
 const features = [
   { icon: Brain, title: 'AI Task Prioritization', desc: 'Automatically rank tasks by urgency, importance, and deadline proximity so you always know what to work on next.' },
   { icon: Clock, title: 'Smart Scheduling', desc: 'Let AI build your optimal daily schedule based on energy patterns, meeting slots, and task dependencies.' },

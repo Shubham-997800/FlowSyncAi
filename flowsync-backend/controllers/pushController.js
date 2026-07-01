@@ -1,6 +1,7 @@
 const PushSubscription = require('../models/PushSubscription')
 const webpush = require('web-push')
 
+const { handleError } = require('../utils/errorHandler')
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || ''
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
 
@@ -27,7 +28,7 @@ const subscribe = async (req, res) => {
 
     res.json({ message: 'Subscribed' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 
@@ -41,7 +42,7 @@ const unsubscribe = async (req, res) => {
     }
     res.json({ message: 'Unsubscribed' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    handleError(res, error)
   }
 }
 

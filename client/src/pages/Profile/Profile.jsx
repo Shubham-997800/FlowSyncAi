@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { User, Settings as SettingsIcon, LogOut, Camera, CheckCircle, Clock, Flame, TrendingUp, Target, Calendar, Award, X, Loader2, Lock } from 'lucide-react'
+import { User, Settings as SettingsIcon, LogOut, Camera, TrendingUp, X, Loader2, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import EditProfile from './EditProfile'
@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { getTasks } from '../../services/taskService'
 import { uploadAvatar as uploadAvatarApi } from '../../services/settingsService'
-
+// Main profile page with avatar upload, stats chart, edit and password tabs
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.04 } } }
 const itemVariants = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }
 
