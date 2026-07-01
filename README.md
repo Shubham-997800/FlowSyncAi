@@ -150,7 +150,7 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Category | Feature | Details |
 |----------|---------|---------|
-| 🔐 **Auth** | Secure Login / Signup | JWT-based with bcrypt hashing, forgot/reset password via email, inline validation, password strength meter |
+| 🔐 **Auth** | Login / Signup / Forgot / Reset / 401 / 404 | JWT-based with bcrypt hashing, forgot/reset password via email, inline validation, password strength meter, framer-motion animations, Helmet SEO (all auth & error pages) |
 | 📝 **Tasks** | Full CRUD | Priority levels, status tracking, deadlines, descriptions, field sanitization |
 | 🎯 **Goals** | Milestone Tracking | Target dates, progress percentage, aligned with tasks |
 | 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid |
@@ -809,14 +809,14 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | Optimization | Implementation |
 |-------------|---------------|
 | **Code Splitting** | `manualChunks` splits vendor, router, motion, icons, utils into separate cacheable bundles |
-| **Lazy Loading** | All pages loaded via `React.lazy()` + `Suspense` — only requested code loads |
+| **Lazy Loading** | All pages loaded via `React.lazy()` + `Suspense` — only requested code loads (auth pages ~2-3 kB gzip each) |
 | **Skeleton Loading** | `LoadingSpinner` with `page` prop renders full skeleton layout (pulse animation) instead of basic spinner |
 | **Font Loading** | Google Fonts (Inter) loaded via `<link preload>` + `preconnect` — no render blocking |
 | **Scroll Performance** | `will-change-transform` on animated elements, passive scroll listeners, `content-visibility` via framer-motion |
 | **Animation Performance** | All animations handled by framer-motion (GPU-accelerated) — zero CSS `@keyframes` |
 | **React.memo** | All landing page sections wrapped with `React.memo` — prevent unnecessary re-renders |
-| **CSS Size** | Minimal CSS — Tailwind v4 purges unused styles; only ~62 kB (10.5 kB gzip) |
-| **SEO** | Dynamic `<title>`, meta description, OG tags, Twitter cards via `react-helmet-async` |
+| **CSS Size** | Minimal CSS — Tailwind v4 purges unused styles; only ~63 kB (10.5 kB gzip) |
+| **SEO** | Dynamic `<title>`, meta description, OG tags, Twitter cards via `react-helmet-async` on all pages (landing, auth, legal, error) |
 
 ---
 
@@ -827,6 +827,8 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
                         │  📝 SIGNUP           │
                         │                     │
                         │  name + email + pw  │
+                        │  pw strength meter  │
+                        │  inline validation  │
                         └──────────┬──────────┘
                                    │
                                    ▼
@@ -855,13 +857,16 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
   │  🔐 LOGIN    │   │  🔄 FORGOT PW  │   │  🚪 LOGOUT   │
   │              │   │                │   │              │
   │ email + pw   │   │ email → token  │   │ Clear token  │
-  │      ▼       │   │      ▼         │   │ from client  │
+  │ inline valid │   │  inline valid  │   │ from client  │
+  │      ▼       │   │      ▼         │   │              │
   │ bcrypt.check │   │ send email     │   │              │
   │      ▼       │   │      ▼         │   │              │
   │ jwt.sign()   │   │ verify token   │   │              │
   │      ▼       │   │      ▼         │   │              │
   │ return token │   │ set new pw     │   │              │
-  └──────────────┘   └────────────────┘   └──────────────┘
+  └──────────────┘   │ pw strength    │   └──────────────┘
+                     │ meter + valid  │
+                     └────────────────┘
 
                     ┌─────────────────────────────┐
                     │  🛡️ PROTECTED ROUTES        │
