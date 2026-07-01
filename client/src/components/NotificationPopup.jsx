@@ -77,7 +77,7 @@ function NotificationPopup() {
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xl z-40 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-24px)] sm:max-w-none bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xl z-40 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-zinc-800">
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Notifications</p>
               {unread > 0 && <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-medium">{unread} new</span>}

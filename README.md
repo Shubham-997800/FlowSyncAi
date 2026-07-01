@@ -898,6 +898,21 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 
 ## 🆕 Recent Improvements
 
+### Responsive Design Audit (8 Breakpoints)
+
+Every page in FlowSync AI has been audited and hardened against **8 viewport widths** (320px, 375px, 425px, 768px, 1024px, 1280px, 1440px, 1920px+) using **Tailwind CSS v4 responsive utilities only** — zero custom CSS, zero inline pixel values.
+
+| Fix | Screens Affected | Description |
+|-----|-----------------|-------------|
+| **Header Overflow Prevention** | 320px–425px | Added `truncate`, `min-w-0`, `flex-shrink-0`, and tighter `gap-1 sm:gap-2` to prevent icon/text overflow in the main header |
+| **Sidebar Predictable Width** | All | Auth sidebar changed from `w-[40%]` to fixed `w-80 xl:w-96` for consistent layout |
+| **Auth Card Padding** | 320px–425px | Form cards changed from `p-8` to `p-6 sm:p-8` — gains 16px+ of content width on small screens |
+| **Notification Drawer Overflow** | 320px | Dropdown constrained with `max-w-[calc(100vw-24px)]` — no more off-screen overflow |
+| **Habit Weekly Grid** | 320px–425px | 7-column grid uses responsive cell sizes (`w-5 h-5 sm:w-6 sm:h-6`), gaps (`gap-1 sm:gap-1.5`), smaller icons on mobile |
+| **Forgot/Reset Password Cards** | 320px–425px | Responsive `p-6 sm:p-8` padding on success states and form containers |
+
+All pages remain fully functional across every breakpoint with no overflow, no horizontal scroll, and no broken layouts.
+
 ### Dashboard Overhaul (Industry-Level)
 
 The Dashboard received a complete rewrite with production-grade features:

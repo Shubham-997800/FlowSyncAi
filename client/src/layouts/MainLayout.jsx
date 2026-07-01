@@ -70,21 +70,21 @@ function MainLayout() {
       </a>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-col flex-1 min-w-0">
-        <header className="h-14 flex-shrink-0 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <button className="lg:hidden p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <header className="h-14 flex-shrink-0 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-3 sm:px-6 lg:px-8 sticky top-0 z-10">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button className="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0" onClick={() => setSidebarOpen(!sidebarOpen)}>
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{pageTitle}</h1>
+            <h1 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">{pageTitle}</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <NotificationPopup />
-            <button onClick={toggle} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+            <button onClick={toggle} className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300 flex-shrink-0">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button onClick={() => navigate('/profile')} className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-zinc-800 hover:opacity-80 transition-opacity">
-              <span className="text-sm text-slate-700 dark:text-slate-300 hidden sm:inline">{user?.name || 'User'}</span>
-              <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold overflow-hidden">
+            <button onClick={() => navigate('/profile')} className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-3 border-l border-slate-200 dark:border-zinc-800 hover:opacity-80 transition-opacity">
+              <span className="text-sm text-slate-700 dark:text-slate-300 hidden sm:inline truncate max-w-[80px]">{user?.name || 'User'}</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold overflow-hidden flex-shrink-0">
                 {user?.profilePicture ? <img src={user.profilePicture} alt="" className="w-full h-full object-cover" /> : (user?.name?.charAt(0) || 'U')}
               </div>
             </button>

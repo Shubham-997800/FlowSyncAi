@@ -165,16 +165,16 @@ function Habits() {
                   <button onClick={() => deleteHabit(habit._id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"><Trash2 size={14} /></button>
                 </div>
 
-                <div className="flex gap-1.5">
+                <div className="flex gap-1 sm:gap-1.5">
                   {weekDates.map(date => {
                     const isToday = date === today
                     const logged = habit.logs?.includes(date)
                     const dayLabel = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)
                     return (
-                      <div key={date} className={`flex-1 flex flex-col items-center gap-1 py-2 rounded-xl text-center transition ${isToday ? 'bg-slate-50 dark:bg-zinc-800 ring-1 ring-indigo-500' : ''}`}>
-                        <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">{dayLabel}</span>
-                        <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs transition ${logged ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-300 dark:text-slate-600'}`}>
-                          {logged ? <CheckCircle2 size={12} /> : '-'}
+                      <div key={date} className={`flex-1 flex flex-col items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-center transition ${isToday ? 'bg-slate-50 dark:bg-zinc-800 ring-1 ring-indigo-500' : ''}`}>
+                        <span className="text-[9px] sm:text-[10px] font-medium text-slate-400 dark:text-slate-500">{dayLabel}</span>
+                        <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded flex sm:rounded-md items-center justify-center text-[10px] sm:text-xs transition ${logged ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-300 dark:text-slate-600'}`}>
+                          {logged ? <CheckCircle2 size={10} className="sm:w-3 sm:h-3" /> : '-'}
                         </div>
                       </div>
                     )
