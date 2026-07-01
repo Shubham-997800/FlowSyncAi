@@ -39,9 +39,16 @@ function AIPlanner() {
 
   useEffect(() => {
     getChatSessions()
-      .then(s => setSessions(s))
-      .catch(() => { /* ignore */ })
-  }, [])
+      .then(s => {
+        setSessions(s)
+        if (s.length > 0) {
+          loadSession(s[0]._id)
+        } else {
+          setInitialLoading(false)
+        }
+      })
+      .catch(() => setInitialLoading(false))
+  }, [loadSession])
 
   const loadSession = useCallback(async (sid) => {
     setInitialLoading(true)
@@ -159,11 +166,13 @@ function AIPlanner() {
             }`} onClick={() => loadSession(s._id)}>
               <MessageSquare size={14} className="flex-shrink-0 opacity-60" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">{s.preview}</p>
+                <p className="text-xs font-medium truncate">{s.preview?.length > 45 ? s.preview.slice(0, 45) + '...' : s.preview}</p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <Clock size={10} className="opacity-50" />
+                  <MessageSquare size={10} className="opacity-50 flex-shrink-0" />
+                  <span className="text-[10px] opacity-50">{s.messageCount}</span>
+                  <span className="text-[10px] opacity-50">·</span>
+                  <Clock size={10} className="opacity-50 flex-shrink-0" />
                   <span className="text-[10px] opacity-50">{formatDate(s.createdAt)}</span>
-                  <span className="text-[10px] opacity-50">{s.messageCount} msgs</span>
                 </div>
               </div>
               <button onClick={e => { e.stopPropagation(); handleDeleteSession(s._id) }} className="opacity-0 group-hover:opacity-100 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" title="Delete session">

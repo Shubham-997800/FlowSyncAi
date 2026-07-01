@@ -4,10 +4,10 @@ const getChatSessions = async (req, res) => {
   try {
     const sessions = await ChatMessage.aggregate([
       { $match: { user: req.user._id } },
-      { $sort: { createdAt: -1 } },
+      { $sort: { createdAt: 1 } },
       { $group: {
         _id: '$sessionId',
-        createdAt: { $first: '$createdAt' },
+        createdAt: { $last: '$createdAt' },
         messageCount: { $sum: 1 },
         preview: { $first: '$text' },
       }},
