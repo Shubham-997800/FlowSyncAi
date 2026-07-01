@@ -1,6 +1,6 @@
 const Task = require('../models/Task')
 
-const allowedTaskFields = ['title', 'description', 'priority', 'status', 'deadline', 'estimatedTime']
+const allowedTaskFields = ['title', 'description', 'priority', 'status', 'deadline', 'estimatedTime', 'tags']
 
 function sanitize(body) {
   const safe = {}

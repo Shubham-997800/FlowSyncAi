@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   jobTitle: { type: String, default: '' },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  aiConsent: { type: Boolean, default: false },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {

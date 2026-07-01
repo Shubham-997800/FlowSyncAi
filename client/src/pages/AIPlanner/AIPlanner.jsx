@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, ChevronLeft, Clock } from 'lucide-react'
+import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, ChevronLeft, Clock, Mic, MicOff } from 'lucide-react'
 import { chatAI } from '../../services/aiService'
 import { createTask } from '../../services/taskService'
 import { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory } from '../../services/chatService'
@@ -35,7 +35,38 @@ function AIPlanner() {
   const [creating, setCreating] = useState(null)
   const [initialLoading, setInitialLoading] = useState(true)
   const [showSessions, setShowSessions] = useState(false)
+  const [listening, setListening] = useState(false)
+  const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
+
+  const toggleVoice = useCallback(() => {
+    if (listening) {
+      recognitionRef.current?.stop()
+      setListening(false)
+      return
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      toast.error('Voice input not supported in this browser. Try Chrome or Edge.')
+      return
+    }
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = true
+    recognition.lang = 'en-US'
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results).map(r => r[0].transcript).join('')
+      setInput(transcript)
+    }
+    recognition.onerror = () => {
+      setListening(false)
+      toast.error('Microphone error. Check permissions.')
+    }
+    recognition.onend = () => setListening(false)
+    recognitionRef.current = recognition
+    recognition.start()
+    setListening(true)
+  }, [listening])
 
   useEffect(() => {
     getChatSessions()
@@ -324,6 +355,14 @@ function AIPlanner() {
                   placeholder="Ask me anything..."
                   className="flex-1 px-4 py-3 rounded-xl border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 focus:border-transparent text-sm"
                 />
+                <button
+                  onClick={toggleVoice}
+                  disabled={loading}
+                  className={`px-3 py-3 rounded-xl border transition-colors duration-300 flex items-center justify-center ${listening ? 'bg-red-500 border-red-500 text-white animate-pulse' : 'border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}
+                  title={listening ? 'Stop listening' : 'Voice input'}
+                >
+                  {listening ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || loading}

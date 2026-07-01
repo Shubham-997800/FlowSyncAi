@@ -79,4 +79,18 @@ const deleteAccount = async (req, res) => {
   }
 }
 
-module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar }
+const toggleAIConsent = async (req, res) => {
+  try {
+    const { consent } = req.body
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { aiConsent: !!consent },
+      { new: true }
+    )
+    res.json({ aiConsent: user.aiConsent })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, toggleAIConsent }

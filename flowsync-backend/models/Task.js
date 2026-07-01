@@ -8,6 +8,7 @@ const taskSchema = new mongoose.Schema({
   status: { type: String, enum: ['todo', 'in_progress', 'done'], default: 'todo' },
   deadline: { type: Date, default: null },
   estimatedTime: { type: Number, default: null },
+  tags: [{ type: String, trim: true }],
   aiRiskScore: { type: Number, min: 0, max: 100, default: null },
   aiSuggestedOrder: { type: Number, default: null },
 }, { timestamps: true })

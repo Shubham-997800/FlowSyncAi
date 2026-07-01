@@ -28,8 +28,9 @@
   <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
-  <img src="https://img.shields.io/badge/License-MIT-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/License-Proprietary-FF6600?style=flat-square" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
+  <img src="https://img.shields.io/badge/Author-Shubham-6366F1?style=flat-square" />
 </p>
 
 <br>
@@ -51,16 +52,7 @@
 - [AI Architecture](#-ai-architecture)
 - [Request Lifecycle](#-request-lifecycle)
 - [Authentication Flow](#-authentication-flow)
-- [Installation Guide](#-installation-guide)
-- [Environment Variables](#-environment-variables)
-- [API Documentation](#-api-documentation)
-- [Security](#-security)
-- [Performance Optimizations](#-performance-optimizations)
-- [Responsive Design](#-responsive-design)
-- [Deployment](#-deployment)
-- [Future Roadmap](#-future-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [License & Usage](#-license--usage)
 - [Author](#-author)
 - [Acknowledgements](#-acknowledgements)
 
@@ -820,405 +812,43 @@ FlowSync AI's intelligence is powered by **OpenRouter** with the **Qwen 2.5 7B**
 
 ---
 
-## 📦 Installation Guide
+## 📄 License & Usage
 
-### Prerequisites
+### Proprietary License
 
-- **Node.js** 18+ (tested on 24+)
-- **MongoDB Atlas** account (free tier works)
-- **OpenRouter API key** — get one at [openrouter.ai/keys](https://openrouter.ai/keys) (free tier available)
-- **Git**
+**Copyright © 2024-2026 Shubham Dangi. All rights reserved.**
 
-### Clone the Repository
+This software and its source code are the intellectual property of **Shubham Dangi**. It is **not** open-source software.
 
-```bash
-git clone https://github.com/Shubham-997800/FlowSync-Ai.git
-cd FlowSync-Ai
-```
+| Right | Allowed? | Details |
+|-------|----------|---------|
+| View Code | ✅ Yes | Public on GitHub for portfolio/reference |
+| Run for Personal Use | ✅ Yes | You may run the live version at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) |
+| Fork/Clone | ❌ No | Cloning, forking, or copying the code is prohibited without explicit permission |
+| Modify & Redistribute | ❌ No | You may not modify, redistribute, or publish modified versions |
+| Commercial Use | ❌ No | Commercial use requires a separate license agreement |
+| Self-Hosting | ❌ No | Deploying your own instance requires written permission from the author |
 
-### Backend Setup
+### Requesting Permission
 
-```bash
-cd flowsync-backend
-npm install
+If you wish to:
+- Use this project for commercial purposes
+- Deploy your own instance
+- Reference substantial portions of the code in your own project
+- Collaborate or contribute directly
 
-# Create .env file (see Environment Variables section)
-```
+Please contact the author:
 
-### Frontend Setup
-
-```bash
-cd client
-npm install
-
-# Create .env file (see Environment Variables section)
-```
-
-### Run Locally
-
-```bash
-# Terminal 1: Backend
-cd flowsync-backend
-npm run dev
-
-# Terminal 2: Frontend
-cd client
-npm run dev
-```
-
-The frontend runs on `http://localhost:5173` and the backend on `http://localhost:5000`.
-
-> [!TIP]
-> Use `npm run dev` for hot-reload during development. Both servers will automatically restart on file changes.
-
----
-
-## 🔧 Environment Variables
-
-### Backend (`flowsync-backend/.env`)
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PORT` | No | `5000` | Backend server port |
-| `NODE_ENV` | No | `development` | Environment mode |
-| `MONGODB_URI` | **Yes** | — | MongoDB Atlas connection string |
-| `JWT_SECRET` | **Yes** | — | Secret key for JWT signing (use a strong random string) |
-| `OPENROUTER_API_KEY` | **Yes** | — | Your OpenRouter API key (get at [openrouter.ai/keys](https://openrouter.ai/keys)) |
-| `CLIENT_URL` | **Yes** | `http://localhost:5173` | Frontend URL (CORS origin) |
-| `SMTP_HOST` | No | `smtp.gmail.com` | SMTP server for password reset emails |
-| `SMTP_PORT` | No | `587` | SMTP port |
-| `SMTP_USER` | No | — | SMTP username |
-| `SMTP_PASS` | No | — | SMTP password |
-| `SMTP_FROM` | No | `noreply@flowsync.ai` | From address for emails |
-
-```env
-PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/flowsync?retryWrites=true&w=majority
-JWT_SECRET=<your_strong_random_secret>
-OPENROUTER_API_KEY=sk-or-v1-<your_openrouter_key>
-CLIENT_URL=http://localhost:5173
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your@email.com
-SMTP_PASS=your_app_password
-```
-
-### Frontend (`client/.env`)
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `VITE_API_URL` | **Yes** | `http://localhost:5000` | Backend API URL |
-
-```env
-VITE_API_URL=http://localhost:5000
-```
-
----
-
-## 📖 API Documentation
-
-All protected endpoints require the header: `Authorization: Bearer <token>`
-
-### Authentication
-
-| Method | Endpoint | Auth | Body | Response |
-|--------|----------|:----:|------|----------|
-| `POST` | `/api/auth/signup` | ❌ | `{ name, email, password }` | `{ token, user }` |
-| `POST` | `/api/auth/login` | ❌ | `{ email, password }` | `{ token, user }` |
-| `POST` | `/api/auth/forgot-password` | ❌ | `{ email }` | `{ message }` |
-| `POST` | `/api/auth/reset-password` | ❌ | `{ token, password }` | `{ message }` |
-| `GET` | `/api/auth/ping` | ❌ | — | `{ ok: true }` |
-
-### Tasks
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/tasks` | ✅ | List all user tasks |
-| `POST` | `/api/tasks` | ✅ | Create task |
-| `PUT` | `/api/tasks/:id` | ✅ | Update task (whitelisted fields) |
-| `DELETE` | `/api/tasks/:id` | ✅ | Delete task |
-
-### Goals
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/goals` | ✅ | List all goals |
-| `POST` | `/api/goals` | ✅ | Create goal |
-| `PUT` | `/api/goals/:id` | ✅ | Update goal |
-| `DELETE` | `/api/goals/:id` | ✅ | Delete goal |
-
-### Habits
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/habits` | ✅ | List all habits |
-| `POST` | `/api/habits` | ✅ | Create habit |
-| `PUT` | `/api/habits/:id` | ✅ | Update habit |
-| `DELETE` | `/api/habits/:id` | ✅ | Delete habit |
-| `POST` | `/api/habits/:id/checkin` | ✅ | Check in — auto-calculates streak |
-
-### AI
-
-| Method | Endpoint | Auth | Rate Limit | Description |
-|--------|----------|:----:|:----------:|-------------|
-| `POST` | `/api/ai/chat` | ✅ | 20/min | Conversational AI assistant |
-| `POST` | `/api/ai/plan` | ✅ | 20/min | Generate daily schedule |
-| `POST` | `/api/ai/prioritize` | ✅ | 20/min | Rank tasks by urgency |
-| `POST` | `/api/ai/rescue` | ✅ | 20/min | Emergency overload replanning |
-
-### Analytics
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/analytics/stats` | ✅ | Task completion statistics |
-| `GET` | `/api/analytics/weekly` | ✅ | Weekly breakdown |
-| `GET` | `/api/analytics/monthly` | ✅ | Monthly breakdown |
-
-### Notifications
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/notifications` | ✅ | List latest 50 notifications |
-| `POST` | `/api/notifications` | ✅ | Create notification |
-| `PUT` | `/api/notifications/:id/read` | ✅ | Mark as read |
-
-### Settings
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|:----:|-------------|
-| `GET` | `/api/settings/profile` | ✅ | Get user profile |
-| `PUT` | `/api/settings/profile` | ✅ | Update profile |
-| `PUT` | `/api/settings/avatar` | ✅ | Upload avatar (base64) |
-| `PUT` | `/api/settings/password` | ✅ | Change password |
-| `DELETE` | `/api/settings/account` | ✅ | Delete account (cascading) |
-
----
-
-## 🛡️ Security
-
-FlowSync AI implements multiple layers of security to protect user data and ensure safe operation.
-
-| Layer | Implementation | Details |
-|-------|---------------|---------|
-| **Authentication** | JWT (jsonwebtoken) | 30-day token expiry, stateless verification |
-| **Password Storage** | bcryptjs | 10 salt rounds, constant-time comparison |
-| **HTTP Headers** | Helmet | XSS, clickjacking, MIME sniffing, HSTS |
-| **CORS** | cors package | Restricted to configured `CLIENT_URL` only |
-| **Rate Limiting** | express-rate-limit | Auth: 5/min, AI: 20/min, General: 100/min |
-| **Input Validation** | Mongoose schema | Enum checks, required fields, type coercion |
-| **Field Sanitization** | Whitelist approach | All controllers whitelist allowed fields |
-| **Data Exposure** | toJSON transform | Password excluded from all API responses |
-| **Environment** | dotenv | All secrets stored in `.env`, gitignored |
-| **Email Validation** | Server-side | Reset tokens expire after 1 hour, single-use |
+| Method | Contact |
+|--------|---------|
+| 📧 Email | [shubhamkumar997800@gmail.com](mailto:shubhamkumar997800@gmail.com) |
+| 💼 LinkedIn | [Shubham Dangi](https://linkedin.com/in/shubham997800) |
+| 🐙 GitHub | [Shubham-997800](https://github.com/Shubham-997800) |
 
 > [!IMPORTANT]
-> Never commit `.env` files to version control. The repository's `.gitignore` already excludes `.env` and `.env*` patterns.
-
----
-
-## ⚡ Performance Optimizations
-
-| Optimization | Location | Impact |
-|-------------|----------|--------|
-| **Lazy Loading** | React Router — all page components are lazy-loaded | Reduces initial bundle size by ~60% |
-| **Reusable Components** | `ui/` directory with Card, Badge, StatCard, ProgressBar, Modal | Consistent rendering, DRY code |
-| **Memoization** | React Context with `useReducer` — prevents unnecessary re-renders | Smoother UI updates |
-| **Framer Motion** | Declarative animations with hardware-accelerated transforms | 60fps animations without layout thrashing |
-| **MongoDB Indexing** | Indexes on `userId`, `email`, `status`, `createdAt` | Sub-millisecond queries |
-| **Optimized Queries** | Mongoose `select()` and `lean()` for read-only queries | Reduced memory overhead |
-| **Body Size Limits** | `express.json({ limit: '5mb' })` | Prevents large payload attacks |
-| **Rate Limiting** | Tiered limits per endpoint group | Prevents abuse, ensures fair use |
-| **CSS Optimization** | Tailwind CSS purges unused styles in production | ~10KB gzipped CSS output |
-
----
-
-## 📱 Responsive Design
-
-FlowSync AI is designed to work seamlessly across all screen sizes:
-
-```
-Breakpoints:    Mobile    Tablet    Laptop    Desktop     Ultra-wide
-                 320px     768px    1024px     1280px       1920px+
-                 ─────    ─────    ──────    ───────      ───────
-Sidebar:        Hidden    Hidden    Mini      Full         Full
-Dashboard:       1 col     2 col    2 col     3 col         4 col
-Calendar:       List      Month     Month     Month+Week    All Views
-Timer:          Full      Side      Side      Side          Side
-Modals:         Full      Centered  Centered  Centered      Centered
-```
-
-| Feature | Mobile | Tablet | Desktop |
-|---------|--------|--------|---------|
-| Navigation | Hamburger menu | Collapsed sidebar | Full sidebar |
-| Task Cards | Single column | Two columns | Three columns |
-| Calendar | List view | Month grid | Month + Week |
-| AI Planner | Full screen | Side panel | Side panel |
-| Focus Timer | Full screen | Floating | Floating |
-| Tables | Horizontal scroll | Normal | Normal |
-
----
-
-## 🚢 Deployment
-
-### Deployment Architecture
-
-```
-                      ┌─────────────────────────────┐
-                      │     📦 GitHub Repository     │
-                      │     Shubham-997800/          │
-                      │     FlowSync-Ai              │
-                      │                             │
-                      │   main branch auto-deploys   │
-                      └──────────┬──────────────────┘
-                                 │
-                ┌────────────────┼────────────────┐
-                │                │                │
-                ▼                ▼                ▼
-      ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
-       │   ▲ Vercel     │ │   ■ Railway    │ │   ● MongoDB   │
-      │                │ │                │ │     Atlas     │
-      │  React 19     │ │  Express 4     │ │               │
-      │  Vite 8       │ │  Mongoose 9    │ │  Auto-scale   │
-      │  Tailwind 4   │ │  Helmet 8      │ │  Replica set  │
-      │                │ │                │ │  Encryption   │
-      │  CDN Cached   │ │  Auto-deploy   │ │  Monitoring   │
-      │  Auto-HTTPS   │ │  Zero-downtime │ │  Backups      │
-      └────────────────┘ └────────────────┘ └────────────────┘
-```
-
-### Backend → Railway
-
-1. Create a [Railway](https://railway.com) account
-2. Click **New Project** → **Deploy from GitHub repo**
-3. Connect your GitHub repository (`FlowSync-Ai`)
-4. Configure:
-   - **Root Directory:** `flowsync-backend`
-   - **Start Command:** `node server.js`
-5. Add environment variables (see [Environment Variables](#-environment-variables))
-6. Railway auto-deploys on every `git push` to `main`.
-
-### Frontend → Vercel
-
-1. Create a [Vercel](https://vercel.com) account
-2. Click **Add New** → **Project**
-3. Import your GitHub repository (`FlowSync-Ai`)
-4. Configure:
-   - **Root Directory:** `client`
-   - **Build Command:** `npm run build` (auto-detected)
-   - **Output Directory:** `dist` (auto-detected)
-5. Add environment variable: `VITE_API_URL` = your Railway backend URL
-6. Click **Deploy**
-
-Vercel auto-deploys on every `git push` to `main`.
-
-### Database → MongoDB Atlas
-
-1. Create a [MongoDB Atlas](https://mongodb.com/atlas) account
-2. Create a new cluster (free tier M0 is sufficient)
-3. Configure **Network Access** → Add `0.0.0.0/0` (allow all)
-4. Create a **Database User** with read/write permissions
-5. Click **Connect** → **Drivers** → Copy connection string
-6. Replace `<user>`, `<password>`, and `<dbname>` with your values
-
----
-
-## 🗺️ Future Roadmap
-
-```mermaid
-gantt
-    title FlowSync AI - Development Roadmap
-    dateFormat  YYYY-MM
-    axisFormat  %Y Q%q
-
-    section Core
-    AI Chat Enhancement    :done, 2025-01, 2025-03
-    Rescue Mode v1          :done, 2025-02, 2025-04
-    Analytics Dashboard     :done, 2025-03, 2025-05
-
-    section Integration
-    Google Calendar Sync    :active, 2025-04, 2025-07
-    Email Reminders         :active, 2025-05, 2025-07
-
-    section AI & Voice
-    Voice Assistant         :2025-06, 2025-09
-    AI Productivity Coach   :2025-07, 2025-10
-
-    section Platform
-    Offline Mode            :2025-08, 2025-11
-    Team Collaboration      :2025-09, 2025-12
-    Mobile App (React Native) :2025-10, 2026-02
-```
-
-| Feature | Status | Target | Description |
-|---------|--------|--------|-------------|
-| 🔗 **Google Calendar Sync** | 🚧 In Progress | Q3 2025 | Two-way sync - tasks appear in Google Calendar, events appear in FlowSync |
-| 📧 **Email Reminders** | 🚧 In Progress | Q3 2025 | Configurable email reminders for approaching deadlines |
-| 🎤 **Voice Assistant** | 📋 Planned | Q4 2025 | "Hey FlowSync, what's my priority today?" via Web Speech API |
-| 🧠 **AI Productivity Coach** | 📋 Planned | Q4 2025 | Personalized weekly coaching with actionable improvement plans |
-| 📴 **Offline Mode** | 📋 Planned | Q1 2026 | Service Worker + IndexedDB for full offline functionality |
-| 👥 **Team Collaboration** | 📋 Planned | Q1 2026 | Shared workspaces, task assignment, team analytics |
-| 📱 **Mobile App** | 📋 Planned | Q2 2026 | React Native companion app with push notifications |
-
----
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Here's how you can help make FlowSync AI better.
-
-### Contribution Workflow
-
-```
-1. 🍴 Fork the repository
-2. 🌿 Create a feature branch (git checkout -b feat/amazing-feature)
-3. 💻 Make your changes
-4. ✅ Run tests (if available)
-5. 📝 Commit your changes (git commit -m 'feat: add amazing feature')
-6. 📤 Push to the branch (git push origin feat/amazing-feature)
-7. 🔍 Open a Pull Request
-```
-
-### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-| Prefix | Usage |
-|--------|-------|
-| `feat:` | New feature |
-| `fix:` | Bug fix |
-| `docs:` | Documentation changes |
-| `refactor:` | Code refactoring |
-| `perf:` | Performance improvements |
-| `test:` | Adding or updating tests |
-| `chore:` | Maintenance, dependencies |
-
-### Development Guidelines
-
-- Follow the existing code style (ESLint + Prettier)
-- Write clean, commented code
-- Update documentation for any API changes
-- Test your changes thoroughly before submitting a PR
-- Keep PRs focused — one feature/fix per PR
-
----
-
-## 📄 License
-
-This project is **MIT Licensed**. See [LICENSE](LICENSE) for the full license text.
-
-```
-Copyright (c) 2024 Shubham Dangi
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```
+> By cloning, accessing, or using this repository, you agree to these terms. Unauthorized use, distribution, or reproduction will be considered a violation of intellectual property rights.
+>
+> This project is shared publicly on GitHub for **portfolio and demonstration purposes only**. Any use beyond viewing requires explicit written consent from the author.
 
 ---
 
@@ -1226,6 +856,48 @@ copies or substantial portions of the Software.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Author-Shubham_Dangi-6366F1?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/Shubham-997800">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+  <a href="https://linkedin.com/in/shubham997800">
+    <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" />
+  </a>
+  <a href="mailto:shubhamkumar997800@gmail.com">
+    <img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
+</p>
+
+---
+
+## 🙏 Acknowledgements
+
+- **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (Llama 3.3 70B, GPT-4o-mini, Claude 3 Haiku, and more)
+- **[Vercel](https://vercel.com)** — For frontend deployment platform
+- **[Railway](https://railway.com)** — For reliable backend hosting with zero-downtime deploys
+- **[MongoDB Atlas](https://mongodb.com/atlas)** — For the generous free tier and global database infrastructure
+- **[Tailwind CSS](https://tailwindcss.com)** — For the most productive CSS framework ever built
+- **[Lucide](https://lucide.dev)** — For the beautiful, consistent icon set
+
+Inspired by the next generation of AI-first productivity tools that are redefining how humans interact with their work.
+
+---
+
+<p align="center">
+  <b>FlowSync AI</b> — <i>Never Miss a Deadline Again</i><br>
+  <a href="https://flowsyncai30.vercel.app">🌐 Live App</a>
+  ·
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/issues">🐛 Report Bug</a>
+  ·
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/issues">💡 Request Feature</a>
+  ·
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/stargazers">⭐ Star on GitHub</a>
+</p>
+
+<p align="center">
+  <sub>© 2024-2026 Shubham Dangi. Proprietary software. All rights reserved.</sub>
 </p>
 
 <p align="center">
