@@ -1,8 +1,29 @@
 const ChatMessage = require('../models/ChatMessage')
 
+const getChatSessions = async (req, res) => {
+  try {
+    const sessions = await ChatMessage.aggregate([
+      { $match: { user: req.user._id } },
+      { $sort: { createdAt: -1 } },
+      { $group: {
+        _id: '$sessionId',
+        createdAt: { $first: '$createdAt' },
+        messageCount: { $sum: 1 },
+        preview: { $first: '$text' },
+      }},
+      { $sort: { createdAt: -1 } },
+    ])
+    res.json(sessions)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
 const getChatHistory = async (req, res) => {
   try {
-    const messages = await ChatMessage.find({ user: req.user._id }).sort({ createdAt: 1 })
+    const filter = { user: req.user._id }
+    if (req.query.sessionId) filter.sessionId = req.query.sessionId
+    const messages = await ChatMessage.find(filter).sort({ createdAt: 1 })
     res.json(messages)
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -11,8 +32,9 @@ const getChatHistory = async (req, res) => {
 
 const saveChatMessage = async (req, res) => {
   try {
-    const { role, text, tasks, createdTasks } = req.body
-    const message = await ChatMessage.create({ user: req.user._id, role, text, tasks, createdTasks })
+    const { sessionId, role, text, tasks, createdTasks } = req.body
+    if (!sessionId) return res.status(400).json({ message: 'sessionId is required' })
+    const message = await ChatMessage.create({ user: req.user._id, sessionId, role, text, tasks, createdTasks })
     res.status(201).json(message)
   } catch (error) {
     if (error.name === 'ValidationError') {
@@ -35,11 +57,13 @@ const deleteChatMessage = async (req, res) => {
 
 const clearChatHistory = async (req, res) => {
   try {
-    await ChatMessage.deleteMany({ user: req.user._id })
+    const filter = { user: req.user._id }
+    if (req.query.sessionId) filter.sessionId = req.query.sessionId
+    await ChatMessage.deleteMany(filter)
     res.json({ message: 'Chat history cleared' })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
 }
 
-module.exports = { getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory }
+module.exports = { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory }

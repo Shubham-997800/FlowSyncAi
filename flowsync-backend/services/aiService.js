@@ -1,34 +1,42 @@
 const { getAI } = require('../config/aiConfig')
 
-const AI_MODEL = process.env.AI_MODEL || 'qwen/qwen-2.5-72b-instruct'
+const AI_MODELS = [
+  process.env.AI_MODEL,
+  'meta-llama/llama-3.3-70b-instruct',
+  'google/gemini-2.0-flash-lite-preview',
+  'mistralai/mistral-7b-instruct',
+  'openai/gpt-4o-mini',
+].filter(Boolean)
 
 async function callAI(systemMsg, userMsg, temperature = 0.7) {
   const ai = getAI()
-  try {
-    const res = await ai.chat.completions.create({
-      model: AI_MODEL,
-      messages: [
-        { role: 'system', content: systemMsg },
-        { role: 'user', content: userMsg },
-      ],
-      temperature,
-      max_tokens: 4096,
-    })
-    return res.choices[0]?.message?.content || ''
-  } catch (err) {
-    const status = err.status || err.error?.code || 0
-    const msg = (err.message || '') + (err.error?.message || '')
-    if (
-      status === 429 || status === 401 || status === 402 ||
-      msg.includes('429') || msg.includes('401') || msg.includes('402') ||
-      msg.includes('insufficient_quota') || msg.includes('invalid_api_key') ||
-      msg.includes('Incorrect API key') || msg.includes('rate limited') ||
-      msg.includes('quota') || msg.includes('Payment Required')
-    ) {
-      throw new Error('AI_SERVICE_UNAVAILABLE')
+  for (const model of AI_MODELS) {
+    try {
+      const res = await ai.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: systemMsg },
+          { role: 'user', content: userMsg },
+        ],
+        temperature,
+        max_tokens: 4096,
+      })
+      const content = res.choices[0]?.message?.content || ''
+      if (content) {
+        console.log(`[AI] ${model} responded successfully`)
+        return content
+      }
+    } catch (err) {
+      const info = `${err.message || ''} ${err.error?.message || ''}`
+      console.log(`[AI] ${model} failed: ${info.slice(0, 100)}`)
+      const status = err.status || err.error?.code || 0
+      if (status === 401 || status === 402 || info.includes('401') || info.includes('402') || info.includes('invalid_api_key') || info.includes('Incorrect API key')) {
+        throw new Error('AI_SERVICE_UNAVAILABLE')
+      }
     }
-    throw err
   }
+  console.log('[AI] All models failed')
+  throw new Error('AI_SERVICE_UNAVAILABLE')
 }
 
 function parseJSON(text) {

@@ -139,7 +139,8 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Feature | Description |
 |---------|-------------|
-| **AI Chat Assistant** | Conversational interface — say "Schedule a standup at 10am tomorrow" and the task is created, prioritized, and slotted into your calendar. |
+| **AI Chat Assistant** | Conversational interface — say "Schedule a standup at 10am tomorrow" and the task is created, prioritized, and slotted into your calendar. Chat history is persisted to the database across sessions. |
+| **AI Chat History** | Every conversation is saved to MongoDB — browse past chats, delete individual messages, or clear entire history with "New Chat" button. |
 | **Smart Daily Planning** | AI analyzes all pending tasks, deadlines, and priorities to generate an optimal day schedule with focused work blocks, breaks, and buffers. |
 | **Task Prioritization Engine** | Every task receives a dynamic urgency score (0–100) and risk score (0–100) based on deadline proximity, dependencies, and current workload. |
 | **Rescue Mode** | When the day is overloaded, AI identifies what's critical, what can be dropped, and compresses the剩余 work into a survivable plan. |
@@ -377,7 +378,9 @@ flowsync-ai/
 │   │   │   ├── analyticsService.js
 │   │   │   ├── notificationService.js
 │   │   │   ├── settingsService.js
-│   │   │   └── aiService.js
+│   │   │   ├── aiService.js
+│   │   │   ├── pushService.js
+│   │   │   └── chatService.js               # Chat history API layer
 │   │   │
 │   │   ├── components/
 │   │   │   ├── Sidebar.jsx                # Navigation sidebar
@@ -430,7 +433,9 @@ flowsync-ai/
 │   │   ├── Task.js                        # title, priority, status, deadline, description
 │   │   ├── Goal.js                        # title, targetDate, progress
 │   │   ├── Habit.js                       # title, frequency, streak, logs[]
-│   │   └── Notification.js                # type, title, message, status, userId
+│   │   ├── Notification.js                # type, title, message, status, userId
+│   │   ├── PushSubscription.js            # endpoint, keys for web push
+│   │   └── ChatMessage.js                 # role, text, tasks[], createdTasks[]
 │   │
 │   ├── controllers/
 │   │   ├── authController.js              # signup, login, forgotPassword, resetPassword
@@ -440,7 +445,9 @@ flowsync-ai/
 │   │   ├── analyticsController.js         # Stats, weekly, monthly aggregation
 │   │   ├── notificationController.js      # Create, list, mark-read
 │   │   ├── settingsController.js          # Profile, avatar, password, delete account
-│   │   └── aiController.js               # Chat, plan, prioritize, rescue
+│   │   ├── aiController.js               # Chat, plan, prioritize, rescue
+│   │   ├── pushController.js             # Web push subscribe/unsubscribe
+│   │   └── chatController.js             # Chat history get/save/delete/clear
 │   │
 │   ├── routes/
 │   │   ├── authRoutes.js
@@ -450,11 +457,16 @@ flowsync-ai/
 │   │   ├── analyticsRoutes.js
 │   │   ├── notificationRoutes.js
 │   │   ├── settingsRoutes.js
-│   │   └── aiRoutes.js
+│   │   ├── aiRoutes.js
+│   │   ├── pushRoutes.js
+│   │   └── chatRoutes.js                 # Chat history CRUD
 │   │
 │   ├── services/
 │   │   ├── aiService.js                   # Prompt engineering + JSON parsing
 │   │   └── emailService.js                # Nodemailer — password reset
+│   │
+│   ├── seed.js                            # Local DB seed script
+│   └── qa-seed.js                         # Remote API-based QA seed script
 │   │
 │   └── package.json
 │
