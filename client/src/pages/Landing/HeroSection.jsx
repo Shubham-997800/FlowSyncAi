@@ -1,11 +1,16 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Sparkles, Brain, Clock, CheckCircle, AlertTriangle, Target, BarChart3, Calendar, Timer, LayoutDashboard, ArrowRight, ListTodo, TrendingUp, Layers } from 'lucide-react'
 
 function FloatingCard({ icon: Icon, text, sub, delay, className }) {
   return (
-    <div
-      className={`absolute hidden lg:flex items-center gap-3 bg-white dark:bg-zinc-900 rounded-2xl px-5 py-3 shadow-lg border border-slate-200 dark:border-zinc-800 ${className}`}
-      style={{ animation: `float 3s ease-in-out ${delay}s infinite` }}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, delay, ease: 'easeOut' }}
+      className={`absolute hidden lg:flex items-center gap-3 bg-white dark:bg-zinc-900 rounded-2xl px-5 py-3 shadow-lg border border-slate-200 dark:border-zinc-800 animate-float will-change-transform ${className}`}
+      style={{ animationDelay: `${delay}s` }}
     >
       <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
         <Icon size={20} className="text-indigo-600 dark:text-indigo-400" />
@@ -14,8 +19,21 @@ function FloatingCard({ icon: Icon, text, sub, delay, className }) {
         <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{text}</p>
         <p className="text-xs text-slate-500 dark:text-slate-400">{sub}</p>
       </div>
-    </div>
+    </motion.div>
   )
+}
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.12, delayChildren: 0.2 },
+  },
+}
+
+const item = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
 function HeroSection() {
@@ -26,32 +44,37 @@ function HeroSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-5 lg:gap-16 items-center">
-          <div className="col-span-3 mb-16 lg:mb-0">
-            <div className="inline-flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+          <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="col-span-3 mb-16 lg:mb-0"
+          >
+            <motion.div variants={item} className="inline-flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
               <Sparkles size={16} />
               AI-Powered Productivity Platform
-            </div>
+            </motion.div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-[1.1]">
+            <motion.h1 variants={item} className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-[1.1]">
               Never Miss a Deadline Again.
-            </h1>
-            <p className="text-2xl sm:text-3xl font-semibold text-indigo-600 dark:text-indigo-400 mt-2">
+            </motion.h1>
+            <motion.p variants={item} className="text-2xl sm:text-3xl font-semibold text-indigo-600 dark:text-indigo-400 mt-2">
               Plan Smarter. Focus Better. Finish Faster.
-            </p>
-            <p className="mt-5 text-lg text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+            </motion.p>
+            <motion.p variants={item} className="mt-5 text-lg text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
               FlowSync AI is an intelligent productivity companion that analyzes your tasks, predicts deadline risks, prioritizes work, and creates personalized schedules so you can complete important work before deadlines are missed.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-wrap gap-4 mt-8">
-              <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-7 py-3 rounded-xl text-base font-semibold transition-colors duration-300 shadow-sm">
+            <motion.div variants={item} className="flex flex-wrap gap-4 mt-8">
+              <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-7 py-3 rounded-xl text-base font-semibold transition-all duration-300 shadow-sm hover:shadow-md active:scale-[0.97]">
                 Get Started
               </Link>
-              <a href="#features" className="flex items-center gap-2 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-slate-100 px-7 py-3 rounded-xl text-base font-semibold hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+              <a href="#features" className="flex items-center gap-2 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-slate-100 px-7 py-3 rounded-xl text-base font-semibold hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all duration-300 active:scale-[0.97]">
                 Explore Features <ArrowRight size={18} />
               </a>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-wrap gap-x-8 gap-y-3 mt-10 text-sm text-slate-500 dark:text-slate-400">
+            <motion.div variants={item} className="flex flex-wrap gap-x-8 gap-y-3 mt-10 text-sm text-slate-500 dark:text-slate-400">
               {[
                 { icon: Brain, label: 'AI-Powered Planning' },
                 { icon: Clock, label: 'Smart Scheduling' },
@@ -63,10 +86,15 @@ function HeroSection() {
                   <span className="font-medium text-slate-700 dark:text-slate-300">{label}</span>
                 </span>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="col-span-2 relative">
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
+            className="col-span-2 relative"
+          >
             <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-lg border border-slate-200 dark:border-zinc-800 overflow-hidden">
               <div className="flex h-[420px] sm:h-[480px]">
                 <div className="w-14 sm:w-16 bg-slate-50 dark:bg-zinc-900/50 border-r border-slate-200 dark:border-zinc-800 flex flex-col items-center gap-3 py-4">
@@ -182,21 +210,14 @@ function HeroSection() {
               </div>
             </div>
 
-            <FloatingCard icon={Brain} text="AI Prioritized" sub="12 Tasks" delay={0} className="-top-6 -right-6" />
-            <FloatingCard icon={Clock} text="Saved 3 Hours" sub="Today" delay={0.4} className="-bottom-4 -left-8" />
-            <FloatingCard icon={CheckCircle} text="92% Productivity" sub="Score" delay={0.8} className="-right-4 bottom-16" />
-          </div>
+            <FloatingCard icon={Brain} text="AI Prioritized" sub="12 Tasks" delay={0.6} className="-top-6 -right-6" />
+            <FloatingCard icon={Clock} text="Saved 3 Hours" sub="Today" delay={0.8} className="-bottom-4 -left-8" />
+            <FloatingCard icon={CheckCircle} text="92% Productivity" sub="Score" delay={1.0} className="-right-4 bottom-16" />
+          </motion.div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
-        }
-      `}</style>
     </section>
   )
 }
 
-export default HeroSection
+export default memo(HeroSection)
