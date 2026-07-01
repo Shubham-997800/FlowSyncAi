@@ -45,16 +45,16 @@ function WeeklyView({ tasks, onDateClick }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {dates.map((dateStr, i) => {
           const isToday = dateStr === today
           const dayNum = parseInt(dateStr.split('-')[2])
           const dayTasks = getTasksForDate(dateStr)
 
           return (
-            <button key={dateStr} onClick={() => onDateClick(dateStr)} className={`flex flex-col items-center gap-2 p-3 rounded-xl transition ${isToday ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
-              <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{dayLabels[i]}</span>
-              <span className={`text-lg font-bold ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-100'}`}>{dayNum}</span>
+            <button key={dateStr} onClick={() => onDateClick(dateStr)} className={`flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-xl transition ${isToday ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
+              <span className="text-[10px] sm:text-xs font-medium text-slate-400 dark:text-slate-500">{dayLabels[i]}</span>
+              <span className={`text-base sm:text-lg font-bold ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-100'}`}>{dayNum}</span>
               <div className={`w-1.5 h-1.5 rounded-full ${getLoadDot(dateStr)}`} />
               {dayTasks.length > 0 && (
                 <span className="text-[10px] text-slate-400 dark:text-slate-500">{dayTasks.length} tasks</span>

@@ -55,10 +55,10 @@ function MonthlyView({ tasks, onDateClick }) {
           const overloaded = dayTasks.length > 3
 
           return (
-            <button key={dateStr} onClick={() => onDateClick(dateStr)} className={`relative p-2 min-h-[64px] rounded-xl text-sm transition border ${isToday ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'border-transparent hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
-              <span className={`text-sm font-medium ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}>{day}</span>
+            <button key={dateStr} onClick={() => onDateClick(dateStr)} className={`relative p-1.5 sm:p-2 min-h-[48px] sm:min-h-[64px] rounded-lg sm:rounded-xl text-sm transition border ${isToday ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'border-transparent hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
+              <span className={`text-xs sm:text-sm font-medium ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300'}`}>{day}</span>
               {dayTasks.length > 0 && (
-                <div className="mt-1.5 flex gap-0.5">
+                <div className="mt-1 sm:mt-1.5 flex gap-0.5">
                   {dayTasks.slice(0, 3).map(t => (
                     <div key={t._id} className={`w-1.5 h-1.5 rounded-full ${t.status === 'done' ? 'bg-indigo-300 dark:bg-indigo-700' : t.priority === 'high' ? 'bg-red-400' : t.priority === 'medium' ? 'bg-amber-400' : 'bg-slate-300 dark:bg-zinc-600'}`} />
                   ))}
