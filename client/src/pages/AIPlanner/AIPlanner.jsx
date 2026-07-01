@@ -39,7 +39,16 @@ function AIPlanner() {
   const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
 
-  const toggleVoice = useCallback(() => {
+  const checkMicPermission = useCallback(async () => {
+    try {
+      const result = await navigator.permissions.query({ name: 'microphone' })
+      return result.state
+    } catch {
+      return 'prompt'
+    }
+  }, [])
+
+  const toggleVoice = useCallback(async () => {
     if (listening) {
       recognitionRef.current?.stop()
       setListening(false)
@@ -50,6 +59,11 @@ function AIPlanner() {
       toast.error('Voice input not supported in this browser. Try Chrome or Edge.')
       return
     }
+    const perm = await checkMicPermission()
+    if (perm === 'denied') {
+      toast.error('Microphone access is blocked. Allow microphone in your browser settings, then reload.')
+      return
+    }
     const recognition = new SpeechRecognition()
     recognition.continuous = false
     recognition.interimResults = true
@@ -58,15 +72,35 @@ function AIPlanner() {
       const transcript = Array.from(event.results).map(r => r[0].transcript).join('')
       setInput(transcript)
     }
-    recognition.onerror = () => {
+    recognition.onerror = (event) => {
       setListening(false)
-      toast.error('Microphone error. Check permissions.')
+      switch (event.error) {
+        case 'not-allowed':
+          toast.error('Microphone permission was denied. Allow access in your browser settings, then reload the page.')
+          break
+        case 'no-speech':
+          toast.error('No speech detected. Try speaking closer to the microphone.')
+          break
+        case 'audio-capture':
+          toast.error('No microphone found. Check your microphone connection.')
+          break
+        case 'network':
+          toast.error('Network error. Check your internet connection.')
+          break
+        case 'aborted':
+          break
+        case 'service-not-allowed':
+          toast.error('Speech recognition is not allowed on this page. Try using HTTPS.')
+          break
+        default:
+          toast.error('Microphone error. Check permissions.')
+      }
     }
     recognition.onend = () => setListening(false)
     recognitionRef.current = recognition
     recognition.start()
     setListening(true)
-  }, [listening])
+  }, [listening, checkMicPermission])
 
   const loadSession = useCallback(async (sid) => {
     setInitialLoading(true)
