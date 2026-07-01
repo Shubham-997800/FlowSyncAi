@@ -199,6 +199,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | **Axios** | 1 | HTTP client | Interceptors for JWT, request/response transformations |
 | **Lucide React** | Latest | Icon library | Consistent, tree-shakeable SVG icon set |
 | **React Hot Toast** | 2 | Toast notifications | Lightweight, customizable, promise-based API |
+| **React Helmet Async** | Latest | SEO & meta tags | Sets title, OG tags, Twitter cards dynamically |
 
 ### Backend
 
@@ -360,7 +361,7 @@ flowsync-ai/
 │   ├── src/
 │   │   ├── main.jsx                       # Entry point
 │   │   ├── App.jsx                        # Root component
-│   │   ├── index.css                      # Tailwind directives + global styles
+│   │   ├── index.css                      # Tailwind v4 config (import + dark variant + font)
 │   │   │
 │   │   ├── routes/
 │   │   │   └── AppRoutes.jsx              # Lazy-loaded route definitions
@@ -397,7 +398,7 @@ flowsync-ai/
 │   │   │       └── LoadingSpinner.jsx
 │   │   │
 │   │   ├── pages/
-│   │   │   ├── Landing/                   # Hero, Features, HowItWorks, CTA, Footer
+│   │   │   ├── Landing/                   # Hero, Features, HowItWorks, CTA, Footer (popup modals for legal)
 │   │   │   ├── Authentication/            # Login, Register, ForgotPassword, ResetPassword
 │   │   │   ├── Dashboard/                 # Stats, AI cards, calendar, focus, risk
 │   │   │   ├── TaskManager/               # Task list + Goal manager
@@ -788,6 +789,32 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
                       │  🎨 Render    │
                       └────────────────┘
 ```
+
+---
+
+## ⚡ Performance & Build Optimizations
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    BUNDLE BREAKDOWN (Code Splitting)             │
+├─────────────────────────────────────────────────────────────────┤
+│  vendor (React 19)     181 kB  │  motion (Framer Motion) 125 kB│
+│  utils (Axios, etc.)    73 kB  │  router (React Router)   42 kB│
+│  icons (Lucide)         25 kB  │  app code                56 kB│
+└─────────────────────────────────────────────────────────────────┘
+```
+
+| Optimization | Implementation |
+|-------------|---------------|
+| **Code Splitting** | `manualChunks` splits vendor, router, motion, icons, utils into separate cacheable bundles |
+| **Lazy Loading** | All pages loaded via `React.lazy()` + `Suspense` — only requested code loads |
+| **Skeleton Loading** | `LoadingSpinner` with `page` prop renders full skeleton layout (pulse animation) instead of basic spinner |
+| **Font Loading** | Google Fonts (Inter) loaded via `<link preload>` + `preconnect` — no render blocking |
+| **Scroll Performance** | `will-change-transform` on animated elements, passive scroll listeners, `content-visibility` via framer-motion |
+| **Animation Performance** | All animations handled by framer-motion (GPU-accelerated) — zero CSS `@keyframes` |
+| **React.memo** | All landing page sections wrapped with `React.memo` — prevent unnecessary re-renders |
+| **CSS Size** | Minimal CSS — Tailwind v4 purges unused styles; only ~62 kB (10.5 kB gzip) |
+| **SEO** | Dynamic `<title>`, meta description, OG tags, Twitter cards via `react-helmet-async` |
 
 ---
 
