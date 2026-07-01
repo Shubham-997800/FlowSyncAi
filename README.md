@@ -31,6 +31,8 @@
   <img src="https://img.shields.io/badge/License-Proprietary-FF6600?style=flat-square" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
   <img src="https://img.shields.io/badge/Author-Shubham-6366F1?style=flat-square" />
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.1-Baseline-64748b?style=flat-square" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.2-Responsive-22c55e?style=flat-square" /></a>
 </p>
 
 <br>
@@ -898,7 +900,14 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 
 ## 🆕 Recent Improvements
 
-### Responsive Design Audit (8 Breakpoints)
+### Version History
+
+| Version | Tag | Highlights |
+|---------|-----|------------|
+| **v0.1** | `Baseline` | Initial release — all 14 pages + AI features + auth + calendar + analytics |
+| **v0.2** | `Responsive` | Full responsive audit across 8 breakpoints (320px–1920px+), 8 files fixed, all pages now 10/10 |
+
+### Responsive Design Audit (8 Breakpoints) — v0.2
 
 Every page in FlowSync AI has been audited and hardened against **8 viewport widths** (320px, 375px, 425px, 768px, 1024px, 1280px, 1440px, 1920px+) using **Tailwind CSS v4 responsive utilities only** — zero custom CSS, zero inline pixel values.
 
