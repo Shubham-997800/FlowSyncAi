@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { Brain, Lightbulb, Coffee, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { getTasks } from '../../services/taskService'
 import { prioritizeTasks } from '../../services/aiService'
 
-function AIRecommendation() {
+const recVariant = {
+  hidden: { opacity: 0, x: -12 },
+  show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08 } }),
+}
+
+const AIRecommendation = memo(function AIRecommendation() {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -67,8 +73,15 @@ function AIRecommendation() {
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Productivity Coach</h2>
       </div>
       <div className="space-y-3">
-        {recommendations.map(({ icon: Icon, title, desc, priority, badge }) => (
-          <div key={title} className="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-800 transition">
+        {recommendations.map(({ icon: Icon, title, desc, priority, badge }, i) => (
+          <motion.div
+            key={title}
+            variants={recVariant}
+            initial="hidden"
+            animate="show"
+            custom={i}
+            className="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-800 transition"
+          >
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
               priority === 'high' ? 'bg-red-100 dark:bg-red-900/30' : priority === 'medium' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'
             }`}>
@@ -85,11 +98,11 @@ function AIRecommendation() {
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>
   )
-}
+})
 
 export default AIRecommendation

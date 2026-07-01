@@ -1,16 +1,28 @@
+import { memo } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { motion } from 'framer-motion'
 
-function DeadlineRisk({ tasks }) {
+function getDateStr(d) {
+  if (!d) return null
+  if (typeof d === 'string') return d.split('T')[0]
+  return new Date(d).toISOString().split('T')[0]
+}
+
+const riskVariant = {
+  hidden: { opacity: 0, x: -12 },
+  show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08 } }),
+}
+
+const DeadlineRisk = memo(function DeadlineRisk({ tasks }) {
   const today = new Date().toISOString().split('T')[0]
-  const getDate = (t) => t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : null
-  const overdue = tasks.filter(t => { const d = getDate(t); return d && t.status !== 'done' && d < today })
-  const dueToday = tasks.filter(t => { const d = getDate(t); return d === today && t.status !== 'done' })
+  const overdue = tasks.filter(t => { const d = getDateStr(t.deadline); return d && t.status !== 'done' && d < today })
+  const dueToday = tasks.filter(t => { const d = getDateStr(t.deadline); return d === today && t.status !== 'done' })
 
   const atRisk = [...overdue, ...dueToday].slice(0, 3).map(t => ({
     name: t.title,
-    remaining: getDate(t) < today ? 'Overdue' : 'Due today',
-    progress: getDate(t) < today ? 100 : 65,
-    action: getDate(t) < today ? 'Complete ASAP' : 'Focus now',
+    remaining: getDateStr(t.deadline) < today ? 'Overdue' : 'Due today',
+    progress: getDateStr(t.deadline) < today ? 100 : 65,
+    action: getDateStr(t.deadline) < today ? 'Complete ASAP' : 'Focus now',
   }))
 
   const active = tasks.filter(t => t.deadline && t.status !== 'done').length
@@ -27,7 +39,12 @@ function DeadlineRisk({ tasks }) {
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Deadline Risk</h2>
         <div className="flex items-center gap-2">
           <div className="w-24 h-2 bg-slate-200 dark:bg-zinc-700 rounded-full overflow-hidden">
-            <div className={`${barColor} h-full rounded-full transition-all duration-500`} style={{ width: `${risk}%` }} />
+            <motion.div
+              className={`${barColor} h-full rounded-full`}
+              initial={{ width: 0 }}
+              animate={{ width: `${risk}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
           </div>
           <span className={`text-sm font-bold ${riskColor}`}>{risk}%</span>
         </div>
@@ -36,27 +53,39 @@ function DeadlineRisk({ tasks }) {
         <AlertTriangle size={12} /> {riskLevel}
       </div>
       {atRisk.length === 0 ? (
-        <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No tasks at risk</p>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No tasks at risk</motion.p>
       ) : (
         <div className="space-y-3">
-          {atRisk.map(({ name, remaining, progress, action }) => (
-            <div key={name} className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700">
+          {atRisk.map(({ name, remaining, progress, action }, i) => (
+            <motion.div
+              key={name}
+              variants={riskVariant}
+              initial="hidden"
+              animate="show"
+              custom={i}
+              className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700"
+            >
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{name}</p>
                 <span className="text-xs text-slate-500 dark:text-slate-400">{remaining}</span>
               </div>
               <div className="w-full h-2 bg-slate-200 dark:bg-zinc-700 rounded-full">
-                <div className="bg-indigo-500 h-full rounded-full transition-all" style={{ width: `${progress}%` }} />
+                <motion.div
+                  className="bg-indigo-500 h-full rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.6, delay: i * 0.1, ease: 'easeOut' }}
+                />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
                 Suggested: <span className="text-indigo-600 dark:text-indigo-400 font-medium">{action}</span>
               </p>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
     </section>
   )
-}
+})
 
 export default DeadlineRisk

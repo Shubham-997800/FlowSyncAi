@@ -814,8 +814,9 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **Font Loading** | Google Fonts (Inter) loaded via `<link preload>` + `preconnect` — no render blocking |
 | **Scroll Performance** | `will-change-transform` on animated elements, passive scroll listeners, `content-visibility` via framer-motion |
 | **Animation Performance** | All animations handled by framer-motion (GPU-accelerated) — zero CSS `@keyframes` |
-| **React.memo** | All landing page sections wrapped with `React.memo` — prevent unnecessary re-renders |
+| **React.memo** | Dashboard sub-components wrapped with `React.memo` — prevent unnecessary re-renders |
 | **CSS Size** | Minimal CSS — Tailwind v4 purges unused styles; only ~63 kB (10.5 kB gzip) |
+| **Auto-Refresh** | Dashboard auto-fetches tasks every 60s + on tab visibility change + manual refresh button — AI-created tasks appear instantly |
 | **SEO** | Dynamic `<title>`, meta description, OG tags, Twitter cards via `react-helmet-async` on all pages (landing, auth, legal, error) |
 
 ---
