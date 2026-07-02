@@ -97,7 +97,7 @@ function Register() {
     }
     setLoading(true)
     try {
-      const data = await register(f.name, f.email, f.password)
+      await register(f.name, f.email, f.password)
       toast.success('Account created! Welcome to FlowSync AI.')
       navigate('/dashboard')
     } catch (err) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, memo } from 'react'
-import { Bell, BellOff, X, ExternalLink, Smartphone, Settings as SettingsIcon } from 'lucide-react'
+import { BellOff, X, ExternalLink, Settings as SettingsIcon } from 'lucide-react'
 
 // Banner alerting users when browser notifications are blocked
 const browserInstructions = {

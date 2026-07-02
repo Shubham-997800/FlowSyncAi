@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Brain, Clock, AlertTriangle, CheckCircle, Lightbulb, Loader2, Zap } from 'lucide-react'
-import { getTasks } from '../../services/taskService'
 import { prioritizeTasks } from '../../services/aiService'
 
 // Sidebar panel showing AI task rankings and schedule suggestions

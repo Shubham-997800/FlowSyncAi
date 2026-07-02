@@ -253,15 +253,7 @@ async function seed() {
     console.log(`⚠ Settings error: ${e.message}`)
   }
 
-  // === 10. ENABLE AI CONSENT ===
-  try {
-    await req('PUT', '/api/settings/ai-consent', { consent: true }, token)
-    console.log('✓ AI consent enabled')
-  } catch (e) {
-    console.log(`⚠ AI consent error: ${e.message}`)
-  }
-
-  // === 11. TEST AI SUGGEST TASK ===
+  // === 10. TEST AI SUGGEST TASK ===
   try {
     const suggestion = await req('POST', '/api/ai/suggest-task', { title: 'Prepare quarterly report for board meeting' }, token)
     console.log(`✓ AI suggest-task: priority=${suggestion.suggestedPriority}, tags=${suggestion.suggestedTags?.join(',') || 'none'}`)

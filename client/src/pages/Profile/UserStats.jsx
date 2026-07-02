@@ -41,7 +41,6 @@ function UserStats() {
     return () => clearInterval(interval)
   }, [])
 
-  const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0
   const maxVal = Math.max(...weekData.filter(v => v >= 0), 100)
 
   const cards = [

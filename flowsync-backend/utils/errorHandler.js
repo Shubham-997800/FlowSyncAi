@@ -5,8 +5,11 @@ const handleError = (res, error, statusCode = 500) => {
 }
 
 const handleValidationError = (res, error) => {
-  const msgs = Object.values(error.errors).map(e => e.message).join(', ')
-  res.status(400).json({ message: msgs })
+  if (error.errors && typeof error.errors === 'object') {
+    const msgs = Object.values(error.errors).map(e => e.message).join(', ')
+    return res.status(400).json({ message: msgs })
+  }
+  handleError(res, error)
 }
 
 module.exports = { handleError, handleValidationError }

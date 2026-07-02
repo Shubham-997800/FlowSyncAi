@@ -21,12 +21,7 @@ export const uploadAvatar = async (profilePicture) => {
   return data
 }
 
-export const deleteAccount = async () => {
-  const { data } = await api.delete('/api/settings/account')
-  return data
-}
-
-export const toggleAIConsent = async (consent) => {
-  const { data } = await api.put('/api/settings/ai-consent', { consent })
+export const deleteAccount = async ({ password }) => {
+  const { data } = await api.delete('/api/settings/account', { data: { password } })
   return data
 }

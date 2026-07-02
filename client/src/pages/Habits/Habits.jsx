@@ -64,7 +64,6 @@ function HabitForm({ habit, onSave, onClose }) {
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
-const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
 
 function Habits() {
   const [habits, setHabits] = useState([])

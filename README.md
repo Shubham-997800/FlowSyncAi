@@ -36,7 +36,8 @@
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.1_Baseline-64748b?style=for-the-badge" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.2_Responsive-22c55e?style=for-the-badge" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.3_Stable-6366f1?style=for-the-badge" /></a>
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.4_Performance-f59e0b?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.4_Performance-f59e0b?style=for-the-badge" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.5_Audit-22c55e?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -148,8 +149,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | **AI Calendar Preview** | Shows AI-priority-ranked tasks per day with risk scores for smarter scheduling. |
 | **AI Focus Mode** | Context-aware break timing suggestions based on task priority and overdue status (shorter blocks for urgent tasks, longer for deep work). |
 | **Productivity Coach** | AI-generated reports that highlight patterns, strengths, weaknesses, and actionable recommendations via the analytics-insights API. |
-| **AI Consent System** | Privacy-first opt-in for AI features, managed from Settings with full visibility. |
-| **200/day Usage Limit** | Per-user daily AI call quota with usage tracking via `/api/ai/usage` endpoint. |
+
 | **Voice Input** | Speech-to-text via Web Speech API in the AI chat interface for hands-free task creation. |
 
 ### 📋 Core Features
@@ -166,7 +166,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | 🏆 **Achievements** | Gamification | Milestone-based achievements (tasks, goals, focus) with MongoDB persistence |
 | 🔔 **Notifications** | Real-Time Drawer | All/Unread filters, grouped by Today / This Week / Earlier, auto deadline reminders, framer-motion list + Helmet SEO |
 | 🏠 **Dashboard** | Command Center | Task stats, AI priority cards (live API), productivity score, deadline risk indicators, animated counters with mini sparkline charts + trend indicators, inline task editing, bulk select/complete, collapse completed tasks, quick focus button, AI recommendation refresh + skeleton + error retry + sessionStorage cache (5 min), deadline risk pulse animation + inline mark-done + view all, recent activity grouped by Today/Yesterday/This Week, widget visibility toggle persisted to localStorage, date range filter (All/Week/Month), onboarding empty state with CTAs, ErrorBoundary for resilience, last sync timestamp, AnimatePresence page transitions |
-| ⚙️ **Settings** | Full Control | Theme toggle (light/dark/system), AI consent toggle, profile editing, account deletion, framer-motion sidebar stagger + Helmet SEO |
+| ⚙️ **Settings** | Full Control | Theme toggle (light/dark/system), AI preferences, profile editing, account deletion, notification channels, framer-motion sidebar stagger + Helmet SEO |
 | 👤 **Profile** | Customizable | Avatar upload, bio, phone, location, job title, password change, framer-motion tab animations + Helmet SEO |
 | 🎤 **Voice Input** | Speech-to-Text | Browser-native Web Speech API for AI chat and task creation |
 | 🌙 **Dark Mode** | Three Themes | Light, dark, and system-follow with smooth CSS transitions |
@@ -408,7 +408,7 @@ flowsync-ai/
 │   │   │
 │   │   ├── pages/
 │   │   │   ├── Landing/                   # Hero, Features, HowItWorks, CTA, Footer (popup modals for legal)
-│   │   │   ├── Authentication/            # Login, Register, ForgotPassword, ResetPassword
+│   │   │   ├── Authentication/            # Login, Register
 │   │   │   ├── Dashboard/                 # Stats, AI cards, calendar, focus, risk
 │   │   │   ├── TaskManager/               # Task list + Goal manager
 │   │   │   ├── Calendar/                  # Monthly/weekly/daily views
@@ -442,24 +442,24 @@ flowsync-ai/
 │   │   └── rateLimiter.js                 # Rate limiting strategies
 │   │
 │   ├── models/
-│   │   ├── User.js                        # name, email, hashed password, profile, resetToken, achievements[], aiConsent
+│   │   ├── User.js                        # name, email, hashed password, profile, achievements[]
 │   │   ├── Task.js                        # title, priority, status, deadline, description
 │   │   ├── Goal.js                        # title, targetDate, progress
 │   │   ├── Habit.js                       # title, frequency, streak, logs[]
 │   │   ├── Notification.js                # type, title, message, status, userId
 │   │   ├── PushSubscription.js            # endpoint, keys for web push
 │   │   ├── ChatMessage.js                 # role, text, tasks[], createdTasks[]
-│   │   └── AiUsage.js                     # user, date, count (200/day limit)
+│   │   └── ChatMessage.js                 # role, text, tasks[], createdTasks[]
 │   │
 │   ├── controllers/
-│   │   ├── authController.js              # signup, login, forgotPassword, resetPassword
+│   │   ├── authController.js              # signup, login
 │   │   ├── taskController.js              # CRUD with sanitization
 │   │   ├── goalController.js              # CRUD with sanitization
 │   │   ├── habitController.js             # CRUD + check-in + streak calculation
 │   │   ├── analyticsController.js         # Stats, weekly, monthly aggregation
 │   │   ├── notificationController.js      # Create, list, mark-read
-│   │   ├── settingsController.js          # Profile, avatar, password, delete account, achievements, AI consent
-│   │   ├── aiController.js               # Chat, plan, prioritize, rescue, suggest-task, usage, analytics-insights
+│   │   ├── settingsController.js          # Profile, avatar, password, delete account, achievements
+│   │   ├── aiController.js               # Chat, plan, prioritize, rescue, suggest-task, analytics-insights
 │   │   ├── pushController.js             # Web push subscribe/unsubscribe
 │   │   └── chatController.js             # Chat history get/save/delete/clear
 │   │
@@ -510,8 +510,6 @@ erDiagram
         string phone
         string location
         string jobTitle
-        string resetPasswordToken "password reset"
-        date resetPasswordExpire "1 hour expiry"
         date createdAt
         date updatedAt
     }
@@ -560,13 +558,6 @@ erDiagram
         date createdAt
     }
 
-    AiUsage {
-        ObjectId _id PK
-        ObjectId userId FK "ref User"
-        string date "YYYY-MM-DD"
-        number count "daily AI call count"
-    }
-
     ChatMessage {
         ObjectId _id PK
         ObjectId userId FK "ref User"
@@ -586,11 +577,10 @@ erDiagram
 | **User → Goal** | One-to-Many | `1 : N` | Goals are user-scoped. Tasks can optionally align to goals via title matching. |
 | **User → Habit** | One-to-Many | `1 : N` | Each habit is tracked independently per user. Streaks auto-calculate from log dates. |
 | **User → Notification** | One-to-Many | `1 : N` | Notifications are generated by the system (deadline alerts, achievement unlocks). |
-| **User → AiUsage** | One-to-Many | `1 : N` | Daily AI usage counters reset each day. |
 | **User → ChatMessage** | One-to-Many | `1 : N` | Chat history persisted per user session. |
 
 > [!NOTE]
-> The `password` field is excluded from all API responses via Mongoose's `toJSON` transform. The `resetPasswordToken` and `resetPasswordExpire` fields are cleared after a successful password reset.
+> The `password` field is excluded from all API responses via Mongoose's `toJSON` transform.
 
 ---
 
@@ -643,7 +633,7 @@ erDiagram
 │         ▼               ▼               ▼                            │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
 │  │  Services  │  │  Mongoose  │  │  AI        │                     │
-│  │  (Email)   │  │  Models    │  │  Service   │                     │
+│  │            │  │  Models    │  │  Service   │                     │
 │  └────────────┘  └──────┬─────┘  └──────┬─────┘                    │
 │                         │               │                            │
 └─────────────────────────┼───────────────┼──────────────────────────┘
@@ -767,14 +757,14 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
                       │  (Validation)  │
                       └───────┬────────┘
                               │
-              ┌───────────────┼───────────────┐
-              │               │               │
-        ┌─────▼─────┐  ┌─────▼─────┐  ┌─────▼─────┐
-         │  MongoDB  │  │ OpenRouter│  │  Email    │
-        │  Query    │  │  API Call │  │  Service  │
-        └─────┬─────┘  └─────┬─────┘  └─────┬─────┘
-              │               │               │
-              └───────────────┼───────────────┘
+               ┌───────────────┬───────────────┐
+               │               │               │
+         ┌─────▼─────┐  ┌─────▼─────┐
+         │  MongoDB  │  │ OpenRouter│
+         │  Query    │  │  API Call │
+         └─────┬─────┘  └─────┬─────┘
+               │               │
+               └───────┬───────┘
                               │
                       ┌───────▼────────┐
                       │  JSON Response │
@@ -848,7 +838,8 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **v0.1** | `Baseline` | Initial release — all 14 pages + AI features + auth + calendar + analytics |
 | **v0.2** | `Responsive` | Full responsive audit across 8 breakpoints (320px–1920px+), 8 files fixed, all pages now 10/10 |
 | **v0.3** | `Auth+Stability` | Authentication audit, keyboard focus fix, password validation sync, OTP email fix, voice input auto-stop, email validation, dark mode AI history |
-| **v0.4** | `Production+Cleanup` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, removed all email/OTP code (SMTP unavailable on Railway), auto-verify on signup, cleanup dead code (+400 lines removed), fixed Railway JWT_SECRET crash |
+| **v0.4** | `Production+Cleanup` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, removed all email/OTP code, auto-verify on signup, cleanup dead code (+400 lines removed) |
+| **v0.5** | `Audit+Stability` | Full production audit: fixed errorHandler crash on non-ValidationError, account delete password not being sent, email format validation, password info leak, seed.js unused import, aiService.js console.log → console.error, qa-seed.js broken endpoint, removed dashboard period filter, +25 unused-import/variable cleanups, 48→22 lint issues, email references fully purged from README |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
@@ -861,7 +852,7 @@ Every page in FlowSync AI has been audited and hardened against **8 viewport wid
 | **Auth Card Padding** | 320px–425px | Form cards changed from `p-8` to `p-6 sm:p-8` — gains 16px+ of content width on small screens |
 | **Notification Drawer Overflow** | 320px | Dropdown constrained with `max-w-[calc(100vw-24px)]` — no more off-screen overflow |
 | **Habit Weekly Grid** | 320px–425px | 7-column grid uses responsive cell sizes (`w-5 h-5 sm:w-6 sm:h-6`), gaps (`gap-1 sm:gap-1.5`), smaller icons on mobile |
-| **Forgot/Reset Password Cards** | 320px–425px | Responsive `p-6 sm:p-8` padding on success states and form containers |
+
 
 All pages remain fully functional across every breakpoint with no overflow, no horizontal scroll, and no broken layouts.
 
@@ -871,13 +862,13 @@ A comprehensive audit and fix of the authentication system, input handling, emai
 
 | Bug | Root Cause | Fix | Files Affected |
 |-----|-----------|-----|----------------|
-| **Keyboard/Input Loses Focus** | `Field` component defined inside component body — every keystroke recreated the component, unmounting/remounting DOM elements | Extracted `Field` to shared `FormField` (memoized) in `components/ui/` | `Register.jsx`, `Login.jsx`, `ResetPassword.jsx`, `ForgotPassword.jsx` + NEW `FormField.jsx` |
-| **Password Validation Mismatch** | Frontend required ≥6 chars, backend (Mongoose) required ≥8 — users with 6-7 char passwords passed frontend but failed server-side | Synced all frontend validation to ≥8 chars, updated strength meter thresholds | `Register.jsx`, `ResetPassword.jsx` |
-| **Weak Email Validation** | Simple regex `/\\S+@\\S+\\.\\S+/` missed edge cases (double dots, missing TLD, length limits) | Created RFC 5322-inspired `validateEmail()` utility with length checks, dot validation, whitespace trimming | NEW `utils/validation.js` — applied to all 5 auth forms |
+| **Keyboard/Input Loses Focus** | `Field` component defined inside component body — every keystroke recreated the component, unmounting/remounting DOM elements | Extracted `Field` to shared `FormField` (memoized) in `components/ui/` | `Register.jsx`, `Login.jsx` + NEW `FormField.jsx` |
+| **Password Validation Mismatch** | Frontend required ≥6 chars, backend (Mongoose) required ≥8 — users with 6-7 char passwords passed frontend but failed server-side | Synced all frontend validation to ≥8 chars, updated strength meter thresholds | `Register.jsx` |
+| **Weak Email Validation** | Simple regex `/\\S+@\\S+\\.\\S+/` missed edge cases (double dots, missing TLD, length limits) | Created RFC 5322-inspired `validateEmail()` utility with length checks, dot validation, whitespace trimming | NEW `utils/validation.js` — applied to Login & Register |
 | **AI Chat History Dark Mode** | Sidebar panel used `bg-zinc-800/50` with poor contrast, missing hover/selected ring in dark mode | Changed to `bg-zinc-900`, added `ring-1 ring-indigo-800/50` for selected state, improved hover & empty state | `AIPlanner.jsx` |
 | **Weak JWT_SECRET** | `flowsync_jwt_secret_key_2024` (29 chars) — server warned but allowed | Enhanced startup warning to require 32+ chars, clear error guidance | `server.js` |
 | **Voice Input Not Auto-Stopping** | Mic kept listening when switching chat sessions or creating new chat | Added `stopVoice()` calls in `loadSession()` and `newChat()`, added cleanup on unmount | `AIPlanner.jsx` |
-| **Auth UX Polish** | Missing useCallback on handlers, no touched state on Login, unused imports | Added `useCallback` to all handlers, proper touched states, cleanup unused imports | All 5 auth pages |
+| **Auth UX Polish** | Missing useCallback on handlers, no touched state on Login, unused imports | Added `useCallback` to all handlers, proper touched states, cleanup unused imports | Login & Register |
 
 
 ### Dashboard Overhaul (Industry-Level)
@@ -940,7 +931,7 @@ A comprehensive performance, re-render, and security hardening pass.
 |-----|-----------|-----|----------------|
 | **Register Re-render Cascade** | `update`/`validate`/`handleBlur` depended on state — recreated every keystroke | `useRef` + functional `setForm(prev => ...)` — empty `[]` deps | `Register.jsx` |
 | **300ms CSS Transitions Everywhere** | `transition-colors duration-300` on all buttons, links — felt sluggish | Batched replacement: `transition-colors` (default 150ms) across 20+ files | 20+ files (51 occurrences) |
-| **Password Strength Layout Thrash** | `height: 'auto'` in Framer Motion animate recalculated every keystroke | Removed `height: 'auto'` — opacity only | `ResetPassword.jsx` |
+
 | **Auth Page Animations Slow** | Sidebar 0.5s, card 0.5s+delay | Reduced: 0.3s sidebar, 0.25s card | `AuthLayout.jsx` |
 | **Page Transitions Heavy** | MainLayout page switch 0.2s | Reduced to 0.12s | `MainLayout.jsx` |
 | **Dashboard Callback Instability** | `handleToggle`/`handleDelete` recreated on every poll | `tasksRef` pattern — stable callbacks | `Dashboard.jsx` |

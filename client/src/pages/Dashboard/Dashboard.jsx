@@ -69,30 +69,6 @@ function loadWidgets() {
   } catch { return defaultWidgets }
 }
 
-function filterTasksByPeriod(tasks, period) {
-  if (period === 'all') return tasks
-  const now = new Date()
-  if (period === 'week') {
-    const start = new Date(now)
-    start.setDate(now.getDate() - now.getDay())
-    const end = new Date(start)
-    end.setDate(start.getDate() + 7)
-    return tasks.filter(t => {
-      if (!t.deadline) return false
-      const d = new Date(t.deadline)
-      return d >= start && d < end
-    })
-  }
-  if (period === 'month') {
-    return tasks.filter(t => {
-      if (!t.deadline) return false
-      const d = new Date(t.deadline)
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-    })
-  }
-  return tasks
-}
-
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
@@ -131,7 +107,6 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState(null)
-  const [period, setPeriod] = useState('all')
   const [widgets, setWidgets] = useState(loadWidgets)
   const [showWidgetMenu, setShowWidgetMenu] = useState(false)
   const intervalRef = useRef(null)
@@ -196,15 +171,7 @@ function Dashboard() {
     localStorage.setItem(WIDGET_KEY, JSON.stringify(next))
   }
 
-  const filteredTasks = filterTasksByPeriod(tasks, period)
-
   const isEmpty = !loading && tasks.length === 0
-
-  const periodOptions = [
-    { key: 'all', label: 'All Time' },
-    { key: 'week', label: 'This Week' },
-    { key: 'month', label: 'This Month' },
-  ]
 
   const widgetOptions = [
     { key: 'dashboardCards', label: 'Overview Cards' },
@@ -259,20 +226,7 @@ function Dashboard() {
               <DashboardHeader onRefresh={() => fetchTasks(true)} refreshing={refreshing} lastSyncTime={lastSyncTime} />
             </motion.div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
-                {periodOptions.map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setPeriod(key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
-                      period === key ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+            <div className="flex items-center justify-end">
               <div className="relative">
                 <button
                   onClick={() => setShowWidgetMenu(!showWidgetMenu)}
@@ -305,7 +259,7 @@ function Dashboard() {
 
             {widgets.dashboardCards && (
               <motion.div variants={section}>
-                <DashboardCards tasks={filteredTasks} />
+                <DashboardCards tasks={tasks} />
               </motion.div>
             )}
 
@@ -318,12 +272,12 @@ function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {widgets.todayTasks && (
                 <motion.div variants={section}>
-                  <TodayTasks tasks={filteredTasks} onToggle={handleToggle} onDelete={handleDelete} />
+                  <TodayTasks tasks={tasks} onToggle={handleToggle} onDelete={handleDelete} />
                 </motion.div>
               )}
               {widgets.productivityScore && (
                 <motion.div variants={section}>
-                  <ProductivityScore tasks={filteredTasks} />
+                  <ProductivityScore tasks={tasks} />
                 </motion.div>
               )}
             </div>
@@ -336,14 +290,14 @@ function Dashboard() {
               )}
               {widgets.deadlineRisk && (
                 <motion.div variants={section}>
-                  <DeadlineRisk tasks={filteredTasks} onToggle={handleToggle} />
+                  <DeadlineRisk tasks={tasks} onToggle={handleToggle} />
                 </motion.div>
               )}
             </div>
 
             {widgets.recentActivity && (
               <motion.div variants={section}>
-                <RecentActivity tasks={filteredTasks} />
+                <RecentActivity tasks={tasks} />
               </motion.div>
             )}
           </>

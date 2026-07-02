@@ -1,7 +1,6 @@
 import { useState, memo } from 'react'
 import { AlertTriangle, CheckSquare, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
 
 // Highlights overdue and at-risk tasks with deadline warnings
 function getDateStr(d) {
@@ -16,7 +15,6 @@ const riskVariant = {
 }
 
 const DeadlineRisk = memo(function DeadlineRisk({ tasks, onToggle }) {
-  const navigate = useNavigate()
   const today = new Date().toISOString().split('T')[0]
   const [showAll, setShowAll] = useState(false)
 

@@ -25,19 +25,18 @@ async function callAI(systemMsg, userMsg, temperature = 0.7) {
       })
       const content = res.choices[0]?.message?.content || ''
       if (content) {
-        console.log(`[AI] ${model} responded successfully`)
         return content
       }
     } catch (err) {
       const info = `${err.message || ''} ${err.error?.message || ''}`
-      console.log(`[AI] ${model} failed: ${info.slice(0, 100)}`)
+      console.error(`[AI] ${model} failed: ${info.slice(0, 100)}`)
       const status = err.status || err.error?.code || 0
       if (status === 401 || status === 402 || info.includes('401') || info.includes('402') || info.includes('invalid_api_key') || info.includes('Incorrect API key')) {
         throw new Error('AI_SERVICE_UNAVAILABLE')
       }
     }
   }
-  console.log('[AI] All models failed')
+  console.error('[AI] All models failed')
   throw new Error('AI_SERVICE_UNAVAILABLE')
 }
 

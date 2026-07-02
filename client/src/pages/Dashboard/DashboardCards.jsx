@@ -27,26 +27,6 @@ function AnimatedNumber({ value, duration = 600 }) {
   return <>{display}</>
 }
 
-function Sparkline({ data, className = 'text-indigo-500' }) {
-  if (!data || data.length < 2) return null
-  const w = 80, h = 24
-  const max = Math.max(...data, 1)
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w
-    const y = h - (v / max) * h
-    return `${x},${y}`
-  }).join(' ')
-  const color = data[data.length - 1] >= data[0] ? 'stroke-indigo-500' : 'stroke-red-400'
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className={`flex-shrink-0 ${className}`}>
-      <polyline fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className={color}
-        points={points}
-      />
-    </svg>
-  )
-}
-
 function calcTrend(dailyCounts) {
   if (!dailyCounts || dailyCounts.length < 7) return null
   const firstHalf = dailyCounts.slice(0, 3).reduce((a, b) => a + b, 0)

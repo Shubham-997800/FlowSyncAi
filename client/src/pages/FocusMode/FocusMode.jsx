@@ -60,7 +60,6 @@ function FocusMode() {
   const activeTasks = tasks.filter(t => t.status !== 'done')
 
   const overdueCount = activeTasks.filter(t => t.deadline && new Date(t.deadline) < new Date()).length
-  const highPriorityCount = activeTasks.filter(t => t.priority === 'high').length
 
   const getAiSuggestion = () => {
     if (!selectedTask) return null

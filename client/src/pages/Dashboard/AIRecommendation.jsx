@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, memo } from 'react'
-import { Brain, Lightbulb, Coffee, ArrowRight, Loader2, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react'
+import { Brain, Lightbulb, Coffee, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
-import toast from 'react-hot-toast'
 import { getTasks } from '../../services/taskService'
 import { prioritizeTasks } from '../../services/aiService'
 

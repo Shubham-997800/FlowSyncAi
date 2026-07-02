@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Bell, Mail, Smartphone, Calendar, Brain, AlertTriangle, CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-react'
+import { Bell, Mail, Smartphone, Calendar, Brain, AlertTriangle, CheckCircle2, Loader2, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { usePushNotifications } from '../../hooks/usePushNotifications'
 import NotificationPermissionBanner from '../../components/NotificationPermissionBanner'
@@ -53,7 +53,6 @@ function NotificationSettings() {
     } finally { setRequesting(false) }
   }
 
-  const permissionIcon = permission === 'granted' ? CheckCircle2 : permission === 'denied' ? XCircle : RefreshCw
   const permissionColor = permission === 'granted' ? 'text-emerald-600 dark:text-emerald-400' : permission === 'denied' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
   const permissionBg = permission === 'granted' ? 'bg-emerald-100 dark:bg-emerald-900/30' : permission === 'denied' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-amber-100 dark:bg-amber-900/30'
   const permissionLabel = permission === 'granted' ? 'Allowed' : permission === 'denied' ? 'Blocked' : 'Not requested'

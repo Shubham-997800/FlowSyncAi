@@ -3,14 +3,13 @@ const Goal = require('../models/Goal')
 const Habit = require('../models/Habit')
 const AiUsage = require('../models/AiUsage')
 const aiService = require('../services/aiService')
-
 const { handleError } = require('../utils/errorHandler')
 const { AI_DAILY_LIMIT } = require('../config/constants')
 
 async function checkAiQuota(userId) {
   const today = new Date().toISOString().split('T')[0]
   const usage = await AiUsage.findOne({ user: userId, date: today })
-  if (usage && usage.count >= AI_AI_DAILY_LIMIT) return false
+  if (usage && usage.count >= AI_DAILY_LIMIT) return false
   await AiUsage.findOneAndUpdate(
     { user: userId, date: today },
     { $inc: { count: 1 } },

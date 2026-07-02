@@ -12,8 +12,6 @@ import toast from 'react-hot-toast'
 
 // Calendar page with monthly/weekly/daily views and AI-powered schedule preview
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
-const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
-const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
 const modalVariants = { hidden: { opacity: 0, scale: 0.9, y: 30 }, visible: { opacity: 1, scale: 1, y: 0 } }
 
 function Calendar() {

@@ -20,9 +20,9 @@ const updateProfile = async (req, res) => {
     const updates = {}
     if (name !== undefined) updates.name = name
     if (email !== undefined && email !== req.user.email) {
-      if (!currentPassword) return res.status(400).json({ message: 'Current password required to change email' })
+      if (!currentPassword) return res.status(400).json({ message: 'Invalid password' })
       const user = await User.findById(req.user._id)
-      if (!(await user.comparePassword(currentPassword))) return res.status(400).json({ message: 'Password is incorrect' })
+      if (!(await user.comparePassword(currentPassword))) return res.status(400).json({ message: 'Invalid password' })
       updates.email = email
       updates.isVerified = false
     }
@@ -103,20 +103,6 @@ const deleteAccount = async (req, res) => {
   }
 }
 
-const toggleAIConsent = async (req, res) => {
-  try {
-    const { consent } = req.body
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { aiConsent: !!consent },
-      { new: true }
-    )
-    res.json({ aiConsent: user.aiConsent })
-  } catch (error) {
-    handleError(res, error)
-  }
-}
-
 const updateAchievements = async (req, res) => {
   try {
     const { achievements } = req.body
@@ -135,4 +121,4 @@ const updateAchievements = async (req, res) => {
   }
 }
 
-module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, toggleAIConsent, updateAchievements }
+module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, updateAchievements }

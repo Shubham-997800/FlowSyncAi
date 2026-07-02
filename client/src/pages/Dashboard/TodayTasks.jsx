@@ -28,7 +28,6 @@ const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete }) {
   const [selected, setSelected] = useState([])
 
   const allSelected = remaining.length > 0 && selected.length === remaining.length
-  const someSelected = selected.length > 0 && !allSelected
 
   const handleStartEdit = (task) => {
     setEditingId(task._id)

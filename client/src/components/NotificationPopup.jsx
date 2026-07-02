@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ErrorBoundary from './ErrorBoundary'
-import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info, Sparkles } from 'lucide-react'
+import { Bell, CheckCircle, AlertTriangle, Info, Sparkles } from 'lucide-react'
 import { getNotifications } from '../services/notificationService'
 import toast from 'react-hot-toast'
 
@@ -57,7 +57,7 @@ const NotificationPopup = memo(function NotificationPopup() {
   const recent = notifications.slice(0, 5)
 
   const timeAgo = (time) => {
-    const mins = Math.floor((Date.now() - new Date(time).getTime()) / 60000) // eslint-disable-line react-hooks/purity
+    const mins = Math.floor((Date.now() - new Date(time).getTime()) / 60000)
     if (mins < 1) return 'now'
     if (mins < 60) return `${mins}m ago`
     const hours = Math.floor(mins / 60)
