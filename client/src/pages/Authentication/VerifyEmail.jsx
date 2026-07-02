@@ -1,12 +1,13 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Mail, Loader2, RefreshCw } from 'lucide-react'
+import { Mail, Loader2, RefreshCw, Bell } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import AuthLayout from '../../components/AuthLayout'
 import { validateEmail } from '../../utils/validation'
+import { openBrowserSettings } from '../../utils/permissions'
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams()
@@ -18,6 +19,7 @@ function VerifyEmail() {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [countdown, setCountdown] = useState(0)
+  const [notifDenied, setNotifDenied] = useState(false)
   const inputRefs = useRef([])
 
   useEffect(() => {
@@ -30,6 +32,21 @@ function VerifyEmail() {
       return () => clearTimeout(t)
     }
   }, [countdown])
+
+  const requestNotifPermission = useCallback(async () => {
+    if (typeof Notification === 'undefined') return
+    if (Notification.permission === 'denied') { setNotifDenied(true); return }
+    if (Notification.permission !== 'default') return
+    try {
+      const result = await Notification.requestPermission()
+      if (result === 'denied') setNotifDenied(true)
+    } catch {
+    }
+  }, [])
+
+  useEffect(() => {
+    requestNotifPermission()
+  }, [requestNotifPermission])
 
   const handleOtpChange = (index, value) => {
     if (!/^\d?$/.test(value)) return
@@ -148,6 +165,14 @@ function VerifyEmail() {
               ))}
             </div>
           </div>
+
+          {notifDenied && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50">
+              <Bell size={14} className="text-amber-600 dark:text-amber-400 flex-shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-400 flex-1">Enable notifications to get OTP alerts instantly.</p>
+              <button type="button" onClick={openBrowserSettings} className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline flex-shrink-0">Fix</button>
+            </div>
+          )}
 
           <motion.button
             whileTap={{ scale: 0.98 }}

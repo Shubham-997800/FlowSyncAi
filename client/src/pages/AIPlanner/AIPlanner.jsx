@@ -6,6 +6,7 @@ import { chatAI } from '../../services/aiService'
 import { createTask } from '../../services/taskService'
 import { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory } from '../../services/chatService'
 import toast from 'react-hot-toast'
+import { openBrowserSettings } from '../../utils/permissions'
 // AI Planner with chat, voice input, task creation, and session management
 const defaultMessage = { role: 'ai', text: "Hi! I'm your AI assistant. Tell me what you're working on, or ask me to create tasks for you." }
 
@@ -48,8 +49,11 @@ function AIPlanner() {
 
   const checkMicPermission = useCallback(async () => {
     try {
-      const result = await navigator.permissions.query({ name: 'microphone' })
-      return result.state
+      if (navigator.permissions && navigator.permissions.query) {
+        const result = await navigator.permissions.query({ name: 'microphone' })
+        return result.state
+      }
+      return 'prompt'
     } catch {
       return 'prompt'
     }
@@ -77,7 +81,19 @@ function AIPlanner() {
     }
     const perm = await checkMicPermission()
     if (perm === 'denied') {
-      toast.error('Microphone access is blocked. Allow microphone in your browser settings, then reload.')
+      toast((t) => (
+        <div className="flex flex-col gap-2">
+          <span className="text-sm">Microphone is blocked. Allow it in browser settings.</span>
+          <div className="flex gap-2">
+            <button onClick={() => { openBrowserSettings(); toast.dismiss(t.id) }} className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 font-medium">
+              Open Settings
+            </button>
+            <button onClick={() => toast.dismiss(t.id)} className="text-xs px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-zinc-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-zinc-600">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      ), { duration: 8000 })
       return
     }
     const recognition = new SpeechRecognition()

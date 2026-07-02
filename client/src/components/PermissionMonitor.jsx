@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Bell, Mic, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Bell, Mic, ShieldAlert, ShieldCheck, ShieldX, ExternalLink } from 'lucide-react'
+import { openBrowserSettings, getPermissionInstructions } from '../utils/permissions'
 
-// Status indicator for notification and microphone permissions
 function usePermission(name) {
   const [state, setState] = useState('prompt')
 
@@ -13,9 +13,13 @@ function usePermission(name) {
           setState(Notification.permission)
           return
         }
-        status = await navigator.permissions.query({ name })
-        setState(status.state)
-        status.addEventListener('change', () => setState(status.state))
+        if (navigator.permissions && navigator.permissions.query) {
+          status = await navigator.permissions.query({ name })
+          setState(status.state)
+          status.addEventListener('change', () => setState(status.state))
+        } else {
+          setState('prompt')
+        }
       } catch {
         setState('unsupported')
       }
@@ -40,8 +44,9 @@ function PermissionMonitor() {
 
   const allGranted = notifPerm === 'granted' && micPerm === 'granted'
   const anyDenied = notifPerm === 'denied' || micPerm === 'denied'
+  const anyPrompt = notifPerm === 'prompt' || micPerm === 'prompt'
 
-  if (allGranted) return null
+  if (allGranted && !anyPrompt) return null
 
   const badgeColor = anyDenied ? 'bg-red-500' : 'bg-amber-500'
 
@@ -52,13 +57,13 @@ function PermissionMonitor() {
         className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors relative"
         title="Permission status"
       >
-        <ShieldAlert size={16} />
+        {anyDenied ? <ShieldX size={16} /> : <ShieldAlert size={16} />}
         <span className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${badgeColor} ring-2 ring-white dark:ring-zinc-900`} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-lg z-50 p-4">
+          <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-lg z-50 p-4">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Permissions</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -90,9 +95,15 @@ function PermissionMonitor() {
                 </div>
               </div>
               {anyDenied && (
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 pt-2 border-t border-slate-200 dark:border-zinc-800">
-                  Some permissions are blocked. Allow them in your browser settings for full functionality.
-                </p>
+                <div className="pt-2 border-t border-slate-200 dark:border-zinc-700">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 leading-relaxed">{getPermissionInstructions()}</p>
+                  <button
+                    onClick={openBrowserSettings}
+                    className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                  >
+                    <ExternalLink size={12} /> Open browser settings
+                  </button>
+                </div>
               )}
             </div>
           </div>

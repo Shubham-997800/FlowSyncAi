@@ -990,17 +990,17 @@ The Dashboard received a complete rewrite with production-grade features:
 
 ---
 
-## 🗺️ Version Roadmap
+## 🗺️ Upcoming — v0.4
 
-| Version | Tag | Focus Area | Improvements |
-|---------|-----|------------|-------------|
-| **v0.4** | `TypeScript` | Code Quality | • Migrate frontend to TypeScript (strict mode)<br>• Add backend type definitions<br>• Catch type bugs at compile time |
-| **v0.5** | `Testing` | Reliability | • Unit tests with Vitest for components & utils<br>• Integration tests with Supertest for all API routes<br>• E2E tests with Playwright for auth flow |
-| **v0.6** | `Validation` | Security | • Backend input validation middleware (express-validator/zod)<br>• Strengthen JWT_SECRET generation & rotation<br>• SMTP credentials setup for production emails<br>• MongoDB indexes on `userId`, `sessionId`, `createdAt` |
-| **v0.7** | `Auth-Upgrade` | Authentication | • Refresh token pattern (short-lived access + long-lived refresh)<br>• Server-side logout with token blacklist<br>• API versioning (`/api/v1/*`)<br>• Social login (Google/GitHub OAuth) |
-| **v0.8** | `Performance` | UX Speed | • React Query / SWR for data fetching (caching + retry)<br>• Pagination on tasks, goals, habits, chat messages<br>• AI chat streaming via SSE for real-time response<br>• Loading skeletons instead of spinners |
-| **v0.9** | `UX-Pro` | Interaction | • Keyboard shortcuts (`Ctrl+K` search, `N` new task)<br>• Drag-and-drop task reordering<br>• File attachments on tasks<br>• Dark mode toggle transition animation |
-| **v1.0** | `Production` | Platform | • PWA offline support (service worker caching)<br>• Docker setup (`docker-compose` for consistent dev)<br>• i18n multi-language support (Hindi, Spanish)<br>• Storybook component documentation |
+| Focus | Improvements |
+|-------|-------------|
+| **TypeScript** | Migrate frontend to TypeScript (strict mode) + backend type definitions |
+| **Testing** | Unit tests (Vitest), API integration tests (Supertest), E2E (Playwright) |
+| **Backend Validation** | Input validation middleware (express-validator/zod), MongoDB indexes |
+| **Auth Upgrade** | Refresh tokens, server-side logout, API versioning, social login |
+| **Performance** | React Query/SWR for caching, pagination, AI streaming via SSE |
+| **UX Pro** | Keyboard shortcuts, drag-and-drop tasks, file attachments, PWA offline |
+| **Platform** | Docker setup, i18n multi-language, Storybook |
 
 ---
 
