@@ -913,7 +913,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **v0.1** | `Baseline` | Initial release — all 14 pages + AI features + auth + calendar + analytics |
 | **v0.2** | `Responsive` | Full responsive audit across 8 breakpoints (320px–1920px+), 8 files fixed, all pages now 10/10 |
 | **v0.3** | `Auth+Stability` | Authentication audit, keyboard focus fix, password validation sync, OTP email fix, voice input auto-stop, email validation, dark mode AI history |
-| **v0.4** | `Performance+Security` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, Ethereal dev email |
+| **v0.4** | `Performance+Security` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, Ethereal dev email, email verification removed (auto-verify on signup), fire-and-forget emails, fixed Railway JWT_SECRET crash |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
@@ -1029,6 +1029,8 @@ A comprehensive performance, re-render, and security hardening pass.
 | **.env.example Stale** | Missing XAI_API_KEY, AI_MODEL; dead AI_PROVIDER | Cleaned and documented all real vars | `.env.example` |
 | **No Request ID** | Impossible to trace requests across logs | `requestId` middleware + `X-Request-Id` header + morgan token | `middleware/requestId.js`, `server.js` |
 | **Duration-200/300 Transitions** | 35+ files had explicit `duration-200`/`duration-300` on hover/state transitions | Batch removal — default 150ms everywhere | 15 additional files (Settings, Landing, Notifications, Calendar, etc.) |
+| **Email OTP Timeout on Railway** | Ethereal SMTP timed out (no real SMTP configured) — signup hung for 2 minutes | Fire-and-forget email sending + auto-verify when no SMTP configured + return JWT token immediately on signup | `authController.js`, `AuthContext.jsx`, `Register.jsx` |
+| **Unverified Accounts Locked Out** | Users created before SMTP fix couldn't login (isVerified=false) | Login auto-verifies unverified accounts when no SMTP configured | `authController.js` |
 
 ### Accessibility & UX Polish — v0.4
 

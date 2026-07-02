@@ -98,21 +98,10 @@ function Register() {
     setLoading(true)
     try {
       const data = await register(f.name, f.email, f.password)
-      if (data.token) {
-        toast.success('Account created! Welcome to FlowSync AI.')
-        navigate('/dashboard')
-      } else {
-        toast.success('Account created! Check your email for the OTP.')
-        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`)
-      }
+      toast.success('Account created! Welcome to FlowSync AI.')
+      navigate('/dashboard')
     } catch (err) {
-      const serverMsg = err.response?.data?.message
-      if (err.response?.data?.email) {
-        navigate(`/verify-email?email=${encodeURIComponent(err.response.data.email)}`)
-        toast.error(serverMsg || 'Account found. Verify your email.')
-      } else {
-        toast.error(serverMsg || 'Registration failed. Check your details and try again.')
-      }
+      toast.error(err.response?.data?.message || 'Registration failed. Check your details and try again.')
     } finally { setLoading(false) }
   }
 

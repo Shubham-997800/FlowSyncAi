@@ -1,5 +1,5 @@
 import { createContext, useEffect, useContext, useReducer } from 'react'
-import { login as loginService, register as registerService, verifyEmail as verifyEmailService, resendOTP as resendOTPService } from '../services/authService'
+import { login as loginService, register as registerService } from '../services/authService'
 
 const AuthContext = createContext(null)
 
@@ -40,19 +40,6 @@ export function AuthProvider({ children }) {
     return data
   }
 
-  const verifyEmail = async (email, otp) => {
-    const data = await verifyEmailService(email, otp)
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
-    dispatch({ type: 'LOGIN', user: data.user })
-    return data
-  }
-
-  const resendOTP = async (email) => {
-    const data = await resendOTPService(email)
-    return data
-  }
-
   const setUser = (user) => {
     localStorage.setItem('user', JSON.stringify(user))
     dispatch({ type: 'UPDATE_USER', user })
@@ -65,7 +52,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user: state.user, loading: state.loading, login, register, logout, setUser, verifyEmail, resendOTP }}>
+    <AuthContext.Provider value={{ user: state.user, loading: state.loading, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   )

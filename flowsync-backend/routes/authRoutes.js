@@ -1,12 +1,10 @@
 const { Router } = require('express')
-const { signup, login, forgotPassword, resetPassword, verifyEmail, resendOTP } = require('../controllers/authController')
+const { signup, login, forgotPassword, resetPassword } = require('../controllers/authController')
 const { authLimiter, loginLimiter } = require('../middleware/rateLimiter')
 const router = Router()
 router.use(authLimiter)
 router.post('/signup', signup)
 router.post('/login', loginLimiter, login)
-router.post('/verify-email', verifyEmail)
-router.post('/resend-otp', resendOTP)
 router.post('/forgot-password', forgotPassword)
 router.post('/reset-password', resetPassword)
 module.exports = router
