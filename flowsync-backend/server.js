@@ -29,6 +29,9 @@ for (const key of required) {
 if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
   console.warn('WARNING: JWT_SECRET is too short. Use a 256-bit (64 character hex) random string.')
 }
+if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  console.warn('WARNING: SMTP credentials not configured. Email verification and password reset will not work. Set SMTP_USER and SMTP_PASS in .env')
+}
 
 const app = express()
 const PORT = process.env.PORT || 5000

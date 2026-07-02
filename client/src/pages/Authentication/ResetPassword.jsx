@@ -1,16 +1,16 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Lock, ArrowLeft, CheckCircle2, Loader2, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { resetPassword } from '../../services/authService'
+import FormField from '../../components/ui/FormField'
 
-// Reset password page with new password form, strength indicator, and success state
 function passwordStrength(pw) {
   let score = 0
-  if (pw.length >= 6) score++
-  if (pw.length >= 10) score++
+  if (pw.length >= 8) score++
+  if (pw.length >= 12) score++
   if (/[A-Z]/.test(pw)) score++
   if (/[0-9]/.test(pw)) score++
   if (/[^A-Za-z0-9]/.test(pw)) score++
@@ -35,16 +35,17 @@ function ResetPassword() {
 
   const strength = passwordStrength(password)
 
-  const validate = () => {
+  const validate = useCallback(() => {
     const e = {}
     if (!password) e.password = 'Password is required'
-    else if (password.length < 6) e.password = 'At least 6 characters'
+    else if (password.length < 8) e.password = 'At least 8 characters'
     else if (!/[A-Z]/.test(password)) e.password = 'Add an uppercase letter'
+    else if (!/[0-9]/.test(password)) e.password = 'Add a number'
     if (!confirm) e.confirm = 'Please confirm your password'
     else if (password !== confirm) e.confirm = 'Passwords do not match'
     setErrors(e)
     return Object.keys(e).length === 0
-  }
+  }, [password, confirm])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -60,15 +61,16 @@ function ResetPassword() {
     } finally { setLoading(false) }
   }
 
-  const update = (field, value) => {
+  const update = useCallback((field, value) => {
     if (field === 'password') setPassword(value)
     if (field === 'confirm') setConfirm(value)
     if (touched[field]) {
       const e = { ...errors }
       if (field === 'password') {
         if (!value) e.password = 'Password is required'
-        else if (value.length < 6) e.password = 'At least 6 characters'
+        else if (value.length < 8) e.password = 'At least 8 characters'
         else if (!/[A-Z]/.test(value)) e.password = 'Add an uppercase letter'
+        else if (!/[0-9]/.test(value)) e.password = 'Add a number'
         else delete e.password
         if (confirm && confirm !== value) e.confirm = 'Passwords do not match'
         else if (confirm === value) delete e.confirm
@@ -80,7 +82,7 @@ function ResetPassword() {
       }
       setErrors(e)
     }
-  }
+  }, [touched, errors, password, confirm])
 
   if (done) {
     return (
@@ -125,34 +127,24 @@ function ResetPassword() {
             <h2 className="text-2xl font-bold text-center text-slate-900 dark:text-slate-100">Set New Password</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-2 leading-relaxed">Enter your new password below.</p>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-              <div>
-                <label htmlFor="new-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">New Password</label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="new-password"
-                    ref={inputRef}
-                    type={show ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => update('password', e.target.value)}
-                    onBlur={() => { setTouched({ ...touched, password: true }); validate() }}
-                    placeholder="Min 6 characters"
-                    aria-invalid={!!errors.password}
-                    aria-describedby={errors.password ? 'pw-error' : undefined}
-                    className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 ${errors.password ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-300 dark:border-zinc-700 focus:ring-indigo-500'}`}
-                  />
-                  <button type="button" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                    {show ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} id="pw-error" className="flex items-center gap-1 mt-1 text-xs text-red-500">
-                    <AlertCircle size={12} /> {errors.password}
-                  </motion.p>
-                )}
-              </div>
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
+              <FormField
+                name="new-password"
+                label="New Password"
+                type={show ? 'text' : 'password'}
+                icon={Lock}
+                placeholder="Min 8 characters"
+                value={password}
+                onChange={(e) => update('password', e.target.value)}
+                onBlur={() => { setTouched({ ...touched, password: true }); validate() }}
+                error={errors.password}
+                touched={touched.password}
+                inputRef={inputRef}
+              >
+                <button type="button" onClick={() => setShow(!show)} aria-label={show ? 'Hide password' : 'Show password'} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                  {show ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </FormField>
 
               {touched.password && password && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="-mt-2 space-y-1.5">
@@ -166,7 +158,7 @@ function ResetPassword() {
                   </p>
                   <ul className="space-y-0.5">
                     {[
-                      { check: password.length >= 6, label: 'At least 6 characters' },
+                      { check: password.length >= 8, label: 'At least 8 characters' },
                       { check: /[A-Z]/.test(password), label: 'One uppercase letter' },
                       { check: /[0-9]/.test(password), label: 'One number' },
                     ].map(({ check, label }) => (
@@ -179,29 +171,18 @@ function ResetPassword() {
                 </motion.div>
               )}
 
-              <div>
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Confirm Password</label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="confirm-password"
-                    type={show ? 'text' : 'password'}
-                    required
-                    value={confirm}
-                    onChange={(e) => update('confirm', e.target.value)}
-                    onBlur={() => { setTouched({ ...touched, confirm: true }); validate() }}
-                    placeholder="Re-enter password"
-                    aria-invalid={!!errors.confirm}
-                    aria-describedby={errors.confirm ? 'conf-error' : undefined}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 ${errors.confirm ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-300 dark:border-zinc-700 focus:ring-indigo-500'}`}
-                  />
-                </div>
-                {errors.confirm && (
-                  <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} id="conf-error" className="flex items-center gap-1 mt-1 text-xs text-red-500">
-                    <AlertCircle size={12} /> {errors.confirm}
-                  </motion.p>
-                )}
-              </div>
+              <FormField
+                name="confirm-password"
+                label="Confirm Password"
+                type={show ? 'text' : 'password'}
+                icon={Lock}
+                placeholder="Re-enter password"
+                value={confirm}
+                onChange={(e) => update('confirm', e.target.value)}
+                onBlur={() => { setTouched({ ...touched, confirm: true }); validate() }}
+                error={errors.confirm}
+                touched={touched.confirm}
+              />
 
               <motion.button
                 whileTap={{ scale: 0.98 }}

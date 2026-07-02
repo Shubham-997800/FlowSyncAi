@@ -1,16 +1,29 @@
 const nodemailer = require('nodemailer')
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
+function getTransporter() {
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+
+  if (!user || !pass) {
+    console.error('SMTP credentials not configured. Set SMTP_USER and SMTP_PASS in .env')
+    return null
+  }
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: { user, pass },
+  })
+}
 
 const sendResetEmail = async (to, token) => {
+  const transporter = getTransporter()
+  if (!transporter) {
+    console.log(`[EMAIL] Would send reset email to ${to} with token: ${token}`)
+    return
+  }
+
   const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${token}`
 
   await transporter.sendMail({
@@ -31,6 +44,12 @@ const sendResetEmail = async (to, token) => {
 }
 
 const sendVerificationEmail = async (to, otp) => {
+  const transporter = getTransporter()
+  if (!transporter) {
+    console.log(`[EMAIL] Would send OTP ${otp} to ${to}`)
+    return
+  }
+
   await transporter.sendMail({
     from: `"FlowSync AI" <${process.env.SMTP_FROM || 'noreply@flowsync.ai'}>`,
     to,

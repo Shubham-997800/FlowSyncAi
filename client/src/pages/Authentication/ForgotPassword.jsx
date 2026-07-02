@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, Lock, ArrowLeft, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
+import { Mail, Lock, ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { forgotPassword } from '../../services/authService'
+import FormField from '../../components/ui/FormField'
+import { validateEmail } from '../../utils/validation'
 
-// Forgot password page with email input and reset link send confirmation
 function ForgotPassword() {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
@@ -17,8 +18,8 @@ function ForgotPassword() {
   useEffect(() => { inputRef.current?.focus() }, [])
 
   const validate = (val) => {
-    if (!val.trim()) { setError('Email is required'); return false }
-    if (!/\S+@\S+\.\S+/.test(val)) { setError('Invalid email format'); return false }
+    const emailErr = validateEmail(val)
+    if (emailErr) { setError(emailErr); return false }
     setError('')
     return true
   }
@@ -79,30 +80,19 @@ function ForgotPassword() {
             <h2 className="text-2xl font-bold text-center text-slate-900 dark:text-slate-100">Forgot Your Password?</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 text-center mt-2 leading-relaxed">Enter your registered email address and we'll send you a password reset link.</p>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="email"
-                    ref={inputRef}
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => { setEmail(e.target.value); if (error) setError('') }}
-                    placeholder="you@example.com"
-                    aria-invalid={!!error}
-                    aria-describedby={error ? 'email-error' : undefined}
-                    className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 ${error ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-300 dark:border-zinc-700 focus:ring-indigo-500'}`}
-                  />
-                </div>
-                {error && (
-                  <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} id="email-error" className="flex items-center gap-1 mt-1 text-xs text-red-500">
-                    <AlertCircle size={12} /> {error}
-                  </motion.p>
-                )}
-              </div>
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
+              <FormField
+                name="email"
+                label="Email Address"
+                type="email"
+                icon={Mail}
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); if (error) setError('') }}
+                error={error}
+                touched={error}
+                inputRef={inputRef}
+              />
 
               <motion.button
                 whileTap={{ scale: 0.98 }}

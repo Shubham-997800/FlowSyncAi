@@ -906,6 +906,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 |---------|-----|------------|
 | **v0.1** | `Baseline` | Initial release — all 14 pages + AI features + auth + calendar + analytics |
 | **v0.2** | `Responsive` | Full responsive audit across 8 breakpoints (320px–1920px+), 8 files fixed, all pages now 10/10 |
+| **v0.3** | `Auth+Stability` | Authentication audit, keyboard focus fix, password validation sync, OTP email fix, voice input auto-stop, email validation, dark mode AI history |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
@@ -921,6 +922,21 @@ Every page in FlowSync AI has been audited and hardened against **8 viewport wid
 | **Forgot/Reset Password Cards** | 320px–425px | Responsive `p-6 sm:p-8` padding on success states and form containers |
 
 All pages remain fully functional across every breakpoint with no overflow, no horizontal scroll, and no broken layouts.
+
+### Authentication & Stability Audit — v0.3
+
+A comprehensive audit and fix of the entire authentication system, input handling, email flow, and dark mode consistency.
+
+| Bug | Root Cause | Fix | Files Affected |
+|-----|-----------|-----|----------------|
+| **Keyboard/Input Loses Focus** | `Field` component defined inside component body — every keystroke recreated the component, unmounting/remounting DOM elements | Extracted `Field` to shared `FormField` (memoized) in `components/ui/` | `Register.jsx`, `Login.jsx`, `ResetPassword.jsx`, `ForgotPassword.jsx` + NEW `FormField.jsx` |
+| **Password Validation Mismatch** | Frontend required ≥6 chars, backend (Mongoose) required ≥8 — users with 6-7 char passwords passed frontend but failed server-side | Synced all frontend validation to ≥8 chars, updated strength meter thresholds | `Register.jsx`, `ResetPassword.jsx` |
+| **OTP Emails Not Sent** | `SMTP_USER` and `SMTP_PASS` were empty strings in `.env` — nodemailer crashed silently | Added graceful SMTP config check + startup warning + console logging for dev mode | `emailService.js`, `server.js` |
+| **Weak Email Validation** | Simple regex `/\\S+@\\S+\\.\\S+/` missed edge cases (double dots, missing TLD, length limits) | Created RFC 5322-inspired `validateEmail()` utility with length checks, dot validation, whitespace trimming | NEW `utils/validation.js` — applied to all 5 auth forms |
+| **AI Chat History Dark Mode** | Sidebar panel used `bg-zinc-800/50` with poor contrast, missing hover/selected ring in dark mode | Changed to `bg-zinc-900`, added `ring-1 ring-indigo-800/50` for selected state, improved hover & empty state | `AIPlanner.jsx` |
+| **Weak JWT_SECRET** | `flowsync_jwt_secret_key_2024` (29 chars) — server warned but allowed | Enhanced startup warning to require 32+ chars, clear error guidance | `server.js` |
+| **Voice Input Not Auto-Stopping** | Mic kept listening when switching chat sessions or creating new chat | Added `stopVoice()` calls in `loadSession()` and `newChat()`, added cleanup on unmount | `AIPlanner.jsx` |
+| **Auth UX Polish** | Missing useCallback on handlers, no touched state on Login, unused imports | Added `useCallback` to all handlers, proper touched states, cleanup unused imports | All 5 auth pages |
 
 ### Dashboard Overhaul (Industry-Level)
 
@@ -971,6 +987,20 @@ The Dashboard received a complete rewrite with production-grade features:
 | **Task Sorting** | New dropdown with 4 sort modes: Priority (high first), Deadline (nearest first), Title (A-Z), Newest first |
 | **Goal Progress Slider** | Replaced rigid preset buttons (0/25/50/75/100) with a custom range slider (0-100, step 5) for precise progress tracking |
 | **Notification Badge** | Sidebar Bell icon now shows a real-time unread count badge, auto-polling every 30 seconds |
+
+---
+
+## 🗺️ Version Roadmap
+
+| Version | Tag | Focus Area | Improvements |
+|---------|-----|------------|-------------|
+| **v0.4** | `TypeScript` | Code Quality | • Migrate frontend to TypeScript (strict mode)<br>• Add backend type definitions<br>• Catch type bugs at compile time |
+| **v0.5** | `Testing` | Reliability | • Unit tests with Vitest for components & utils<br>• Integration tests with Supertest for all API routes<br>• E2E tests with Playwright for auth flow |
+| **v0.6** | `Validation` | Security | • Backend input validation middleware (express-validator/zod)<br>• Strengthen JWT_SECRET generation & rotation<br>• SMTP credentials setup for production emails<br>• MongoDB indexes on `userId`, `sessionId`, `createdAt` |
+| **v0.7** | `Auth-Upgrade` | Authentication | • Refresh token pattern (short-lived access + long-lived refresh)<br>• Server-side logout with token blacklist<br>• API versioning (`/api/v1/*`)<br>• Social login (Google/GitHub OAuth) |
+| **v0.8** | `Performance` | UX Speed | • React Query / SWR for data fetching (caching + retry)<br>• Pagination on tasks, goals, habits, chat messages<br>• AI chat streaming via SSE for real-time response<br>• Loading skeletons instead of spinners |
+| **v0.9** | `UX-Pro` | Interaction | • Keyboard shortcuts (`Ctrl+K` search, `N` new task)<br>• Drag-and-drop task reordering<br>• File attachments on tasks<br>• Dark mode toggle transition animation |
+| **v1.0** | `Production` | Platform | • PWA offline support (service worker caching)<br>• Docker setup (`docker-compose` for consistent dev)<br>• i18n multi-language support (Hindi, Spanish)<br>• Storybook component documentation |
 
 ---
 
