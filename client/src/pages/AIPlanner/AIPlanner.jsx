@@ -97,14 +97,13 @@ function AIPlanner() {
     recognition.interimResults = true
     recognition.lang = 'en-US'
     recognition.onresult = (event) => {
-      const transcript = Array.from(event.results).map(r => r[0].transcript).join('')
+      let transcript = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript
+      }
       setInput(transcript)
     }
     recognition.onerror = (event) => {
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current)
-        silenceTimerRef.current = null
-      }
       stopVoice()
       switch (event.error) {
         case 'not-allowed':
@@ -132,7 +131,6 @@ function AIPlanner() {
       setListening(false)
     }
     recognitionRef.current = recognition
-    lastResultRef.current = ''
     recognition.start()
     setListening(true)
   }, [listening, checkMicPermission, stopVoice])
