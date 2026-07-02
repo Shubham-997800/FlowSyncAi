@@ -84,10 +84,6 @@ function Login() {
             </button>
           </FormField>
 
-          <div className="flex items-center justify-end">
-            <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">Forgot Password?</Link>
-          </div>
-
           <motion.button
             whileTap={{ scale: 0.98 }}
             type="submit"

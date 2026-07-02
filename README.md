@@ -57,7 +57,6 @@
 - [API Architecture](#-api-architecture)
 - [AI Architecture](#-ai-architecture)
 - [Request Lifecycle](#-request-lifecycle)
-- [Authentication Flow](#-authentication-flow)
 - [Recent Improvements](#-recent-improvements)
 - [License & Usage](#-license--usage)
 - [Author](#-author)
@@ -157,7 +156,7 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Category | Feature | Details |
 |----------|---------|---------|
-| 🔐 **Auth** | Login / Signup / Forgot / Reset / 401 / 404 | JWT-based with bcrypt hashing, forgot/reset password via email, inline validation, password strength meter (5 levels + colored bars), requirement checklist, framer-motion animations + Helmet SEO |
+| 🔐 **Auth** | Login / Signup / 401 / 404 | JWT-based with bcrypt hashing, inline validation, password strength meter (5 levels + colored bars), requirement checklist, framer-motion animations + Helmet SEO |
 | 📝 **Tasks** | Full CRUD + Goals | Priority levels, status tracking, deadlines, descriptions, field sanitization, AI suggested priority/estimate/tags, framer-motion staggered list + Helmet SEO |
 | 🎯 **Goals** | Milestone Tracking | Target dates, progress percentage, aligned with tasks, animated progress bars |
 | 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid, framer-motion card animations + Helmet SEO |
@@ -171,7 +170,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | 👤 **Profile** | Customizable | Avatar upload, bio, phone, location, job title, password change, framer-motion tab animations + Helmet SEO |
 | 🎤 **Voice Input** | Speech-to-Text | Browser-native Web Speech API for AI chat and task creation |
 | 🌙 **Dark Mode** | Three Themes | Light, dark, and system-follow with smooth CSS transitions |
-| 📧 **Email Reminders** | Auto Notifications | Scheduled service that generates deadline alerts every 30 minutes |
+| 📧 **Push Reminders** | Auto Notifications | Scheduled service that generates deadline alerts via browser push every 30 minutes |
 
 ---
 
@@ -222,7 +221,6 @@ We believe productivity tools should work **for** you, not the other way around.
 | **bcryptjs** | 3 | Password hashing | 10 salt rounds, constant-time comparison |
 | **Helmet** | 8 | Security headers | XSS, clickjacking, MIME sniffing protection |
 | **express-rate-limit** | 8 | Rate limiting | Per-endpoint configurable limits |
-| **nodemailer** | Latest | Email service | Password reset emails, HTML templates |
 
 ### AI & Infrastructure
 
@@ -479,7 +477,6 @@ flowsync-ai/
 │   │
 │   ├── services/
 │   │   ├── aiService.js                   # Prompt engineering + JSON parsing (7 models, multilingual, failover)
-│   │   ├── emailService.js                # Nodemailer — password reset
 │   │   └── reminderService.js             # Auto deadline alerts every 30 minutes
 │   │
 │   │
@@ -842,68 +839,6 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 
 ---
 
-## 🔐 Authentication Flow
-
-```
-                        ┌─────────────────────┐
-                        │  📝 SIGNUP           │
-                        │                     │
-                        │  name + email + pw  │
-                        │  pw strength meter  │
-                        │  inline validation  │
-                        └──────────┬──────────┘
-                                   │
-                                   ▼
-                        ┌─────────────────────┐
-                        │  bcrypt.hash(pw,10) │
-                        │  Save to MongoDB    │
-                        └──────────┬──────────┘
-                                   │
-                                   ▼
-                        ┌─────────────────────┐
-                        │  jwt.sign({ id })   │
-                        │  Expires: 30 days   │
-                        └──────────┬──────────┘
-                                   │
-                                   ▼
-                    ┌─────────────────────────────┐
-                    │  Response: { token, user }  │
-                    │  (password excluded via     │
-                    │   Mongoose toJSON transform) │
-                    └──────────┬──────────────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-          ▼                    ▼                    ▼
-  ┌──────────────┐   ┌────────────────┐   ┌──────────────┐
-  │  🔐 LOGIN    │   │  🔄 FORGOT PW  │   │  🚪 LOGOUT   │
-  │              │   │                │   │              │
-  │ email + pw   │   │ email → token  │   │ Clear token  │
-  │ inline valid │   │  inline valid  │   │ from client  │
-  │      ▼       │   │      ▼         │   │              │
-  │ bcrypt.check │   │ send email     │   │              │
-  │      ▼       │   │      ▼         │   │              │
-  │ jwt.sign()   │   │ verify token   │   │              │
-  │      ▼       │   │      ▼         │   │              │
-  │ return token │   │ set new pw     │   │              │
-  └──────────────┘   │ pw strength    │   └──────────────┘
-                     │ meter + valid  │
-                     └────────────────┘
-
-                    ┌─────────────────────────────┐
-                    │  🛡️ PROTECTED ROUTES        │
-                    │                              │
-                    │  Request → Authorization:    │
-                    │  Bearer <token>              │
-                    │         ↓                    │
-                    │  jwt.verify(token)           │
-                    │         ↓                    │
-                    │  Pass or 401 Unauthorized    │
-                    └──────────────────────────────┘
-```
-
----
-
 ## 🆕 Recent Improvements
 
 ### Version History
@@ -913,7 +848,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **v0.1** | `Baseline` | Initial release — all 14 pages + AI features + auth + calendar + analytics |
 | **v0.2** | `Responsive` | Full responsive audit across 8 breakpoints (320px–1920px+), 8 files fixed, all pages now 10/10 |
 | **v0.3** | `Auth+Stability` | Authentication audit, keyboard focus fix, password validation sync, OTP email fix, voice input auto-stop, email validation, dark mode AI history |
-| **v0.4** | `Performance+Security` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, Ethereal dev email, email verification removed (auto-verify on signup), fire-and-forget emails, fixed Railway JWT_SECRET crash |
+| **v0.4** | `Production+Cleanup` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, removed all email/OTP code (SMTP unavailable on Railway), auto-verify on signup, cleanup dead code (+400 lines removed), fixed Railway JWT_SECRET crash |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
@@ -938,7 +873,6 @@ A comprehensive audit and fix of the authentication system, input handling, emai
 |-----|-----------|-----|----------------|
 | **Keyboard/Input Loses Focus** | `Field` component defined inside component body — every keystroke recreated the component, unmounting/remounting DOM elements | Extracted `Field` to shared `FormField` (memoized) in `components/ui/` | `Register.jsx`, `Login.jsx`, `ResetPassword.jsx`, `ForgotPassword.jsx` + NEW `FormField.jsx` |
 | **Password Validation Mismatch** | Frontend required ≥6 chars, backend (Mongoose) required ≥8 — users with 6-7 char passwords passed frontend but failed server-side | Synced all frontend validation to ≥8 chars, updated strength meter thresholds | `Register.jsx`, `ResetPassword.jsx` |
-| **OTP Emails Not Sent** | `SMTP_USER` and `SMTP_PASS` were empty strings in `.env` — nodemailer crashed silently | Added graceful SMTP config check + startup warning + console logging for dev mode | `emailService.js`, `server.js` |
 | **Weak Email Validation** | Simple regex `/\\S+@\\S+\\.\\S+/` missed edge cases (double dots, missing TLD, length limits) | Created RFC 5322-inspired `validateEmail()` utility with length checks, dot validation, whitespace trimming | NEW `utils/validation.js` — applied to all 5 auth forms |
 | **AI Chat History Dark Mode** | Sidebar panel used `bg-zinc-800/50` with poor contrast, missing hover/selected ring in dark mode | Changed to `bg-zinc-900`, added `ring-1 ring-indigo-800/50` for selected state, improved hover & empty state | `AIPlanner.jsx` |
 | **Weak JWT_SECRET** | `flowsync_jwt_secret_key_2024` (29 chars) — server warned but allowed | Enhanced startup warning to require 32+ chars, clear error guidance | `server.js` |
@@ -1029,8 +963,7 @@ A comprehensive performance, re-render, and security hardening pass.
 | **.env.example Stale** | Missing XAI_API_KEY, AI_MODEL; dead AI_PROVIDER | Cleaned and documented all real vars | `.env.example` |
 | **No Request ID** | Impossible to trace requests across logs | `requestId` middleware + `X-Request-Id` header + morgan token | `middleware/requestId.js`, `server.js` |
 | **Duration-200/300 Transitions** | 35+ files had explicit `duration-200`/`duration-300` on hover/state transitions | Batch removal — default 150ms everywhere | 15 additional files (Settings, Landing, Notifications, Calendar, etc.) |
-| **Email OTP Timeout on Railway** | Ethereal SMTP timed out (no real SMTP configured) — signup hung for 2 minutes | Fire-and-forget email sending + auto-verify when no SMTP configured + return JWT token immediately on signup | `authController.js`, `AuthContext.jsx`, `Register.jsx` |
-| **Unverified Accounts Locked Out** | Users created before SMTP fix couldn't login (isVerified=false) | Login auto-verifies unverified accounts when no SMTP configured | `authController.js` |
+| **Email System Removed** | Nodemailer+Ethereal SMTP timed out on Railway, OTP/verification emails never delivered | Removed all email code: emailService.js, forgot/reset password routes, verify/resend-otp, frontend forgot/reset/verify pages, User model reset fields, nodemailer dependency — auto-verify all signups | 12 files deleted, +400 lines removed |
 
 ### Accessibility & UX Polish — v0.4
 

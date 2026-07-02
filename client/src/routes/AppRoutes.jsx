@@ -7,8 +7,6 @@ import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const Login = lazy(() => import('../pages/Authentication/Login'))
 const Register = lazy(() => import('../pages/Authentication/Register'))
-const ForgotPassword = lazy(() => import('../pages/Authentication/ForgotPassword'))
-const ResetPassword = lazy(() => import('../pages/Authentication/ResetPassword'))
 const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard'))
 const TaskAndGoals = lazy(() => import('../pages/TaskManager/TaskAndGoals'))
 const AIPlanner = lazy(() => import('../pages/AIPlanner/AIPlanner'))
@@ -46,8 +44,6 @@ function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="login" element={<PublicRoute><Lazy><Login /></Lazy></PublicRoute>} />
       <Route path="register" element={<PublicRoute><Lazy><Register /></Lazy></PublicRoute>} />
-      <Route path="forgot-password" element={<PublicRoute><Lazy><ForgotPassword /></Lazy></PublicRoute>} />
-      <Route path="reset-password/:token" element={<PublicRoute><Lazy><ResetPassword /></Lazy></PublicRoute>} />
       <Route element={<MainLayout />}>
         <Route path="dashboard" element={<ProtectedRoute><Lazy><Dashboard /></Lazy></ProtectedRoute>} />
         <Route path="tasks" element={<ProtectedRoute><Lazy><TaskAndGoals /></Lazy></ProtectedRoute>} />
