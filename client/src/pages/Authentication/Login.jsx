@@ -86,7 +86,7 @@ function Login() {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
           <FormField name="email" label="Email Address" type="email" icon={Mail} placeholder="you@example.com" value={form.email} onChange={(e) => update('email', e.target.value)} error={errors.email} touched={errors.email} inputRef={emailRef} />
           <FormField name="password" label="Password" type={showPassword ? 'text' : 'password'} icon={Lock} placeholder="Enter your password" value={form.password} onChange={(e) => update('password', e.target.value)} error={errors.password} touched={errors.password}>
-            <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-300">
+            <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </FormField>
@@ -105,14 +105,14 @@ function Login() {
           )}
 
           <div className="flex items-center justify-end">
-            <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300">Forgot Password?</Link>
+            <Link to="/forgot-password" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">Forgot Password?</Link>
           </div>
 
           <motion.button
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-300 flex items-center justify-center gap-2"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {loading ? <><Loader2 size={16} className="animate-spin" /> Signing In...</> : 'Sign In'}
           </motion.button>
@@ -120,7 +120,7 @@ function Login() {
 
         <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
           Don't have an account?{' '}
-          <Link to="/register" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300">Sign Up</Link>
+          <Link to="/register" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">Sign Up</Link>
         </p>
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">

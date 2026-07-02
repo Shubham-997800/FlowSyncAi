@@ -62,7 +62,7 @@ function PermissionMonitor() {
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }} />
           <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-lg z-50 p-4">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Permissions</h3>
             <div className="space-y-3">

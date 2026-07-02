@@ -37,11 +37,11 @@ function WeeklyView({ tasks, onDateClick }) {
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
       <div className="flex items-center justify-between mb-5">
-        <button onClick={prevWeek} className="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+        <button onClick={prevWeek} className="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
           <ChevronLeft size={20} />
         </button>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">This Week</h2>
-        <button onClick={nextWeek} className="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+        <button onClick={nextWeek} className="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
           <ChevronRight size={20} />
         </button>
       </div>

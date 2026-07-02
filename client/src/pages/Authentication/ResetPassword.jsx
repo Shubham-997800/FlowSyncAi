@@ -98,7 +98,7 @@ function ResetPassword() {
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Password Reset</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">Your password has been updated successfully.</p>
-          <Link to="/login" className="inline-flex items-center gap-1.5 mt-6 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300">
+          <Link to="/login" className="inline-flex items-center gap-1.5 mt-6 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
             <ArrowLeft size={14} /> Sign In
           </Link>
         </motion.div>
@@ -147,7 +147,7 @@ function ResetPassword() {
               </FormField>
 
               {touched.password && password && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="-mt-2 space-y-1.5">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="-mt-2 space-y-1.5">
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= strength ? strengthColors[strength] : 'bg-slate-200 dark:bg-zinc-700'}`} />
@@ -188,14 +188,14 @@ function ResetPassword() {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-300 flex items-center justify-center gap-2"
+                className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 {loading ? <><Loader2 size={16} className="animate-spin" /> Resetting...</> : 'Reset Password'}
               </motion.button>
             </form>
 
             <div className="text-center mt-6">
-              <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-300">
+              <Link to="/login" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
                 <ArrowLeft size={14} /> Back to Login
               </Link>
             </div>

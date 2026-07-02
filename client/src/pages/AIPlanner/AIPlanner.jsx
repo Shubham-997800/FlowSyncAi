@@ -46,6 +46,9 @@ function AIPlanner() {
   const silenceTimerRef = useRef(null)
   const lastResultRef = useRef('')
   const bottomRef = useRef(null)
+  const listeningRef = useRef(listening)
+
+  useEffect(() => { listeningRef.current = listening }, [listening])
 
   const checkMicPermission = useCallback(async () => {
     try {
@@ -156,7 +159,7 @@ function AIPlanner() {
 
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.hidden && listening) {
+      if (document.hidden && listeningRef.current) {
         stopVoice()
       }
     }
@@ -165,10 +168,10 @@ function AIPlanner() {
       document.removeEventListener('visibilitychange', handleVisibility)
       stopVoice()
     }
-  }, [listening, stopVoice])
+  }, [])
 
   const loadSession = useCallback(async (sid) => {
-    if (listening) stopVoice()
+    if (listeningRef.current) stopVoice()
     setInitialLoading(true)
     setShowSessions(false)
     try {
@@ -180,7 +183,7 @@ function AIPlanner() {
     } finally {
       setInitialLoading(false)
     }
-  }, [listening, stopVoice])
+  }, [])
 
   useEffect(() => {
     getChatSessions()
@@ -196,12 +199,12 @@ function AIPlanner() {
   }, [loadSession])
 
   const newChat = useCallback(async () => {
-    if (listening) stopVoice()
+    if (listeningRef.current) stopVoice()
     const sid = genId()
     setSessionId(sid)
     setMessages([defaultMessage])
     setShowSessions(false)
-  }, [listening, stopVoice])
+  }, [])
 
   useEffect(() => {
     if (!initialLoading) {
@@ -341,7 +344,7 @@ function AIPlanner() {
             </div>
           </div>
           {messages.length > 1 && (
-            <button onClick={newChat} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+            <button onClick={newChat} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
               <Trash2 size={15} /> New Chat
             </button>
           )}
@@ -412,7 +415,7 @@ function AIPlanner() {
                                   <button
                                     onClick={() => handleCreateTask(task, i)}
                                     disabled={creating === i}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-xs font-medium transition-colors duration-300 disabled:opacity-50 flex-shrink-0"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-xs font-medium transition-colors disabled:opacity-50 flex-shrink-0"
                                   >
                                     {creating === i ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                                     Create
@@ -447,7 +450,7 @@ function AIPlanner() {
                     key={i}
                     onClick={() => handleSend(s)}
                     disabled={loading}
-                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors duration-300 disabled:opacity-50 flex items-center gap-1"
+                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 dark:bg-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors disabled:opacity-50 flex items-center gap-1"
                   >
                     <Sparkles size={10} /> {s}
                   </button>
@@ -493,7 +496,7 @@ function AIPlanner() {
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || loading}
-                  className="px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-300 flex items-center justify-center"
+                  className="px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                 </button>

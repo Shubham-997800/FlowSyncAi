@@ -33,6 +33,8 @@
   <img src="https://img.shields.io/badge/Author-Shubham-6366F1?style=flat-square" />
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.1-Baseline-64748b?style=flat-square" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.2-Responsive-22c55e?style=flat-square" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.3-Stable-6366f1?style=flat-square" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.4-Performance-f59e0b?style=flat-square" /></a>
 </p>
 
 <br>
@@ -907,6 +909,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **v0.1** | `Baseline` | Initial release — all 14 pages + AI features + auth + calendar + analytics |
 | **v0.2** | `Responsive` | Full responsive audit across 8 breakpoints (320px–1920px+), 8 files fixed, all pages now 10/10 |
 | **v0.3** | `Auth+Stability` | Authentication audit, keyboard focus fix, password validation sync, OTP email fix, voice input auto-stop, email validation, dark mode AI history |
+| **v0.4** | `Performance+Security` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
@@ -925,7 +928,7 @@ All pages remain fully functional across every breakpoint with no overflow, no h
 
 ### Authentication & Stability Audit — v0.3
 
-A comprehensive audit and fix of the entire authentication system, input handling, email flow, and dark mode consistency.
+A comprehensive audit and fix of the authentication system, input handling, email flow, and dark mode consistency.
 
 | Bug | Root Cause | Fix | Files Affected |
 |-----|-----------|-----|----------------|
@@ -937,6 +940,7 @@ A comprehensive audit and fix of the entire authentication system, input handlin
 | **Weak JWT_SECRET** | `flowsync_jwt_secret_key_2024` (29 chars) — server warned but allowed | Enhanced startup warning to require 32+ chars, clear error guidance | `server.js` |
 | **Voice Input Not Auto-Stopping** | Mic kept listening when switching chat sessions or creating new chat | Added `stopVoice()` calls in `loadSession()` and `newChat()`, added cleanup on unmount | `AIPlanner.jsx` |
 | **Auth UX Polish** | Missing useCallback on handlers, no touched state on Login, unused imports | Added `useCallback` to all handlers, proper touched states, cleanup unused imports | All 5 auth pages |
+
 
 ### Dashboard Overhaul (Industry-Level)
 
@@ -990,7 +994,42 @@ The Dashboard received a complete rewrite with production-grade features:
 
 ---
 
-## 🗺️ Upcoming — v0.4
+### Performance & Security Audit — v0.4
+
+A comprehensive performance, re-render, and security hardening pass.
+
+| Fix | Root Cause | Fix | Files Affected |
+|-----|-----------|-----|----------------|
+| **Register Re-render Cascade** | `update`/`validate`/`handleBlur` depended on state — recreated every keystroke | `useRef` + functional `setForm(prev => ...)` — empty `[]` deps | `Register.jsx` |
+| **300ms CSS Transitions Everywhere** | `transition-colors duration-300` on all buttons, links — felt sluggish | Batched replacement: `transition-colors` (default 150ms) across 20+ files | 20+ files (51 occurrences) |
+| **Password Strength Layout Thrash** | `height: 'auto'` in Framer Motion animate recalculated every keystroke | Removed `height: 'auto'` — opacity only | `ResetPassword.jsx` |
+| **Auth Page Animations Slow** | Sidebar 0.5s, card 0.5s+delay | Reduced: 0.3s sidebar, 0.25s card | `AuthLayout.jsx` |
+| **Page Transitions Heavy** | MainLayout page switch 0.2s | Reduced to 0.12s | `MainLayout.jsx` |
+| **Dashboard Callback Instability** | `handleToggle`/`handleDelete` recreated on every poll | `tasksRef` pattern — stable callbacks | `Dashboard.jsx` |
+| **AIPlanner Callback Cascade** | `loadSession`/`newChat` depended on `[listening, stopVoice]` — re-ran on every mic toggle | `listeningRef` + empty `[]` deps | `AIPlanner.jsx` |
+| **CSP Completely Disabled** | `contentSecurityPolicy: false` — XSS vulnerable | Proper CSP policy with `default-src 'self'` | `server.js` |
+| **No Crash Handlers** | Missing `unhandledRejection` / `uncaughtException` — server could crash silently | Added process error handlers | `server.js` |
+| **Weak JWT_SECRET** | `console.warn` only — server started anyway | `process.exit(1)` if <32 chars | `server.js` |
+| **Toggle Switches No ARIA** | Missing `role="switch"` / `aria-checked` — screen reader unfriendly | Added ARIA attributes | `AISettings.jsx`, `NotificationSettings.jsx` |
+| **Missing Error Boundaries** | Settings/Profile/NotificationPopup had no error isolation | Wrapped with `<ErrorBoundary>` | `Settings.jsx`, `Profile.jsx`, `NotificationPopup.jsx` |
+| **Inconsistent Error Handling** | settingsController used hardcoded "Server error" instead of `handleError()` | Migrated all 7 catch blocks to `handleError()` | `settingsController.js` |
+| **No Dedicated Login Rate Limiter** | All auth routes shared same 10/min limit | Added `loginLimiter` (5 req/min) specifically for `/login` | `authRoutes.js`, `rateLimiter.js` |
+| **`height: auto` in Animate** | TodayTasks + Landing used `height: 'auto'` in Framer Motion | Removed `height` from animate — overflow-hidden + opacity | `TodayTasks.jsx`, `Landing.jsx` |
+| **PermissionMonitor No Escape Key** | Clickaway overlay could not be dismissed via keyboard | Added `onKeyDown` Escape handler | `PermissionMonitor.jsx` |
+
+### Accessibility & UX Polish — v0.4
+
+| Fix | Description |
+|-----|-------------|
+| **Skip-to-Content Link** | Hidden link visible on keyboard focus (Tab) — bypasses sidebar, jumps to main content |
+| **Focus Trap in Modals** | Tab/Shift+Tab cycles through focusable elements, Escape to close, auto-focus on open |
+| **prefers-reduced-motion** | Entire app wrapped in `<MotionConfig reducedMotion="user">` — framer-motion respects OS accessibility settings |
+| **Screen Reader Support** | `aria-live` regions for dynamic content (toasts, loading), `role="switch"` + `aria-checked` on all toggles |
+| **Error Boundaries** | Every page-level component now wrapped in ErrorBoundary — one widget crash never blanks the page |
+
+---
+
+## 🗺️ Future Roadmap
 
 | Focus | Improvements |
 |-------|-------------|

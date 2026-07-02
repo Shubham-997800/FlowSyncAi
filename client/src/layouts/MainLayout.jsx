@@ -74,7 +74,7 @@ function MainLayout() {
       <div className="flex flex-col flex-1 min-w-0">
         <header className="h-14 flex-shrink-0 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-3 sm:px-6 lg:px-8 sticky top-0 z-10">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <button className="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            <button className="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0" onClick={() => setSidebarOpen(prev => !prev)}>
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             <h1 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">{pageTitle}</h1>
@@ -82,7 +82,7 @@ function MainLayout() {
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <PermissionMonitor />
             <NotificationPopup />
-            <button onClick={toggle} className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300 flex-shrink-0">
+            <button onClick={toggle} className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <button onClick={() => navigate('/profile')} className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-3 border-l border-slate-200 dark:border-zinc-800 hover:opacity-80 transition-opacity">
@@ -95,7 +95,7 @@ function MainLayout() {
         </header>
         <main id="main-content" className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <AnimatePresence mode="wait">
-            <motion.div key={location.pathname} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.2 }}>
+            <motion.div key={location.pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.12 }}>
               <Outlet />
             </motion.div>
           </AnimatePresence>

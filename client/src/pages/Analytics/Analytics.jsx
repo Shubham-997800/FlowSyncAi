@@ -95,10 +95,10 @@ function Analytics() {
         <div className="flex gap-2">
           <div className="flex gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
             {['weekly', 'monthly'].map(p => (
-              <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors duration-300 capitalize ${period === p ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{p}</button>
+              <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${period === p ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{p}</button>
             ))}
           </div>
-          <button onClick={handleExport} disabled={exporting} className="px-3 py-1.5 rounded-xl text-sm font-medium bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-300 flex items-center gap-1.5 disabled:opacity-60">
+          <button onClick={handleExport} disabled={exporting} className="px-3 py-1.5 rounded-xl text-sm font-medium bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 disabled:opacity-60">
             {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             Export
           </button>

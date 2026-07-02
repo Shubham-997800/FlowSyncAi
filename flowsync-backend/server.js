@@ -27,7 +27,8 @@ for (const key of required) {
   }
 }
 if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
-  console.warn('WARNING: JWT_SECRET is too short. Use a 256-bit (64 character hex) random string.')
+  console.error('FATAL: JWT_SECRET is too short. Use a 256-bit (64+ character hex) random string.')
+  process.exit(1)
 }
 if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
   console.warn('WARNING: SMTP credentials not configured. Email verification and password reset will not work. Set SMTP_USER and SMTP_PASS in .env')
@@ -38,7 +39,17 @@ const PORT = process.env.PORT || 5000
 
 app.set('trust proxy', 1)
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", process.env.CLIENT_URL || 'http://localhost:5173', 'https://openrouter.ai'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      scriptSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
   crossOriginEmbedderPolicy: false,
 }))
 app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }))
@@ -72,6 +83,15 @@ app.use((err, req, res, next) => {
   if (err.code === 11000) return res.status(400).json({ message: 'Duplicate field' })
   if (err.name === 'CastError') return res.status(400).json({ message: 'Invalid ID' })
   res.status(err.statusCode || 500).json({ message: err.message || 'Server error' })
+})
+
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION:', err)
+})
+
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err)
+  process.exit(1)
 })
 
 app.listen(PORT, () => {

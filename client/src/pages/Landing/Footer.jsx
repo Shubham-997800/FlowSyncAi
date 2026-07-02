@@ -32,7 +32,7 @@ function Footer() {
             <ul className="space-y-2">
               {quickLinks.map(({ label, href }) => (
                 <li key={label}>
-                  <a href={href} className="text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-300">{label}</a>
+                  <a href={href} className="text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{label}</a>
                 </li>
               ))}
             </ul>
@@ -42,7 +42,7 @@ function Footer() {
             <ul className="space-y-2">
               {legalLinks.map(({ label, icon: Icon, modal: m }) => (
                 <li key={label}>
-                  <button onClick={() => setModal(m)} className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-300 cursor-pointer">
+                  <button onClick={() => setModal(m)} className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer">
                     <Icon size={14} /> {label}
                   </button>
                 </li>

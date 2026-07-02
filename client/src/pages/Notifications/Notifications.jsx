@@ -115,11 +115,11 @@ function Notifications() {
         <div className="flex gap-2">
           <div className="flex gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
             {['all', 'unread'].map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors duration-300 ${activeTab === tab ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{tab}</button>
+              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${activeTab === tab ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{tab}</button>
             ))}
           </div>
           {notifications.length > 0 && (
-            <button onClick={dismissAll} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-300">Clear all</button>
+            <button onClick={dismissAll} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors">Clear all</button>
           )}
         </div>
       </div>
@@ -127,7 +127,7 @@ function Notifications() {
       {isDev && (
         <div className="mb-8 flex flex-wrap gap-2">
           {sampleTypes.map(type => (
-            <button key={type} onClick={() => addNotification(type)} className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors duration-300 capitalize">
+            <button key={type} onClick={() => addNotification(type)} className="px-3 py-1.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors capitalize">
               + {type}
             </button>
           ))}

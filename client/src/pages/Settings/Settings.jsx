@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Palette, Bell, Brain, Shield } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
+import ErrorBoundary from '../../components/ErrorBoundary'
 import ThemeSettings from './ThemeSettings'
 import NotificationSettings from './NotificationSettings'
 import AISettings from './AISettings'
@@ -49,10 +50,12 @@ function Settings() {
         </div>
 
         <div className="lg:col-span-3">
-          {tab === 'theme' && <ThemeSettings />}
-          {tab === 'notifications' && <NotificationSettings />}
-          {tab === 'ai' && <AISettings />}
-          {tab === 'account' && <AccountSettings />}
+          <ErrorBoundary>
+            {tab === 'theme' && <ThemeSettings />}
+            {tab === 'notifications' && <NotificationSettings />}
+            {tab === 'ai' && <AISettings />}
+            {tab === 'account' && <AccountSettings />}
+          </ErrorBoundary>
         </div>
       </div>
     </motion.div>

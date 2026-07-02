@@ -20,7 +20,7 @@ function FormField({ name, label, type, icon: Icon, placeholder, value, onChange
           placeholder={placeholder}
           aria-invalid={!!hasError}
           aria-describedby={hasError ? `${name}-error` : undefined}
-          className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${children ? 'pr-10' : 'pr-4'} py-2.5 rounded-xl border text-sm bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:border-transparent transition-colors duration-300 ${hasError ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-300 dark:border-zinc-700 focus:ring-indigo-500'}`}
+          className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${children ? 'pr-10' : 'pr-4'} py-2.5 rounded-xl border text-sm bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${hasError ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-300 dark:border-zinc-700 focus:ring-indigo-500'}`}
         />
         {children}
       </div>

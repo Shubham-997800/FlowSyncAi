@@ -54,17 +54,17 @@ function Landing() {
 
               <div className="hidden md:flex items-center gap-6">
                 {links.map((l) => (
-                  <a key={l.href} href={l.href} className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-500 transition-colors duration-300">{l.label}</a>
+                  <a key={l.href} href={l.href} className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-500 transition-colors">{l.label}</a>
                 ))}
-                <button onClick={toggle} aria-label="Toggle theme" className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+                <button onClick={toggle} aria-label="Toggle theme" className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
                   {dark ? <Sun size={18} /> : <Moon size={18} />}
                 </button>
-                <Link to="/login" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-500 transition-colors duration-300">Login</Link>
+                <Link to="/login" className="text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-500 transition-colors">Login</Link>
                 <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm hover:shadow-md active:scale-[0.97]">Get Started</Link>
               </div>
 
               <div className="flex items-center gap-2 md:hidden">
-                <button onClick={toggle} aria-label="Toggle theme" className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+                <button onClick={toggle} aria-label="Toggle theme" className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
                   {dark ? <Sun size={18} /> : <Moon size={18} />}
                 </button>
                 <button aria-label="Toggle menu" className="p-2" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -85,10 +85,10 @@ function Landing() {
               >
                 <div className="px-4 pb-4 pt-2 space-y-2">
                   {links.map((l) => (
-                    <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">{l.label}</a>
+                    <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">{l.label}</a>
                   ))}
-                  <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition-colors duration-300">Login</Link>
-                  <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg text-center transition-colors duration-300">Get Started</Link>
+                  <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">Login</Link>
+                  <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-3 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 rounded-lg text-center transition-colors">Get Started</Link>
                 </div>
               </motion.div>
             )}

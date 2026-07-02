@@ -135,6 +135,8 @@ function Dashboard() {
   const [widgets, setWidgets] = useState(loadWidgets)
   const [showWidgetMenu, setShowWidgetMenu] = useState(false)
   const intervalRef = useRef(null)
+  const tasksRef = useRef(tasks)
+  useEffect(() => { tasksRef.current = tasks }, [tasks])
 
   const fetchTasks = useCallback(async (silent = false) => {
     if (!silent) setLoading(true)
@@ -162,16 +164,17 @@ function Dashboard() {
   }, [fetchTasks])
 
   const handleToggle = useCallback(async (id) => {
-    const task = tasks.find(t => t._id === id)
+    const current = tasksRef.current
+    const task = current.find(t => t._id === id)
     if (!task) return
-    const prevStatus = task.status
-    const newStatus = prevStatus === 'done' ? 'todo' : 'done'
+    const newStatus = task.status === 'done' ? 'todo' : 'done'
     setTasks(prev => prev.map(t => t._id === id ? { ...t, status: newStatus } : t))
     try { await updateTask(id, { status: newStatus }) } catch { toast.error('Failed to update task') }
-  }, [tasks])
+  }, [])
 
   const handleDelete = useCallback(async (id) => {
-    const deleted = tasks.find(t => t._id === id)
+    const current = tasksRef.current
+    const deleted = current.find(t => t._id === id)
     setTasks(prev => prev.filter(t => t._id !== id))
     const undo = () => {
       if (deleted) setTasks(prev => [...prev, deleted])
@@ -185,7 +188,7 @@ function Dashboard() {
       { duration: 4000, style: { borderRadius: '12px', background: '#1e293b', color: '#f1f5f9', fontSize: '13px' } }
     )
     try { await deleteTask(id) } catch { toast.error('Failed to delete task') }
-  }, [tasks])
+  }, [])
 
   const toggleWidget = (key) => {
     const next = { ...widgets, [key]: !widgets[key] }

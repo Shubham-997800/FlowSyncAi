@@ -36,7 +36,7 @@ function NotFound() {
           <motion.h1 variants={item} className="text-6xl font-bold text-slate-900 dark:text-slate-100 mb-2">404</motion.h1>
           <motion.p variants={item} className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">Page not found. The page you're looking for doesn't exist or has been moved.</motion.p>
           <motion.div variants={item}>
-            <button onClick={() => navigate('/dashboard')} className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors duration-300">
+            <button onClick={() => navigate('/dashboard')} className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
               <Home size={16} /> Go to Dashboard
             </button>
           </motion.div>

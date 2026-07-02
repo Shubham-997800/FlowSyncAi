@@ -133,7 +133,7 @@ function FocusMode() {
                 <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">No active tasks</p>
               ) : (
                 activeTasks.map(t => (
-                  <motion.button key={t._id} variants={itemVariants} onClick={() => setSelectedTask(t)} className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors duration-300 ${selectedTask?._id === t._id ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium border border-indigo-200 dark:border-indigo-900/50' : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
+                  <motion.button key={t._id} variants={itemVariants} onClick={() => setSelectedTask(t)} className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors ${selectedTask?._id === t._id ? 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium border border-indigo-200 dark:border-indigo-900/50' : 'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-zinc-800'}`}>
                     {t.title}
                   </motion.button>
                 ))

@@ -67,7 +67,7 @@ function Achievements({ tasks, goals, habits }) {
         {milestones.map(({ id, icon: Icon, label, check, color, bg }) => {
           const unlocked = check(tasks) || check(goals) || check(habits)
           return (
-            <div key={id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-300 ${unlocked ? 'bg-slate-50 dark:bg-zinc-800' : 'opacity-40'}`}>
+            <div key={id} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${unlocked ? 'bg-slate-50 dark:bg-zinc-800' : 'opacity-40'}`}>
               <div className={`w-8 h-8 rounded-lg ${unlocked ? bg : 'bg-slate-100 dark:bg-zinc-800'} flex items-center justify-center`}>
                 <Icon size={16} className={unlocked ? color : 'text-slate-400'} />
               </div>

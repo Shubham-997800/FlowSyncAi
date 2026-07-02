@@ -24,4 +24,12 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-module.exports = { authLimiter, aiLimiter, generalLimiter }
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { message: 'Too many login attempts. Try again in a minute.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+module.exports = { authLimiter, aiLimiter, generalLimiter, loginLimiter }

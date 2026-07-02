@@ -30,7 +30,7 @@ function AuthLayout({ mode, title, subtitle, children, footer }) {
       <motion.div
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
         className="hidden lg:flex flex-col justify-between w-80 xl:w-96 bg-white dark:bg-zinc-900 p-12 border-r border-slate-200 dark:border-zinc-800"
       >
         <div>
@@ -78,9 +78,9 @@ function AuthLayout({ mode, title, subtitle, children, footer }) {
             <Link to="/" className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
           </div>
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
             className="bg-white dark:bg-zinc-900 rounded-2xl p-6 sm:p-8 border border-slate-200 dark:border-zinc-800 shadow-sm"
           >
             <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{title}</h2>

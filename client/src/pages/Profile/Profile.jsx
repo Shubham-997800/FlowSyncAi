@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { User, Settings as SettingsIcon, LogOut, Camera, TrendingUp, X, Loader2, Lock } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
+import ErrorBoundary from '../../components/ErrorBoundary'
 import EditProfile from './EditProfile'
 import ChangePassword from './ChangePassword'
 import UserStats from './UserStats'
@@ -120,9 +121,11 @@ function Profile() {
         </div>
 
         <div className="lg:col-span-3 space-y-6">
-          {tab === 'overview' && <><UserStats /><RecentActivity /></>}
-          {tab === 'edit' && <EditProfile />}
-          {tab === 'password' && <ChangePassword />}
+          <ErrorBoundary>
+            {tab === 'overview' && <><UserStats /><RecentActivity /></>}
+            {tab === 'edit' && <EditProfile />}
+            {tab === 'password' && <ChangePassword />}
+          </ErrorBoundary>
         </div>
       </div>
     </motion.div>

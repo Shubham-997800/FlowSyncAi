@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import ErrorBoundary from './ErrorBoundary'
 import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info, Sparkles } from 'lucide-react'
 import { getNotifications } from '../services/notificationService'
 import toast from 'react-hot-toast'
@@ -65,8 +66,9 @@ function NotificationPopup() {
   }
 
   return (
+    <ErrorBoundary>
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen(!open)} className="relative p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-300">
+      <button onClick={() => setOpen(!open)} className="relative p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
         <Bell size={18} />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full ring-2 ring-slate-50 dark:ring-zinc-950">
@@ -122,6 +124,7 @@ function NotificationPopup() {
         </>
       )}
     </div>
+    </ErrorBoundary>
   )
 }
 

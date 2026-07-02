@@ -1,3 +1,4 @@
+const { handleError } = require('../utils/errorHandler')
 const User = require('../models/User')
 
 function isValidUrl(str) {
@@ -9,7 +10,7 @@ const getProfile = async (req, res) => {
   try {
     res.json(req.user)
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    handleError(res, error)
   }
 }
 
@@ -42,7 +43,7 @@ const updateProfile = async (req, res) => {
     )
     res.json(user)
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    handleError(res, error)
   }
 }
 
@@ -58,7 +59,7 @@ const uploadAvatar = async (req, res) => {
     )
     res.json(user)
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    handleError(res, error)
   }
 }
 
@@ -73,7 +74,7 @@ const updatePassword = async (req, res) => {
     await user.save()
     res.json({ message: 'Password updated successfully' })
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    handleError(res, error)
   }
 }
 
@@ -98,7 +99,7 @@ const deleteAccount = async (req, res) => {
     ])
     res.json({ message: 'Account deleted' })
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    handleError(res, error)
   }
 }
 
@@ -112,7 +113,7 @@ const toggleAIConsent = async (req, res) => {
     )
     res.json({ aiConsent: user.aiConsent })
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    handleError(res, error)
   }
 }
 
@@ -130,7 +131,7 @@ const updateAchievements = async (req, res) => {
     )
     res.json({ achievements: user.achievements })
   } catch (error) {
-    res.status(500).json({ message: 'Server error' })
+    handleError(res, error)
   }
 }
 
