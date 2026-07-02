@@ -32,6 +32,11 @@ export function AuthProvider({ children }) {
 
   const register = async (name, email, password) => {
     const data = await registerService({ name, email, password })
+    if (data.token) {
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      dispatch({ type: 'LOGIN', user: data.user })
+    }
     return data
   }
 

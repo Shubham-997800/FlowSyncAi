@@ -14,6 +14,8 @@ const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body
     let user = await User.findOne({ email })
+    const smtpConfigured = process.env.SMTP_USER && process.env.SMTP_PASS
+
     if (user) {
       if (user.isVerified) {
         return res.status(400).json({ message: 'An account with this email already exists. Try signing in.' })
@@ -23,34 +25,35 @@ const signup = async (req, res) => {
       user.password = password
       user.verificationOTP = crypto.createHash('sha256').update(otp).digest('hex')
       user.verificationOTPExpire = Date.now() + 10 * 60 * 1000
+      if (!smtpConfigured) user.isVerified = true
       await user.save()
-      try {
-        await sendVerificationEmail(email, otp)
-      } catch (emailErr) {
-        console.error('Verification email send error:', emailErr.message)
-      }
+      sendVerificationEmail(email, otp).catch(err => console.error('Verification email error:', err.message))
+      const token = generateToken(user._id)
       return res.status(200).json({
-        message: 'OTP resent. Verify your email to continue.',
-        userId: user._id,
-        email: user.email,
+        message: smtpConfigured ? 'OTP resent. Verify your email to continue.' : 'Account updated.',
+        token,
+        user,
       })
     }
+
+    const isVerified = !smtpConfigured
     const otp = generateOTP()
     user = await User.create({
       name, email, password,
-      isVerified: false,
-      verificationOTP: crypto.createHash('sha256').update(otp).digest('hex'),
-      verificationOTPExpire: Date.now() + 10 * 60 * 1000,
+      isVerified,
+      verificationOTP: isVerified ? undefined : crypto.createHash('sha256').update(otp).digest('hex'),
+      verificationOTPExpire: isVerified ? undefined : Date.now() + 10 * 60 * 1000,
     })
-    try {
-      await sendVerificationEmail(email, otp)
-    } catch (emailErr) {
-      console.error('Verification email send error:', emailErr.message)
+
+    if (!isVerified) {
+      sendVerificationEmail(email, otp).catch(err => console.error('Verification email error:', err.message))
     }
+
+    const token = generateToken(user._id)
     res.status(201).json({
-      message: 'Account created. Please verify your email.',
-      userId: user._id,
-      email: user.email,
+      message: smtpConfigured ? 'Account created. Please verify your email.' : 'Account created successfully.',
+      token,
+      user,
     })
   } catch (error) {
     console.error('Signup error:', error.message, error.name)
@@ -102,16 +105,8 @@ const resendOTP = async (req, res) => {
     user.verificationOTPExpire = Date.now() + 10 * 60 * 1000
     await user.save()
 
-    try {
-      await sendVerificationEmail(email, otp)
-      res.json({ message: 'OTP resent to your email' })
-    } catch (emailErr) {
-      user.verificationOTP = undefined
-      user.verificationOTPExpire = undefined
-      await user.save()
-      console.error('Resend OTP email error:', emailErr.message)
-      res.status(500).json({ message: 'OTP could not be sent' })
-    }
+    sendVerificationEmail(email, otp).catch(err => console.error('Resend OTP email error:', err.message))
+    res.json({ message: 'OTP resent to your email' })
   } catch (error) {
     handleError(res, error)
   }
@@ -133,7 +128,13 @@ const login = async (req, res) => {
     }
     await user.resetLoginAttempts()
     if (!user.isVerified) {
-      return res.status(403).json({ message: 'Please verify your email before signing in. Check your inbox for the OTP.', needsVerification: true, email: user.email })
+      const smtpConfigured = process.env.SMTP_USER && process.env.SMTP_PASS
+      if (!smtpConfigured) {
+        user.isVerified = true
+        await user.save()
+      } else {
+        return res.status(403).json({ message: 'Please verify your email before signing in. Check your inbox for the OTP.', needsVerification: true, email: user.email })
+      }
     }
     res.json({ token: generateToken(user._id), user })
   } catch (error) {
@@ -154,16 +155,10 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpire = Date.now() + 60 * 60 * 1000
     await user.save()
 
-    try {
-      await sendResetEmail(email, resetToken)
-      res.json({ message: 'Reset link sent to your email' })
-    } catch (emailErr) {
-      user.resetPasswordToken = undefined
-      user.resetPasswordExpire = undefined
-      await user.save()
-      console.error('Email send error:', emailErr.message)
-      res.status(500).json({ message: 'Email could not be sent' })
-    }
+    sendResetEmail(email, resetToken).catch(err => {
+      console.error('Email send error:', err.message)
+    })
+    res.json({ message: 'Reset link sent to your email' })
   } catch (error) {
     handleError(res, error)
   }
