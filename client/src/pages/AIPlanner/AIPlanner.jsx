@@ -42,8 +42,6 @@ function AIPlanner() {
   const [showSessions, setShowSessions] = useState(false)
   const [listening, setListening] = useState(false)
   const recognitionRef = useRef(null)
-  const silenceTimerRef = useRef(null)
-  const lastResultRef = useRef('')
   const bottomRef = useRef(null)
   const listeningRef = useRef(listening)
 
@@ -62,10 +60,6 @@ function AIPlanner() {
   }, [])
 
   const stopVoice = useCallback(() => {
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current)
-      silenceTimerRef.current = null
-    }
     recognitionRef.current?.stop()
     recognitionRef.current = null
     setListening(false)
@@ -99,21 +93,12 @@ function AIPlanner() {
       return
     }
     const recognition = new SpeechRecognition()
-    recognition.continuous = false
+    recognition.continuous = true
     recognition.interimResults = true
     recognition.lang = 'en-US'
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results).map(r => r[0].transcript).join('')
       setInput(transcript)
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
-      if (transcript !== lastResultRef.current) {
-        lastResultRef.current = transcript
-        silenceTimerRef.current = setTimeout(() => {
-          if (recognitionRef.current) {
-            recognition.stop()
-          }
-        }, 2000)
-      }
     }
     recognition.onerror = (event) => {
       if (silenceTimerRef.current) {
@@ -145,10 +130,6 @@ function AIPlanner() {
     }
     recognition.onend = () => {
       setListening(false)
-      if (silenceTimerRef.current) {
-        clearTimeout(silenceTimerRef.current)
-        silenceTimerRef.current = null
-      }
     }
     recognitionRef.current = recognition
     lastResultRef.current = ''
