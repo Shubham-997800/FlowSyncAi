@@ -7,13 +7,13 @@ const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expires
 const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body
-    const user = await User.findOne({ email })
-    if (user) {
+    const existing = await User.findOne({ email })
+    if (existing) {
       return res.status(400).json({ message: 'An account with this email already exists. Try signing in.' })
     }
-    user = await User.create({ name, email, password })
-    const token = generateToken(user._id)
-    res.status(201).json({ message: 'Account created successfully.', token, user })
+    const newUser = await User.create({ name, email, password })
+    const token = generateToken(newUser._id)
+    res.status(201).json({ message: 'Account created successfully.', token, user: newUser })
   } catch (error) {
     console.error('Signup error:', error.message, error.name)
     if (error.name === 'ValidationError') {
