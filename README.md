@@ -14,6 +14,7 @@
   <a href="https://flowsyncai30.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-8B5CF6?style=for-the-badge&logo=vercel&logoColor=white" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai"><img src="https://img.shields.io/badge/Source_Code-181717?style=for-the-badge&logo=github&logoColor=white" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/stargazers"><img src="https://img.shields.io/github/stars/Shubham-997800/FlowSync-Ai?style=for-the-badge&logo=github&color=yellow" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/License-Proprietary-FF6600?style=for-the-badge" /></a>
 </p>
 
 <p align="center">
@@ -22,19 +23,20 @@
   <img src="https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
   <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white" />
   <img src="https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white" />
-  <img src="https://img.shields.io/badge/MongoDB_Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white" />
+  <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" />
   <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
-  <img src="https://img.shields.io/badge/License-Proprietary-FF6600?style=flat-square" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
-  <img src="https://img.shields.io/badge/Author-Shubham-6366F1?style=flat-square" />
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.1-Baseline-64748b?style=flat-square" /></a>
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.2-Responsive-22c55e?style=flat-square" /></a>
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.3-Stable-6366f1?style=flat-square" /></a>
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.4-Performance-f59e0b?style=flat-square" /></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.1_Baseline-64748b?style=for-the-badge" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.2_Responsive-22c55e?style=for-the-badge" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.3_Stable-6366f1?style=for-the-badge" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.4_Performance-f59e0b?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -175,18 +177,20 @@ We believe productivity tools should work **for** you, not the other way around.
 
 ## 📸 Screenshots
 
-> *Live demo available at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app)*
+> 🔗 **Live demo**: [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) — No login required to explore the landing page.
 
-| Page | Preview |
-|------|---------|
-| **Landing Page** | `_Coming Soon_` |
-| **Dashboard** | `_Coming Soon_` |
-| **Task Manager** | `_Coming Soon_` |
-| **AI Planner** | `_Coming Soon_` |
-| **Calendar** | `_Coming Soon_` |
-| **Focus Mode** | `_Coming Soon_` |
-| **Analytics** | `_Coming Soon_` |
-| **Settings** | `_Coming Soon_` |
+| Feature Area | Description |
+|-------------|-------------|
+| 🏠 **Landing Page** | Animated hero, feature cards, how-it-works section, CTA with framer-motion scroll animations |
+| 📊 **Dashboard** | AI-powered priority cards, animated stat counters, sparkline charts, deadline risk pulse, recent activity, widget toggles |
+| 📝 **Tasks & Goals** | Full CRUD with inline edit, bulk select, sorting (priority/deadline/title), goal progress slider |
+| 🤖 **AI Planner** | Chat interface with voice input, session history, task creation via natural language, rescue mode, daily planning |
+| 📅 **Calendar** | Multi-view (monthly/weekly/daily) with AI-priority-ranked tasks, load indicators |
+| ⏱️ **Focus Mode** | Pomodoro timer with task integration, AI-suggested break timing, configurable intervals |
+| 📈 **Analytics** | Productivity score ring chart, completion trends, focus stats, AI-generated insights report |
+| 🔔 **Notifications** | Real-time drawer with grouped filters (Today/This Week/Earlier), deadline alerts |
+| ⚙️ **Settings** | Theme toggle (light/dark/system), AI consent, notification channels, account management |
+| 👤 **Profile** | Avatar upload, bio, stats overview, recent activity timeline |
 
 ---
 
@@ -909,7 +913,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **v0.1** | `Baseline` | Initial release — all 14 pages + AI features + auth + calendar + analytics |
 | **v0.2** | `Responsive` | Full responsive audit across 8 breakpoints (320px–1920px+), 8 files fixed, all pages now 10/10 |
 | **v0.3** | `Auth+Stability` | Authentication audit, keyboard focus fix, password validation sync, OTP email fix, voice input auto-stop, email validation, dark mode AI history |
-| **v0.4** | `Performance+Security` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening |
+| **v0.4** | `Performance+Security` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, Ethereal dev email |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
@@ -1016,6 +1020,15 @@ A comprehensive performance, re-render, and security hardening pass.
 | **No Dedicated Login Rate Limiter** | All auth routes shared same 10/min limit | Added `loginLimiter` (5 req/min) specifically for `/login` | `authRoutes.js`, `rateLimiter.js` |
 | **`height: auto` in Animate** | TodayTasks + Landing used `height: 'auto'` in Framer Motion | Removed `height` from animate — overflow-hidden + opacity | `TodayTasks.jsx`, `Landing.jsx` |
 | **PermissionMonitor No Escape Key** | Clickaway overlay could not be dismissed via keyboard | Added `onKeyDown` Escape handler | `PermissionMonitor.jsx` |
+| **Account Lockout** | No brute-force protection on login | 5 failed attempts → 15min lock, returns 423 | `User.js`, `authController.js` |
+| **Hardcoded Limits** | DAILY_LIMIT, MAX_SESSIONS, CHECK_INTERVAL hardcoded | Moved to `config/constants.js` — all env-driven | `config/constants.js`, `aiController.js`, `chatController.js`, `reminderService.js` |
+| **ObjectId Validation** | Invalid IDs passed to Mongoose before check | `validateObjectId` middleware on all `:id` routes | `utils/validateId.js`, all route files |
+| **Console.warn in Production** | Sidebar + MainLayout logged warnings | Replaced with silent catches | `Sidebar.jsx`, `MainLayout.jsx` |
+| **Missing React.memo** | NotificationPermissionBanner, NotificationPopup re-rendered unnecessarily | Wrapped with `memo()` | `NotificationPermissionBanner.jsx`, `NotificationPopup.jsx` |
+| **Silent Push Error Catch** | `sendPushToUser` caught errors without logging | Added `console.error` | `pushController.js` |
+| **.env.example Stale** | Missing XAI_API_KEY, AI_MODEL; dead AI_PROVIDER | Cleaned and documented all real vars | `.env.example` |
+| **No Request ID** | Impossible to trace requests across logs | `requestId` middleware + `X-Request-Id` header + morgan token | `middleware/requestId.js`, `server.js` |
+| **Duration-200/300 Transitions** | 35+ files had explicit `duration-200`/`duration-300` on hover/state transitions | Batch removal — default 150ms everywhere | 15 additional files (Settings, Landing, Notifications, Calendar, etc.) |
 
 ### Accessibility & UX Polish — v0.4
 
