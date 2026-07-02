@@ -36,7 +36,7 @@ function Sidebar({ open, onClose }) {
         const data = await getNotifications()
         const items = Array.isArray(data) ? data : []
         setUnreadCount(items.filter(n => !n.read).length)
-      } catch { console.warn('Failed to fetch unread count') }
+      } catch {}
     }
     fetchUnread()
     const interval = setInterval(fetchUnread, 30000)

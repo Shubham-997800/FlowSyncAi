@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ErrorBoundary from './ErrorBoundary'
 import { Bell, CheckCircle, Target, Flame, Timer, AlertTriangle, Info, Sparkles } from 'lucide-react'
@@ -26,7 +26,7 @@ const typeColorMap = {
   alert: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 }
 
-function NotificationPopup() {
+const NotificationPopup = memo(function NotificationPopup() {
   const [notifications, setNotifications] = useState([])
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
@@ -126,6 +126,6 @@ function NotificationPopup() {
     </div>
     </ErrorBoundary>
   )
-}
+})
 
 export default NotificationPopup

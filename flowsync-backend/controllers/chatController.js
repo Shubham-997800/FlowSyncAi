@@ -31,7 +31,7 @@ const getChatHistory = async (req, res) => {
   }
 }
 
-const MAX_SESSIONS = 6
+const { MAX_CHAT_SESSIONS } = require('../config/constants')
 
 const saveChatMessage = async (req, res) => {
   try {
@@ -39,13 +39,13 @@ const saveChatMessage = async (req, res) => {
     if (!sessionId) return res.status(400).json({ message: 'sessionId is required' })
     const message = await ChatMessage.create({ user: req.user._id, sessionId, role, text, tasks, createdTasks })
     const sessions = await ChatMessage.distinct('sessionId', { user: req.user._id })
-    if (sessions.length > MAX_SESSIONS) {
+    if (sessions.length > MAX_CHAT_SESSIONS) {
       const oldSessions = await ChatMessage.aggregate([
         { $match: { user: req.user._id } },
         { $sort: { createdAt: 1 } },
         { $group: { _id: '$sessionId', lastMsg: { $last: '$createdAt' } } },
         { $sort: { lastMsg: 1 } },
-        { $limit: sessions.length - MAX_SESSIONS },
+        { $limit: sessions.length - MAX_CHAT_SESSIONS },
       ])
       for (const s of oldSessions) {
         await ChatMessage.deleteMany({ user: req.user._id, sessionId: s._id })

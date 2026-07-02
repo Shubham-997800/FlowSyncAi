@@ -2,7 +2,7 @@ const Task = require('../models/Task')
 const Notification = require('../models/Notification')
 const { sendPushToUser } = require('../controllers/pushController')
 
-const CHECK_INTERVAL = 30 * 60 * 1000
+const { REMINDER_CHECK_INTERVAL } = require('../config/constants')
 
 let intervalId = null
 
@@ -50,7 +50,7 @@ function startReminderService() {
   }
 
   check()
-  intervalId = setInterval(check, CHECK_INTERVAL)
+  intervalId = setInterval(check, REMINDER_CHECK_INTERVAL)
 }
 
 module.exports = { startReminderService }

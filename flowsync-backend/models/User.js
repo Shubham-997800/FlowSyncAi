@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema({
   verificationOTPExpire: Date,
   aiConsent: { type: Boolean, default: false },
   achievements: [{ name: String, unlockedAt: Date }],
+  loginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date, default: null },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {
@@ -34,8 +36,26 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, 10)
 })
 
+userSchema.virtual('isLocked').get(function () {
+  return this.lockUntil && this.lockUntil > Date.now()
+})
+
 userSchema.methods.comparePassword = async function (candidate) {
   return bcrypt.compare(candidate, this.password)
+}
+
+userSchema.methods.incrementLoginAttempts = async function () {
+  this.loginAttempts += 1
+  if (this.loginAttempts >= 5) {
+    this.lockUntil = new Date(Date.now() + 15 * 60 * 1000)
+  }
+  await this.save()
+}
+
+userSchema.methods.resetLoginAttempts = async function () {
+  this.loginAttempts = 0
+  this.lockUntil = null
+  await this.save()
 }
 
 userSchema.methods.toJSON = function () {

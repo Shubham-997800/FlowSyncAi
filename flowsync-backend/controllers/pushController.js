@@ -62,7 +62,8 @@ async function sendPushToUser(userId, payload) {
       )
     )
     return results
-  } catch {
+  } catch (err) {
+    console.error('Push notification error:', err)
     return []
   }
 }

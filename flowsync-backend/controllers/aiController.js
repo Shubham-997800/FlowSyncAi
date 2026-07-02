@@ -5,12 +5,12 @@ const AiUsage = require('../models/AiUsage')
 const aiService = require('../services/aiService')
 
 const { handleError } = require('../utils/errorHandler')
-const DAILY_LIMIT = 200
+const { AI_DAILY_LIMIT } = require('../config/constants')
 
 async function checkAiQuota(userId) {
   const today = new Date().toISOString().split('T')[0]
   const usage = await AiUsage.findOne({ user: userId, date: today })
-  if (usage && usage.count >= DAILY_LIMIT) return false
+  if (usage && usage.count >= AI_AI_DAILY_LIMIT) return false
   await AiUsage.findOneAndUpdate(
     { user: userId, date: today },
     { $inc: { count: 1 } },
@@ -21,7 +21,7 @@ async function checkAiQuota(userId) {
 
 const plan = async (req, res) => {
   try {
-    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const { prompt } = req.body
     if (!prompt) return res.status(400).json({ message: 'Prompt required' })
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
@@ -37,7 +37,7 @@ const plan = async (req, res) => {
 
 const prioritize = async (req, res) => {
   try {
-    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.prioritizeTasks(tasks)
     for (const r of result.rankings) {
@@ -54,7 +54,7 @@ const prioritize = async (req, res) => {
 
 const rescue = async (req, res) => {
   try {
-    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const tasks = await Task.find({
       user: req.user._id,
       status: { $ne: 'done' },
@@ -70,7 +70,7 @@ const rescue = async (req, res) => {
 
 const chatAI = async (req, res) => {
   try {
-    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const { message } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
     const [tasks, goals, habits] = await Promise.all([
@@ -94,7 +94,7 @@ const chatAI = async (req, res) => {
 
 const suggestTaskAI = async (req, res) => {
   try {
-    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const { title, description } = req.body
     if (!title) return res.status(400).json({ message: 'Title required' })
     const existingTasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(10)
@@ -110,7 +110,7 @@ const getUsage = async (req, res) => {
   try {
     const today = new Date().toISOString().split('T')[0]
     const usage = await AiUsage.findOne({ user: req.user._id, date: today })
-    res.json({ used: usage?.count || 0, limit: DAILY_LIMIT })
+    res.json({ used: usage?.count || 0, limit: AI_DAILY_LIMIT })
   } catch (error) {
     handleError(res, error)
   }
@@ -118,7 +118,7 @@ const getUsage = async (req, res) => {
 
 const analyticsInsights = async (req, res) => {
   try {
-    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const [tasks, habits, goals] = await Promise.all([
       Task.find({ user: req.user._id }),
       Habit.find({ user: req.user._id }),

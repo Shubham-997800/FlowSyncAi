@@ -14,6 +14,7 @@ const habitRoutes = require('./routes/habitRoutes')
 const settingsRoutes = require('./routes/settingsRoutes')
 const pushRoutes = require('./routes/pushRoutes')
 const chatRoutes = require('./routes/chatRoutes')
+const { requestId } = require('./middleware/requestId')
 const { startReminderService } = require('./services/reminderService')
 
 dotenv.config()
@@ -38,6 +39,7 @@ const app = express()
 const PORT = process.env.PORT || 5000
 
 app.set('trust proxy', 1)
+app.use(requestId)
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -54,7 +56,8 @@ app.use(helmet({
 }))
 app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }))
 app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }))
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
+morgan.token('req-id', (req) => req.id)
+app.use(morgan(process.env.NODE_ENV === 'production' ? ':req-id :remote-addr :method :url :status :res[content-length] - :response-time ms' : ':req-id :method :url :status :response-time ms'))
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }))
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '1mb' }))

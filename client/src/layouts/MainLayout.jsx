@@ -59,7 +59,7 @@ function MainLayout() {
             localStorage.setItem('flowsync_notified_tasks', JSON.stringify([...notified, task._id]))
           }
         })
-      } catch { console.warn('Deadline check failed') }
+      } catch {}
     }
 
     checkDeadlines()

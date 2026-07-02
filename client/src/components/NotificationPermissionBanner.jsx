@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { Bell, BellOff, X, ExternalLink, Smartphone, Settings as SettingsIcon } from 'lucide-react'
 
 // Banner alerting users when browser notifications are blocked
@@ -19,7 +19,7 @@ function getBrowser() {
   return 'default'
 }
 
-function NotificationPermissionBanner({ permission, onDismiss }) {
+const NotificationPermissionBanner = memo(function NotificationPermissionBanner({ permission, onDismiss }) {
   const [dismissed, setDismissed] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
 
@@ -72,6 +72,6 @@ function NotificationPermissionBanner({ permission, onDismiss }) {
       </div>
     </div>
   )
-}
+})
 
 export default NotificationPermissionBanner

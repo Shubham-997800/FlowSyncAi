@@ -121,9 +121,17 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body
     const user = await User.findOne({ email })
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
+    if (user.isLocked) {
+      return res.status(423).json({ message: 'Account locked. Try again in 15 minutes.' })
+    }
+    if (!(await user.comparePassword(password))) {
+      await user.incrementLoginAttempts()
+      return res.status(401).json({ message: 'Invalid email or password' })
+    }
+    await user.resetLoginAttempts()
     if (!user.isVerified) {
       return res.status(403).json({ message: 'Please verify your email before signing in. Check your inbox for the OTP.', needsVerification: true, email: user.email })
     }
