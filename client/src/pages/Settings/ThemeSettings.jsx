@@ -34,7 +34,7 @@ function ThemeSettings() {
 
       <div className="grid sm:grid-cols-3 gap-3">
         {options.map(({ key, label, desc, icon: Icon }) => (
-          <button key={key} onClick={() => setMode(key)} className={`relative p-4 rounded-xl border-2 text-left transition-all duration-300 ${mode === key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900'}`}>
+          <button key={key} onClick={() => setMode(key)} className={`relative p-4 rounded-xl border-2 text-left transition-all ${mode === key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900'}`}>
             {mode === key && <Check size={14} className="absolute top-2 right-2 text-indigo-600 dark:text-indigo-400" />}
             <Icon size={22} className={mode === key ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'} />
             <p className={`text-sm font-semibold mt-2 ${mode === key ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>{label}</p>

@@ -19,10 +19,10 @@ function CTASection() {
           Join users who plan smarter, work faster, and never miss important deadlines with FlowSync AI.
         </p>
         <div className="flex flex-wrap justify-center gap-4 mt-8">
-          <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-8 py-3.5 rounded-xl text-base font-semibold transition-all duration-300 shadow-sm hover:shadow-md active:scale-[0.97]">
+          <Link to="/register" className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-8 py-3.5 rounded-xl text-base font-semibold transition-all shadow-sm hover:shadow-md active:scale-[0.97]">
             Start Free
           </Link>
-          <a href="#features" className="flex items-center gap-2 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-slate-100 px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all duration-300 active:scale-[0.97]">
+          <a href="#features" className="flex items-center gap-2 border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-slate-100 px-8 py-3.5 rounded-xl text-base font-semibold hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-[0.97]">
             Explore Features <ArrowRight size={18} />
           </a>
         </div>

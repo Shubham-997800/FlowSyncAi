@@ -130,7 +130,7 @@ function AccountSettings() {
         </div>
 
         <div className="space-y-3">
-          <button onClick={handleExport} disabled={exporting} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200 disabled:opacity-60">
+          <button onClick={handleExport} disabled={exporting} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-60">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
                 {exporting ? <Loader2 size={13} className="text-indigo-500 animate-spin" /> : <Download size={13} className="text-slate-500" />}
@@ -143,7 +143,7 @@ function AccountSettings() {
             <span className="text-xs text-slate-400">&rarr;</span>
           </button>
 
-          <button onClick={handleLogoutAll} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200">
+          <button onClick={handleLogoutAll} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
                 <EyeOff size={13} className="text-slate-500" />
@@ -167,7 +167,7 @@ function AccountSettings() {
         </div>
 
         <div className="space-y-3">
-          <button onClick={handleClearData} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors duration-200 border border-red-100 dark:border-red-900/30">
+          <button onClick={handleClearData} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors border border-red-100 dark:border-red-900/30">
             <div className="flex items-center gap-3">
               <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                 <Trash2 size={13} className="text-red-500" />
@@ -181,7 +181,7 @@ function AccountSettings() {
           </button>
 
           {!confirmDelete ? (
-            <button onClick={() => setConfirmDelete(true)} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors duration-200 border border-red-100 dark:border-red-900/30">
+            <button onClick={() => setConfirmDelete(true)} className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors border border-red-100 dark:border-red-900/30">
               <div className="flex items-center gap-3">
                 <div className="w-7 h-7 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                   <Trash2 size={13} className="text-red-500" />
@@ -207,11 +207,11 @@ function AccountSettings() {
                 />
               </div>
               <div className="flex gap-2">
-                <button onClick={handleDeleteAccount} disabled={deleting || !deletePassword} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 flex items-center gap-1.5">
+                <button onClick={handleDeleteAccount} disabled={deleting || !deletePassword} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-1.5">
                   {deleting && <Loader2 size={13} className="animate-spin" />}
                   {deleting ? 'Deleting...' : 'Yes, delete my account'}
                 </button>
-                <button onClick={() => { setConfirmDelete(false); setDeletePassword('') }} className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors duration-200">Cancel</button>
+                <button onClick={() => { setConfirmDelete(false); setDeletePassword('') }} className="px-4 py-2 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors">Cancel</button>
               </div>
             </div>
           )}

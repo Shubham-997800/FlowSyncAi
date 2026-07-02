@@ -79,7 +79,7 @@ function HowItWorks() {
           className="mt-24 grid md:grid-cols-3 gap-6"
         >
           {benefits.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-slate-50 dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all duration-200 hover:-translate-y-0.5">
+            <div key={title} className="bg-slate-50 dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all hover:-translate-y-0.5">
               <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mb-4">
                 <Icon size={24} className="text-indigo-600 dark:text-indigo-400" />
               </div>

@@ -300,7 +300,7 @@ function AIPlanner() {
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin">
           {sessions.map(s => (
-            <div key={s._id} className={`group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
+            <div key={s._id} className={`group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
               sessionId === s._id
                 ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-200 dark:ring-indigo-800/50'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-800 dark:hover:text-slate-200'
@@ -382,7 +382,7 @@ function AIPlanner() {
                         {msg._id && (
                           <button
                             onClick={() => handleDeleteMessage(msg._id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                             title="Delete message"
                           >
                             <X size={14} />
@@ -486,7 +486,7 @@ function AIPlanner() {
                   <button
                     onClick={toggleVoice}
                     disabled={loading}
-                    className={`relative px-3 py-3 rounded-xl border transition-all duration-300 flex items-center justify-center gap-2 ${listening ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/30 scale-105' : 'border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}
+                    className={`relative px-3 py-3 rounded-xl border transition-all flex items-center justify-center gap-2 ${listening ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/30 scale-105' : 'border-slate-300 dark:border-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}
                     title={listening ? 'Tap to stop recording' : 'Voice input'}
                   >
                     {listening ? <MicOff size={18} /> : <Mic size={18} />}

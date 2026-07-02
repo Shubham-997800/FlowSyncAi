@@ -139,7 +139,7 @@ function NotificationSettings() {
             </div>
             <div className="space-y-1">
               {items.map(({ key, label: itemLabel, desc, icon: ItemIcon }) => (
-                <div key={key} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200">
+                <div key={key} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
                       <ItemIcon size={13} className="text-slate-500" />

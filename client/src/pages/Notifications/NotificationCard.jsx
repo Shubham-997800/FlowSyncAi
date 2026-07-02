@@ -57,7 +57,7 @@ function NotificationCard({ notification, onMarkRead }) {
   }
 
   return (
-    <div onClick={handleClick} className={`flex items-start gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900 border-l-4 ${border} shadow-sm transition-all duration-300 hover:scale-[1.02] cursor-pointer ${read ? 'opacity-60' : ''}`}>
+    <div onClick={handleClick} className={`flex items-start gap-3 p-4 rounded-2xl bg-white dark:bg-zinc-900 border-l-4 ${border} shadow-sm transition-all hover:scale-[1.02] cursor-pointer ${read ? 'opacity-60' : ''}`}>
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${colors.split(' ')[0]} ${colors.split(' ')[1]}`}>
         <Icon size={18} className={colors.split(' ').slice(2).join(' ')} />
       </div>
@@ -67,7 +67,7 @@ function NotificationCard({ notification, onMarkRead }) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-[10px] text-slate-400 dark:text-slate-500">{timeAgo < 1 ? 'now' : timeAgo < 60 ? `${timeAgo}m ago` : `${Math.floor(timeAgo / 60)}h ago`}</span>
             {!read && (
-              <button onClick={(e) => { e.stopPropagation(); onMarkRead(id) }} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors duration-200">
+              <button onClick={(e) => { e.stopPropagation(); onMarkRead(id) }} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors">
                 <CheckCircle size={14} className="text-indigo-500" />
               </button>
             )}

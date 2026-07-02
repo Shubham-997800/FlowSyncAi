@@ -66,7 +66,7 @@ function AISettings() {
         </span>
       </div>
 
-      <div className={`mb-6 p-4 rounded-xl border-2 transition-all duration-300 ${aiConsent ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50'}`}>
+      <div className={`mb-6 p-4 rounded-xl border-2 transition-all ${aiConsent ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800/50'}`}>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             {aiConsent ? <CheckCircle size={18} className="text-emerald-500" /> : <XCircle size={18} className="text-slate-400" />}
@@ -94,7 +94,7 @@ function AISettings() {
             <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">AI Aggressiveness</h3>
             <div className="grid sm:grid-cols-3 gap-2">
               {levels.map(({ key, label, desc }) => (
-                <button key={key} onClick={() => setAggressiveness(key)} className={`p-3 rounded-xl border-2 text-left transition-all duration-300 ${settings.aggressiveness === key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-600'}`}>
+                <button key={key} onClick={() => setAggressiveness(key)} className={`p-3 rounded-xl border-2 text-left transition-all ${settings.aggressiveness === key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-600'}`}>
                   <p className={`text-sm font-semibold ${settings.aggressiveness === key ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>{label}</p>
                   <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
                 </button>
@@ -104,7 +104,7 @@ function AISettings() {
 
           <div className="space-y-1">
             {toggles.map(({ key, label, desc, icon: Icon }) => (
-              <div key={key} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors duration-200">
+              <div key={key} className="flex items-center justify-between px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
                     <Icon size={13} className="text-slate-500" />
