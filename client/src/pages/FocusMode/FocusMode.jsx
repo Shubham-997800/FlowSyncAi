@@ -2,8 +2,9 @@ import CurrentTask from './CurrentTask'
 import SessionStats from './SessionStats'
 import Timer from './Timer'
 import { getTasks } from '../../services/taskService'
+import { getFocusSuggestion } from '../../services/aiService'
 import { motion } from 'framer-motion'
-import { Brain, ListTodo, Lightbulb, Clock, Zap, Loader2 } from 'lucide-react'
+import { Brain, ListTodo, Loader2, Sparkles } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
@@ -16,6 +17,9 @@ const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
 function FocusMode() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [aiSuggestion, setAiSuggestion] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [suggestionKey, setSuggestionKey] = useState(0)
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -37,6 +41,26 @@ function FocusMode() {
   const [sessions, setSessions] = useState(() => parseInt(localStorage.getItem('flowsync_focus_sessions') || '0'))
   const [totalFocusMinutes, setTotalFocusMinutes] = useState(() => parseInt(localStorage.getItem('flowsync_focus_minutes') || '0'))
   const [sessionComplete, setSessionComplete] = useState(false)
+
+  useEffect(() => {
+    if (!selectedTask) { setAiSuggestion(null); return }
+    setAiLoading(true)
+    Promise.resolve().then(async () => {
+      try {
+        const data = await getFocusSuggestion(selectedTask._id)
+        setAiSuggestion(data)
+      } catch {
+        setAiSuggestion({
+          title: selectedTask.priority === 'high' ? 'High Priority Focus' : 'Steady Focus',
+          desc: `Focus on "${selectedTask.title}".`,
+          breakSuggestion: 'Standard 5-min breaks recommended',
+          focusTime: 25,
+        })
+      } finally {
+        setAiLoading(false)
+      }
+    })
+  }, [selectedTask, suggestionKey])
 
   const handleSessionComplete = () => {
     const newSessions = sessions + 1
@@ -60,45 +84,6 @@ function FocusMode() {
   const activeTasks = tasks.filter(t => t.status !== 'done')
 
   const overdueCount = activeTasks.filter(t => t.deadline && new Date(t.deadline) < new Date()).length
-
-  const getAiSuggestion = () => {
-    if (!selectedTask) return null
-    const taskPriority = selectedTask.priority || 'medium'
-    const isOverdue = selectedTask.deadline && new Date(selectedTask.deadline) < new Date()
-
-    if (isOverdue) {
-      return {
-        icon: Zap,
-        title: 'Urgent: Overdue Task',
-        desc: `"${selectedTask.title}" is overdue. Set shorter focus blocks (15 min) to power through it.`,
-        breakSuggestion: 'Take shorter 3-min breaks to maintain momentum',
-      }
-    }
-    if (taskPriority === 'high') {
-      return {
-        icon: Clock,
-        title: 'High Priority Focus',
-        desc: `"${selectedTask.title}" is high priority. Use 25 min focus blocks to make significant progress.`,
-        breakSuggestion: 'Take 7-min breaks to recharge after intense focus',
-      }
-    }
-    if (taskPriority === 'low') {
-      return {
-        icon: Lightbulb,
-        title: 'Low Momentum Task',
-        desc: `"${selectedTask.title}" is low priority. Use 20 min blocks to build momentum without burnout.`,
-        breakSuggestion: 'Extend breaks to 10 min for relaxed pacing',
-      }
-    }
-    return {
-      icon: Brain,
-      title: 'Steady Focus',
-      desc: `Focus on "${selectedTask.title}" with standard 25 min blocks.`,
-      breakSuggestion: 'Standard 5-min breaks recommended',
-    }
-  }
-
-  const aiSuggestion = getAiSuggestion()
 
   return (
     <motion.div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
@@ -143,24 +128,51 @@ function FocusMode() {
 
         <div className="space-y-6">
           <SessionStats sessions={sessions} totalMinutes={totalFocusMinutes} mode={mode} />
-          {selectedTask && aiSuggestion && (
+          {aiLoading && selectedTask && (
+            <motion.div variants={fadeUp} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                  <Sparkles size={15} className="text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Suggestion</h3>
+              </div>
+              <div className="flex items-center justify-center py-6">
+                <Loader2 size={20} className="animate-spin text-indigo-500" />
+              </div>
+            </motion.div>
+          )}
+          {selectedTask && aiSuggestion && !aiLoading && (
             <>
               <motion.div variants={fadeUp} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                    <Brain size={15} className="text-indigo-600 dark:text-indigo-400" />
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                    <Sparkles size={13} className="text-white" />
                   </div>
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Suggestion</h3>
+                  <button onClick={() => setSuggestionKey(k => k + 1)} className="ml-auto text-[10px] text-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">Refresh</button>
                 </div>
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center mb-2 ${selectedTask.priority === 'high' || (selectedTask.deadline && new Date(selectedTask.deadline) < new Date()) ? 'bg-red-100 dark:bg-red-900/30' : selectedTask.priority === 'medium' ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-indigo-100 dark:bg-indigo-900/30'}`}>
-                  <aiSuggestion.icon size={15} className={
-                    selectedTask.priority === 'high' || (selectedTask.deadline && new Date(selectedTask.deadline) < new Date()) ? 'text-red-600 dark:text-red-400' : selectedTask.priority === 'medium' ? 'text-amber-600 dark:text-amber-400' : 'text-indigo-600 dark:text-indigo-400'
-                  } />
-                </div>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">{aiSuggestion.desc}</p>
-                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
-                  <Clock size={14} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-slate-600 dark:text-slate-300">{aiSuggestion.breakSuggestion}</p>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide font-medium mb-1">Recommendation</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{aiSuggestion.desc}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
+                      <p className="text-[10px] text-indigo-500 dark:text-indigo-400 font-medium uppercase tracking-wide">Focus Time</p>
+                      <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{aiSuggestion.focusTime || 25} min</p>
+                    </div>
+                    <div className="px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
+                      <p className="text-[10px] text-amber-500 dark:text-amber-400 font-medium uppercase tracking-wide">Energy Needed</p>
+                      <p className="text-sm font-semibold text-amber-700 dark:text-amber-300 capitalize">{aiSuggestion.energyRequired || 'medium'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30">
+                    <Brain size={14} className="text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-slate-600 dark:text-slate-300">{aiSuggestion.breakSuggestion}</p>
+                  </div>
+                  {aiSuggestion.reason && (
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">{aiSuggestion.reason}</p>
+                  )}
                 </div>
               </motion.div>
               {overdueCount > 0 && (

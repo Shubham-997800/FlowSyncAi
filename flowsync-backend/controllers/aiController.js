@@ -147,4 +147,48 @@ const habitInsights = async (req, res) => {
   }
 }
 
-module.exports = { plan, prioritize, rescue, chatAI, suggestTaskAI, getUsage, analyticsInsights, habitInsights }
+const focusSuggestion = async (req, res) => {
+  try {
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached.` })
+    const { taskId } = req.body
+    const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
+    const result = await aiService.generateFocusSuggestion(tasks, taskId)
+    res.json(result)
+  } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service unavailable' })
+    handleError(res, error)
+  }
+}
+
+const profileInsights = async (req, res) => {
+  try {
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached.` })
+    const [tasks, habits, goals] = await Promise.all([
+      Task.find({ user: req.user._id }),
+      Habit.find({ user: req.user._id }),
+      Goal.find({ user: req.user._id }),
+    ])
+    const result = await aiService.generateProfileInsights(tasks, habits, goals)
+    res.json(result)
+  } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service unavailable' })
+    handleError(res, error)
+  }
+}
+
+const organizeNotifications = async (req, res) => {
+  try {
+    if (!(await checkAiQuota(req.user._id))) return res.status(429).json({ message: `Daily AI limit (${AI_DAILY_LIMIT}) reached.` })
+    const { notifications } = req.body
+    if (!Array.isArray(notifications) || notifications.length === 0) {
+      return res.json({ groups: [], prioritizedIds: [], summary: 'No notifications to organize' })
+    }
+    const result = await aiService.organizeNotifications(notifications)
+    res.json(result)
+  } catch (error) {
+    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ message: 'AI service unavailable' })
+    handleError(res, error)
+  }
+}
+
+module.exports = { plan, prioritize, rescue, chatAI, suggestTaskAI, getUsage, analyticsInsights, habitInsights, focusSuggestion, profileInsights, organizeNotifications }

@@ -231,4 +231,99 @@ Respond EXACTLY with this JSON:
   }
 }
 
-module.exports = { generatePlan, prioritizeTasks, rescueMode, chatWithContext, suggestTask, generateAnalyticsInsights, generateHabitInsights }
+async function generateFocusSuggestion(tasks, focusTaskId) {
+  const focusTask = tasks.find(t => t._id.toString() === focusTaskId) || tasks[0]
+  const sysMsg = `You are FlowSync AI, a focus and productivity coach. Provide a personalized focus suggestion for the user's current task. Respond with valid JSON only.`
+  const userMsg = `Current focus task: ${JSON.stringify({ title: focusTask?.title, priority: focusTask?.priority, deadline: focusTask?.deadline, status: focusTask?.status })}
+Other tasks: ${JSON.stringify(tasks.filter(t => t._id?.toString() !== focusTaskId).slice(0, 10).map(t => ({ title: t.title, priority: t.priority, deadline: t.deadline })))}
+
+Respond EXACTLY with this JSON:
+{
+  "title": "Short contextual title for the suggestion",
+  "desc": "Personalized focus recommendation with specific time blocks",
+  "breakSuggestion": "Specific break recommendation based on task complexity",
+  "focusTime": 25,
+  "energyRequired": "low|medium|high",
+  "reason": "Why this approach works for this specific task"
+}`
+
+  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const parsed = parseJSON(raw)
+  if (parsed && parsed.title) return parsed
+  const p = focusTask?.priority || 'medium'
+  return {
+    title: p === 'high' ? 'High Priority Focus' : 'Steady Focus',
+    desc: focusTask ? `Focus on "${focusTask.title}" with ${p === 'high' ? '25 min' : '20 min'} blocks.` : 'Select a task to get AI-powered focus suggestions.',
+    breakSuggestion: p === 'high' ? 'Take 5-min breaks to maintain intensity' : 'Standard 7-min breaks recommended',
+    focusTime: p === 'high' ? 25 : 20,
+    energyRequired: p === 'high' ? 'high' : 'medium',
+    reason: '',
+  }
+}
+
+async function generateProfileInsights(tasks, habits, goals) {
+  const sysMsg = `You are FlowSync AI, a personal productivity analyst. Generate a personalized productivity summary for the user's profile. Respond with valid JSON only.`
+  const userMsg = `Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, status: t.status, deadline: t.deadline })))}
+Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}
+Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
+
+Respond EXACTLY with this JSON:
+{
+  "productivityScore": 0-100,
+  "totalTasks": 0,
+  "completedTasks": 0,
+  "completionRate": 0,
+  "streakDays": 0,
+  "focusHours": 0,
+  "topStrength": "string",
+  "topWeakness": "string",
+  "personalizedTip": "actionable tip based on their data",
+  "dailyGoalRecommendation": "how many tasks they should aim for daily",
+  "peakProductivityTime": "morning|afternoon|evening",
+  "motivationalMessage": "short personalized motivational message"
+}`
+
+  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const parsed = parseJSON(raw)
+  if (parsed && parsed.productivityScore !== undefined) return parsed
+  const completed = tasks.filter(t => t.status === 'done').length
+  const total = tasks.length || 1
+  const maxStreak = Math.max(0, ...habits.map(h => h.streak || 0))
+  return {
+    productivityScore: Math.round((completed / total) * 100),
+    totalTasks: tasks.length,
+    completedTasks: completed,
+    completionRate: Math.round((completed / total) * 100),
+    streakDays: maxStreak,
+    focusHours: 0,
+    topStrength: 'Getting started',
+    topWeakness: 'Track more to identify patterns',
+    personalizedTip: 'Break your tasks into smaller chunks to maintain momentum.',
+    dailyGoalRecommendation: '3-5 tasks per day for optimal productivity',
+    peakProductivityTime: 'morning',
+    motivationalMessage: 'Every small step counts toward your goals!',
+  }
+}
+
+async function organizeNotifications(notifications) {
+  const sysMsg = `You are FlowSync AI, a smart notification organizer. Group and prioritize notifications intelligently. Respond with valid JSON only.`
+  const userMsg = `Notifications: ${JSON.stringify(notifications.map(n => ({ title: n.title, message: n.message, type: n.type, createdAt: n.createdAt })))}
+
+Analyze these notifications and organize them. Respond EXACTLY with this JSON:
+{
+  "groups": [{ "name": "Urgent", "priority": 1, "notificationIds": [0, 1], "reason": "why grouped" }],
+  "prioritizedIds": [0, 2, 1],
+  "summary": "Brief summary of what needs attention"
+}`
+
+  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const parsed = parseJSON(raw)
+  if (parsed && Array.isArray(parsed.groups)) return parsed
+  return {
+    groups: [{ name: 'All Notifications', priority: 1, notificationIds: notifications.map((_, i) => i), reason: 'Default grouping' }],
+    prioritizedIds: notifications.map((_, i) => i),
+    summary: `${notifications.length} notification(s)`,
+  }
+}
+
+module.exports = { generatePlan, prioritizeTasks, rescueMode, chatWithContext, suggestTask, generateAnalyticsInsights, generateHabitInsights, generateFocusSuggestion, generateProfileInsights, organizeNotifications }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Bell, CheckCheck } from 'lucide-react'
+import { Bell, CheckCheck, Sparkles, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
@@ -9,6 +9,7 @@ import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
 import { getNotifications, markAsRead, createNotification } from '../../services/notificationService'
+import { organizeNotifications } from '../../services/aiService'
 
 // Notifications page with grouped list, mark-as-read, and dev sample buttons
 function normalizeNotification(n) {
@@ -38,6 +39,8 @@ const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 
 function Notifications() {
   const [notifications, setNotifications] = useState([])
   const [activeTab, setActiveTab] = useState('all')
+  const [aiGroups, setAiGroups] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -51,6 +54,22 @@ function Notifications() {
     }
     fetchNotifications()
   }, [])
+
+  const organizeWithAI = () => {
+    if (notifications.length === 0) return
+    setAiLoading(true)
+    Promise.resolve().then(async () => {
+      try {
+        const data = await organizeNotifications(notifications.map((n, i) => ({ ...n, _index: i })))
+        setAiGroups(data)
+        setActiveTab('ai')
+      } catch {
+        toast.error('AI organization unavailable')
+      } finally {
+        setAiLoading(false)
+      }
+    })
+  }
 
   const addNotification = (type) => {
     const n = createLocalNotification(type)
@@ -114,13 +133,20 @@ function Notifications() {
         </div>
         <div className="flex gap-2">
           <div className="flex gap-1 bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
-            {['all', 'unread'].map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${activeTab === tab ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{tab}</button>
+            {['all', 'unread', aiGroups ? 'ai' : null].filter(Boolean).map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)} className={`px-3 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${activeTab === tab ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}>{tab === 'ai' ? <span className="flex items-center gap-1">AI <Sparkles size={12} /></span> : tab}</button>
             ))}
           </div>
-          {notifications.length > 0 && (
-            <button onClick={dismissAll} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors">Clear all</button>
-          )}
+          <div className="flex gap-2">
+            {notifications.length > 0 && (
+              <button onClick={organizeWithAI} disabled={aiLoading} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20 rounded-lg transition-colors disabled:opacity-50">
+                {aiLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} AI Sort
+              </button>
+            )}
+            {notifications.length > 0 && (
+              <button onClick={dismissAll} className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 rounded-lg transition-colors">Clear all</button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -142,7 +168,36 @@ function Notifications() {
         </div>
       ) : (
         <div className="space-y-6">
-          {activeTab === 'unread' ? (
+          {activeTab === 'ai' && aiGroups ? (
+            <div className="space-y-4">
+              {aiGroups.summary && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 border border-indigo-100 dark:border-indigo-900/30">
+                  <Sparkles size={14} className="text-indigo-500" />
+                  <p className="text-xs text-slate-600 dark:text-slate-300">{aiGroups.summary}</p>
+                </div>
+              )}
+              {aiGroups.groups.map((group, gi) => (
+                <div key={gi}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`w-2 h-2 rounded-full ${gi === 0 ? 'bg-red-500' : gi === 1 ? 'bg-amber-500' : 'bg-slate-400'}`} />
+                    <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">{group.name}</h3>
+                    <span className="text-[10px] text-slate-400">{group.reason}</span>
+                  </div>
+                  <div className="space-y-2">
+                    {group.notificationIds.map(idx => {
+                      const n = notifications[idx]
+                      if (!n) return null
+                      return <motion.div key={n.id} variants={itemVariants}>
+                        {(n.type === 'alert' || n.type === 'deadline_alert') ? <AlertCard notification={n} onMarkRead={markRead} /> :
+                         n.type === 'reminder' ? <ReminderCard notification={n} onMarkRead={markRead} /> :
+                         <NotificationCard notification={n} onMarkRead={markRead} />}
+                      </motion.div>
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : activeTab === 'unread' ? (
             notifications.filter(n => !n.read).length > 0 ? (
               <div className="space-y-2">
                 {notifications.filter(n => !n.read).map(n => <motion.div key={n.id} variants={itemVariants}><NotificationCard notification={n} onMarkRead={markRead} /></motion.div>)}

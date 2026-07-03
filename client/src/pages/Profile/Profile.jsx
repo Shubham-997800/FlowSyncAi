@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { User, Settings as SettingsIcon, LogOut, Camera, TrendingUp, X, Loader2, Lock } from 'lucide-react'
+import { User, Settings as SettingsIcon, LogOut, Camera, TrendingUp, X, Loader2, Lock, Sparkles, Brain, Target, Clock, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import ErrorBoundary from '../../components/ErrorBoundary'
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { getTasks } from '../../services/taskService'
 import { uploadAvatar as uploadAvatarApi } from '../../services/settingsService'
+import { getProfileInsights } from '../../services/aiService'
 // Main profile page with avatar upload, stats chart, edit and password tabs
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.04 } } }
 const itemVariants = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }
@@ -122,7 +123,7 @@ function Profile() {
 
         <div className="lg:col-span-3 space-y-6">
           <ErrorBoundary>
-            {tab === 'overview' && <><UserStats /><RecentActivity /></>}
+            {tab === 'overview' && <><UserStats /><AIProfileSummary /><RecentActivity /></>}
             {tab === 'edit' && <EditProfile />}
             {tab === 'password' && <ChangePassword />}
           </ErrorBoundary>
@@ -186,6 +187,87 @@ function RecentActivity() {
         </div>
       )}
     </div>
+  )
+}
+
+function AIProfileSummary() {
+  const [insights, setInsights] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.resolve().then(async () => {
+      try {
+        const data = await getProfileInsights()
+        setInsights(data)
+      } catch {
+        setInsights(null)
+      } finally {
+        setLoading(false)
+      }
+    })
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 shadow-sm p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 animate-pulse" />
+          <div className="h-4 w-24 bg-slate-100 dark:bg-zinc-800 rounded animate-pulse" />
+        </div>
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => <div key={i} className="h-12 bg-slate-100 dark:bg-zinc-800 rounded-xl animate-pulse" />)}
+        </div>
+      </div>
+    )
+  }
+
+  if (!insights) return null
+
+  const metrics = [
+    { icon: Target, label: 'Score', value: `${insights.productivityScore || 0}`, suffix: '/100', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
+    { icon: CheckCircle, label: 'Done', value: insights.completedTasks || 0, suffix: `/ ${insights.totalTasks || 0}`, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    { icon: Brain, label: 'Streak', value: insights.streakDays || 0, suffix: ' days', color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+    { icon: Clock, label: 'Rate', value: `${insights.completionRate || 0}`, suffix: '%', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+  ]
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-zinc-900 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 shadow-sm p-5 mt-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+            <Sparkles size={14} className="text-white" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Productivity Summary</h3>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+        {metrics.map(({ icon: Icon, label, value, suffix, color, bg }) => (
+          <div key={label} className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800">
+            <div className={`w-7 h-7 rounded-lg ${bg} flex items-center justify-center mb-1.5`}>
+              <Icon size={14} className={color} />
+            </div>
+            <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{value}<span className="text-xs font-normal text-slate-400">{suffix}</span></p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-2">
+        {insights.personalizedTip && (
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 border border-indigo-100 dark:border-indigo-900/30">
+            <Sparkles size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-600 dark:text-slate-300">{insights.personalizedTip}</p>
+          </div>
+        )}
+        {insights.motivationalMessage && (
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700">
+            <Brain size={14} className="text-purple-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-500 dark:text-slate-400 italic">"{insights.motivationalMessage}"</p>
+          </div>
+        )}
+      </div>
+    </motion.div>
   )
 }
 

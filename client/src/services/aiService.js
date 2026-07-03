@@ -30,3 +30,18 @@ export const getHabitInsights = async () => {
   const { data } = await api.get('/api/ai/habit-insights')
   return data
 }
+
+export const getFocusSuggestion = async (taskId) => {
+  const { data } = await api.post('/api/ai/focus-suggest', { taskId })
+  return data
+}
+
+export const getProfileInsights = async () => {
+  const { data } = await api.get('/api/ai/profile-insights')
+  return data
+}
+
+export const organizeNotifications = async (notifications) => {
+  const { data } = await api.post('/api/ai/organize-notifications', { notifications })
+  return data
+}
