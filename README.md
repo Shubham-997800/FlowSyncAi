@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://flowsyncai30.vercel.app"><img src="https://img.shields.io/badge/Live_Demo-8B5CF6?style=for-the-badge&logo=vercel&logoColor=white" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai"><img src="https://img.shields.io/badge/Source_Code-181717?style=for-the-badge&logo=github&logoColor=white" /></a>
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/stargazers"><img src="https://img.shields.io/github/stars/Shubham-997800/FlowSync-Ai?style=for-the-badge&logo=github&color=yellow" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/stargazers"><img src="https://img.shields.io/github/stars/Shubham-997800/FlowSync-Ai?style=for-the-badge&logo=github&color=yellow" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/License-Proprietary-FF6600?style=for-the-badge" /></a>
 </p>
 
@@ -37,7 +37,8 @@
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.2_Responsive-22c55e?style=for-the-badge" /></a>
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.3_Stable-6366f1?style=for-the-badge" /></a>
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.4_Performance-f59e0b?style=for-the-badge" /></a>
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.5_Audit-22c55e?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.5_Audit-22c55e?style=for-the-badge" /></a>
+  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.6_Multilingual-8B5CF6?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -101,7 +102,7 @@ FlowSync AI:  Input → AI Analysis → Priority Engine → Rescue Mode → Exec
 ```
 
 > [!NOTE]
-> FlowSync AI is not a to-do list. It is a **decision engine** that uses AI (OpenRouter + Qwen 2.5 7B) to understand context, predict risk, and optimize every minute of your day.
+> FlowSync AI is not a to-do list. It is a **decision engine** that uses AI (OpenRouter with 11 models in failover chain) to understand context, predict risk, and optimize every minute of your day.
 
 ---
 
@@ -226,7 +227,7 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Technology | Purpose |
 |------------|---------|
-| **OpenRouter** | AI chat, planning, prioritization, rescue mode — Qwen 2.5 7B via OpenAI-compatible SDK |
+| **OpenRouter** | AI chat, planning, prioritization, rescue mode — 11 models in failover chain (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, Mistral, Cohere, Qwen 2.5 72B, DeepSeek, GPT-4o, Claude 3.5 Haiku) via OpenAI-compatible SDK |
 | **Vercel** | Frontend hosting with auto-deploy from GitHub, edge CDN |
 | **Railway** | Backend hosting with auto-deploy from GitHub, HTTPS, zero-downtime deploys |
 
@@ -449,7 +450,7 @@ flowsync-ai/
 │   │   ├── Notification.js                # type, title, message, status, userId
 │   │   ├── PushSubscription.js            # endpoint, keys for web push
 │   │   ├── ChatMessage.js                 # role, text, tasks[], createdTasks[]
-│   │   └── ChatMessage.js                 # role, text, tasks[], createdTasks[]
+│   │   └── ChatSession.js                 # sessionId, userId, createdAt, updatedAt
 │   │
 │   ├── controllers/
 │   │   ├── authController.js              # signup, login
@@ -476,7 +477,7 @@ flowsync-ai/
 │   │   └── chatRoutes.js                 # Chat history CRUD
 │   │
 │   ├── services/
-│   │   ├── aiService.js                   # Prompt engineering + JSON parsing (7 models, multilingual, failover)
+│   │   ├── aiService.js                   # Prompt engineering + JSON parsing (11 models, multilingual, tone matching, failover)
 │   │   └── reminderService.js             # Auto deadline alerts every 30 minutes
 │   │
 │   │
@@ -650,7 +651,7 @@ erDiagram
 
 ## 🤖 AI Architecture
 
-FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in a failover chain (Llama 3.3 70B, GPT-4o-mini, Claude 3 Haiku, Gemini 2.0 Flash, Mistral 7B, DeepSeek V3, Qwen 2.5 7B), accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, graceful fallbacks, and multilingual support.
+FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in a failover chain (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, Mistral Small, Cohere Command R+, Qwen 2.5 72B, DeepSeek Chat, GPT-4o, Claude 3.5 Haiku, plus env override), accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, graceful fallbacks, and full multilingual support with tone matching.
 
 ### Architecture Overview
 
@@ -678,7 +679,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 │  │              OpenRouter API (via OpenAI SDK)               │        │
 │  │                                                            │        │
 │  │  Endpoint: https://openrouter.ai/api/v1                    │        │
-│  │  Model:    qwen/qwen-2.5-7b-instruct                      │        │
+│  │  Model:    gpt-4o-mini (first available in 11-model chain)│        │
 │  │  Temp:     0.3 (deterministic output)                     │        │
 │  │                                                            │        │
 │  │  Response: structured JSON string                          │        │
@@ -710,7 +711,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | Capability | Prompt Strategy | Response Format | Fallback |
 |------------|----------------|----------------|---------|
 | **Chat** | User message + current tasks context | `{ reply, tasks[], suggestions[] }` | Default polite response |
-| **Multilingual Chat** | Language detection from user input, responds in same language (Hinglish, Hindi, English, Spanish, etc.) | Same as Chat | Default English |
+| **Multilingual Chat** | Language detection + tone/style matching — supports Hindi, Hinglish, English, Spanish, French, German, Chinese, Japanese, Arabic, Korean, Portuguese, Russian, Italian, Turkish, Vietnamese, Thai, Indonesian, Bengali, Marathi, Tamil, Telugu, Gujarati, Urdu, Punjabi, and more | Same as Chat | Default English |
 | **Daily Plan** | User prompt + task list with deadlines | `{ priority[], schedule[], suggestions[], confidence }` | Empty plan |
 | **Prioritize** | Task list with IDs, titles, priorities | `{ rankings[], suggestedOrder[], summary }` | Equal scores |
 | **Rescue Mode** | Overloaded task list, 48h window | `{ criticalTasks[], compressedSchedule[], dropRecommendations[] }` | Empty arrays |
@@ -840,6 +841,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **7 AI models** in 
 | **v0.3** | `Auth+Stability` | Authentication audit, keyboard focus fix, password validation sync, OTP email fix, voice input auto-stop, email validation, dark mode AI history |
 | **v0.4** | `Production+Cleanup` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, removed all email/OTP code, auto-verify on signup, cleanup dead code (+400 lines removed) |
 | **v0.5** | `Audit+Stability` | Full production audit: fixed errorHandler crash on non-ValidationError, account delete password not being sent, email format validation, password info leak, seed.js unused import, aiService.js console.log → console.error, qa-seed.js broken endpoint, removed dashboard period filter, +25 unused-import/variable cleanups, 48→22 lint issues, email references fully purged from README |
+| **v0.6** | `Multilingual+Models` | Expanded AI fallback chain from 7→11 models, reduced max_tokens 4096→1024 for low-credit environments, removed 402 error from hard-fail (models skip gracefully), full multilingual support (25+ languages), tone/style matching — AI mirrors user's language, formality, and slang |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
@@ -1040,7 +1042,7 @@ I'm happy to discuss collaboration, licensing, or any other use — just ask.
 
 ## 🙏 Acknowledgements
 
-- **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (Llama 3.3 70B, GPT-4o-mini, Claude 3 Haiku, and more)
+- **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, and 7 more models in failover chain)
 - **[Vercel](https://vercel.com)** — For frontend deployment platform
 - **[Railway](https://railway.com)** — For reliable backend hosting with zero-downtime deploys
 - **[MongoDB Atlas](https://mongodb.com/atlas)** — For the generous free tier and global database infrastructure
