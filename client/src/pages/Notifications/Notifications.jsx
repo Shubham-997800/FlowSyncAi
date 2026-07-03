@@ -171,7 +171,7 @@ function Notifications() {
           {activeTab === 'ai' && aiGroups ? (
             <div className="space-y-4">
               {aiGroups.summary && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 border border-indigo-100 dark:border-indigo-900/30">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
                   <Sparkles size={14} className="text-indigo-500" />
                   <p className="text-xs text-slate-600 dark:text-slate-300">{aiGroups.summary}</p>
                 </div>

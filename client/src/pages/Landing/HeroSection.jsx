@@ -43,8 +43,8 @@ const item = {
 function HeroSection() {
   return (
     <section className="relative pt-32 pb-24 overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none dark:hidden" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '24px 24px', opacity: 0.5 }} />
-      <div className="absolute inset-0 pointer-events-none hidden dark:block" style={{ backgroundImage: 'radial-gradient(#334155 1px, transparent 1px)', backgroundSize: '24px 24px', opacity: 0.3 }} />
+      <div className="absolute inset-0 pointer-events-none dark:hidden bg-slate-50/50" />
+      <div className="absolute inset-0 pointer-events-none hidden dark:block bg-zinc-900/20" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-5 lg:gap-16 items-center">

@@ -11,10 +11,10 @@ import { openBrowserSettings } from '../../utils/permissions'
 const defaultMessage = { role: 'ai', text: "Hi! I'm your AI assistant. Tell me what you're working on, or ask me to create tasks for you." }
 
 const suggestions = [
-  { icon: Sparkles, text: 'Create a task to finish my project report', color: 'from-violet-500/20 to-purple-500/10' },
-  { icon: Calendar, text: 'I have a math exam next week, help me plan', color: 'from-blue-500/20 to-cyan-500/10' },
-  { icon: Zap, text: 'Add a high priority task for team meeting tomorrow', color: 'from-amber-500/20 to-orange-500/10' },
-  { icon: Clock, text: 'What tasks are overdue?', color: 'from-rose-500/20 to-pink-500/10' },
+  { icon: Sparkles, text: 'Create a task to finish my project report', color: 'bg-violet-500/10' },
+  { icon: Calendar, text: 'I have a math exam next week, help me plan', color: 'bg-blue-500/10' },
+  { icon: Zap, text: 'Add a high priority task for team meeting tomorrow', color: 'bg-amber-500/10' },
+  { icon: Clock, text: 'What tasks are overdue?', color: 'bg-rose-500/10' },
 ]
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8) }
@@ -196,7 +196,7 @@ function AIPlanner() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-zinc-950 dark:to-indigo-950/20">
+    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden bg-slate-50 dark:bg-zinc-950">
       <Helmet>
         <title>AI Chat - FlowSync AI</title>
         <meta name="description" content="Chat with AI to plan tasks" />
@@ -207,7 +207,7 @@ function AIPlanner() {
 
       {/* Sidebar */}
       <div className={`${showSessions ? 'fixed md:flex z-20' : 'hidden'} md:flex flex-col w-64 flex-shrink-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-r border-indigo-100/50 dark:border-zinc-800/50`}>
-            <div className="flex items-center justify-between px-4 h-14 border-b border-indigo-100/50 dark:border-zinc-800/50 bg-gradient-to-r from-indigo-50/50 to-transparent dark:from-indigo-950/20">
+            <div className="flex items-center justify-between px-4 h-14 border-b border-indigo-100/50 dark:border-zinc-800/50 bg-indigo-50/50 dark:bg-indigo-950/20">
               <div className="flex items-center gap-2">
                 <History size={15} className="text-indigo-500" />
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Chat History</span>
@@ -230,7 +230,7 @@ function AIPlanner() {
                   animate={{ opacity: 1, x: 0 }}
                   className={`group flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                     sessionId === s._id
-                      ? 'bg-gradient-to-r from-indigo-100 to-indigo-50/50 dark:from-indigo-900/40 dark:to-indigo-800/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-200/50 dark:ring-indigo-700/30 shadow-sm'
+                      ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-200/50 dark:ring-indigo-700/30 shadow-sm'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-zinc-800/60 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                   onClick={() => loadSession(s._id)}
@@ -284,7 +284,7 @@ function AIPlanner() {
             >
               {showSessions ? <X size={18} /> : <MessageSquare size={18} />}
             </motion.button>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 dark:from-indigo-400 dark:to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-200/50 dark:shadow-indigo-900/30">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-200/50 dark:shadow-indigo-900/30">
               <Brain size={20} className="text-white" />
             </div>
             <div>
@@ -324,21 +324,21 @@ function AIPlanner() {
                     className="group flex gap-3"
                   >
                     {msg.role === 'ai' && (
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 dark:from-indigo-400 dark:to-violet-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30 mt-0.5">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30 mt-0.5">
                         <Bot size={14} className="text-white" />
                       </div>
                     )}
                     <div className={`flex-1 ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
                       <div className="flex items-start gap-2">
                         {msg.role === 'user' && (
-                          <div className="order-last w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-800/50 dark:to-indigo-700/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <div className="order-last w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-800/50 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <User size={14} className="text-indigo-600 dark:text-indigo-400" />
                           </div>
                         )}
                         <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                           <div className={`relative px-4 py-3 text-sm leading-relaxed shadow-sm ${
                             msg.role === 'user'
-                              ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-2xl rounded-tr-sm max-w-[85%] md:max-w-[70%]'
+                              ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm max-w-[85%] md:max-w-[70%]'
                               : 'bg-white dark:bg-zinc-800/90 border border-slate-100 dark:border-zinc-700/50 text-slate-700 dark:text-slate-300 rounded-2xl rounded-tl-sm max-w-[90%] md:max-w-[75%]'
                           }`}>
                             {msg.text}
@@ -388,7 +388,7 @@ function AIPlanner() {
                                     whileTap={{ scale: 0.97 }}
                                     onClick={() => handleCreateTask(task, i)}
                                     disabled={creating === i}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-[11px] font-medium transition-all disabled:opacity-50 flex-shrink-0 shadow-sm"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-medium transition-all disabled:opacity-50 flex-shrink-0 shadow-sm"
                                   >
                                     {creating === i ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
                                     Create
@@ -405,7 +405,7 @@ function AIPlanner() {
 
               {loading && (
                 <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 dark:from-indigo-400 dark:to-violet-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center flex-shrink-0 shadow-md">
                     <Bot size={14} className="text-white" />
                   </div>
                   <div className="bg-white dark:bg-zinc-800/90 border border-slate-100 dark:border-zinc-700/50 rounded-2xl rounded-tl-sm px-5 py-3.5 shadow-sm">
@@ -439,7 +439,7 @@ function AIPlanner() {
                       disabled={loading}
                       className="group relative overflow-hidden text-xs px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800/80 border border-slate-100 dark:border-zinc-700/50 text-slate-600 dark:text-slate-400 hover:border-indigo-200 dark:hover:border-indigo-700/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md"
                     >
-                      <div className={`absolute inset-0 bg-gradient-to-r ${s.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                      <div className={`absolute inset-0 ${s.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
                       <s.icon size={12} className="relative z-10" />
                       <span className="relative z-10">{s.text}</span>
                     </motion.button>
@@ -482,7 +482,7 @@ function AIPlanner() {
                   disabled={loading}
                   className={`relative px-3.5 py-3 rounded-xl border transition-all flex items-center justify-center gap-2 shadow-sm ${
                     listening
-                      ? 'bg-gradient-to-r from-red-500 to-rose-500 border-red-400 text-white shadow-lg shadow-red-500/20'
+                      ? 'bg-red-500 border-red-400 text-white shadow-lg shadow-red-500/20'
                       : 'border-slate-200 dark:border-zinc-700 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-zinc-800 hover:border-indigo-200 dark:hover:border-indigo-700'
                   }`}
                   title={listening ? 'Tap to stop recording' : 'Voice input'}
@@ -494,7 +494,7 @@ function AIPlanner() {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSend()}
                   disabled={!input.trim() || loading}
-                  className="px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30"
+                  className="px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                 </motion.button>

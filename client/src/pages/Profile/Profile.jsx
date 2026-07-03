@@ -83,7 +83,7 @@ function Profile() {
       <div className="grid lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1">
           <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden mb-6">
-            <div className="h-20 bg-gradient-to-r from-indigo-500 to-purple-500" />
+            <div className="h-20 bg-indigo-500" />
             <div className="px-6 pb-6 -mt-10">
               <div className="relative w-20 h-20 mx-auto mb-3 group">
                 <div className="w-20 h-20 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center overflow-hidden ring-4 ring-white dark:ring-zinc-900">
@@ -234,7 +234,7 @@ function AIProfileSummary() {
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-zinc-900 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 shadow-sm p-5 mt-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center">
             <Sparkles size={14} className="text-white" />
           </div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Productivity Summary</h3>
@@ -255,7 +255,7 @@ function AIProfileSummary() {
 
       <div className="space-y-2">
         {insights.personalizedTip && (
-          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 border border-indigo-100 dark:border-indigo-900/30">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
             <Sparkles size={14} className="text-indigo-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-slate-600 dark:text-slate-300">{insights.personalizedTip}</p>
           </div>

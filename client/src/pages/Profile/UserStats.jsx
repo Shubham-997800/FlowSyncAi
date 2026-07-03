@@ -100,7 +100,7 @@ function UserStats() {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 px-5 py-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/10 dark:to-amber-900/10 border border-orange-100 dark:border-orange-900/30 flex-shrink-0">
+        <div className="flex items-center gap-4 px-5 py-4 rounded-xl bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 flex-shrink-0">
           <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
             <Flame size={24} className="text-orange-500" />
           </div>

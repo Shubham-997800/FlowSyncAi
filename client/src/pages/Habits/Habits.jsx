@@ -197,12 +197,12 @@ function Habits() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-5 bg-gradient-to-r from-indigo-50 to-violet-50/50 dark:from-indigo-950/30 dark:to-violet-950/20 rounded-2xl p-5 border border-indigo-100/50 dark:border-indigo-800/30"
+              className="mb-5 bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-5 border border-indigo-100/50 dark:border-indigo-800/30"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center shadow-sm">
                       <Brain size={17} className="text-white" />
                     </div>
                     <div>

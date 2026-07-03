@@ -146,7 +146,7 @@ function FocusMode() {
             <>
               <motion.div variants={fadeUp} className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center">
                     <Sparkles size={13} className="text-white" />
                   </div>
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">AI Suggestion</h3>

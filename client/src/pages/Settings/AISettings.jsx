@@ -105,7 +105,7 @@ function AISettings() {
         ))}
       </div>
       {rescueResult && (
-        <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-red-50 to-amber-50 dark:from-red-900/10 dark:to-amber-900/10 border border-red-200 dark:border-red-900/50">
+        <div className="mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/50">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ArrowDown size={14} className="text-red-500" />
