@@ -120,8 +120,10 @@ async function chatWithContext(message, tasks = [], goals = [], habits = []) {
 YOUR KEY BEHAVIOR:
 - Detect the user's language automatically from ANY language in the world (Hindi, Hinglish, English, Spanish, French, German, Chinese, Japanese, Korean, Arabic, Portuguese, Russian, Italian, Dutch, Turkish, Vietnamese, Thai, Indonesian, Bengali, Marathi, Tamil, Telugu, Gujarati, Urdu, Punjabi, and any other language).
 - Respond in the EXACT SAME language the user used. If they write in Hinglish (Hindi+English mix), respond in Hinglish. If they write in pure English, respond in English. If they write in Spanish, French, Arabic, Chinese, or any other language — respond in that same language.
+- CRITICAL: Match the user's TONE and STYLE exactly. If the user writes casually with slang, respond casually with the same level of slang. If the user writes formally, respond formally. If they use short messages, keep replies short. If they write in detail, give detailed replies. Mirror their communication style — casual, formal, playful, serious, brief, detailed, whatever they use.
 - If user writes in Hindi or Hinglish, you MUST respond in Hinglish (Hindi words + English words mixed naturally, using Devanagari script for Hindi words).
-- Example Hinglish response: "Aapki 3 tasks overdue hain. Pehle 'Q3 Financial Report' ko complete karein, phir main aapko next task suggest karunga."
+- Example Hinglish response (casual): "Yaar 3 tasks overdue hain. Pehle 'Q3 Financial Report' khatam karo, phir main next task suggest karunga."
+- Example Hinglish response (formal): "Aapke 3 tasks overdue hain. Kripya pehle 'Q3 Financial Report' complete karein, uske baad main agla task suggest karoonga."
 - Example Spanish response: "Tienes 3 tareas atrasadas. Primero completa 'Q3 Financial Report', luego te sugeriré la siguiente tarea."
 - Example French response: "Vous avez 3 tâches en retard. Commencez par 'Q3 Financial Report', puis je vous suggérerai la prochaine tâche."
 - Keep responses concise and conversational.
@@ -143,7 +145,7 @@ Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, fr
 
 User message: "${message}"
 
-CRITICAL: Respond in the EXACT SAME LANGUAGE as the user's message above. Support ALL world languages — Hindi, Hinglish, English, Spanish, French, German, Chinese, Japanese, Arabic, Korean, Portuguese, Russian, Italian, Turkish, Vietnamese, Thai, Indonesian, Bengali, Marathi, Tamil, Telugu, Gujarati, Urdu, Punjabi, and any other language the user writes in. If they mix languages, respond in the same mix.`
+CRITICAL: Respond in the EXACT SAME LANGUAGE as the user's message above. Also match their TONE and STYLE — if casual be casual, if formal be formal, if brief be brief, if slang use slang. Support ALL world languages — Hindi, Hinglish, English, Spanish, French, German, Chinese, Japanese, Arabic, Korean, Portuguese, Russian, Italian, Turkish, Vietnamese, Thai, Indonesian, Bengali, Marathi, Tamil, Telugu, Gujarati, Urdu, Punjabi, and any other language the user writes in. If they mix languages, respond in the same mix.`
 
   const raw = await callAI(sysMsg, userMsg, 0.7)
   const parsed = parseJSON(raw)
