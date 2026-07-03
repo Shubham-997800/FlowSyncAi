@@ -38,7 +38,8 @@
   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.3_Stable-6366f1?style=for-the-badge" /></a>
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.4_Performance-f59e0b?style=for-the-badge" /></a>
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.5_Audit-22c55e?style=for-the-badge" /></a>
-  <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.6_Multilingual-8B5CF6?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.6_Multilingual-8B5CF6?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.7_Full_AI-f59e0b?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -148,7 +149,10 @@ We believe productivity tools should work **for** you, not the other way around.
 | **AI Task Suggestions** | While typing a task title, AI suggests optimal priority, estimated time, and relevant tags in real-time. |
 | **AI Dashboard Coach** | AI-powered productivity recommendations on the dashboard based on actual task data, urgency scores, and risk analysis. |
 | **AI Calendar Preview** | Shows AI-priority-ranked tasks per day with risk scores for smarter scheduling. |
-| **AI Focus Mode** | Context-aware break timing suggestions based on task priority and overdue status (shorter blocks for urgent tasks, longer for deep work). |
+| **AI Focus Coach** | Real AI-powered focus suggestions (not local heuristics) — recommends optimal focus time, energy level, break intervals, and personalized reasoning based on task context and workload via the focus-suggest API. |
+| **AI Profile Summary** | Personalized productivity score, completion rate, best streak, top strength/weakness, actionable tip, daily goal recommendation, peak productivity time, and motivational message — all AI-generated via the profile-insights API. |
+| **AI Notification Organizer** | Smart "AI Sort" button that groups notifications by urgency/priority with AI-generated summaries and contextual reasons via the organize-notifications API. |
+| **AI Rescue Mode (Wired)** | Fully integrated Rescue Mode toggle in Settings — activates AI to identify critical tasks, compressed schedule, and drop recommendations when overloaded. |
 | **Productivity Coach** | AI-generated reports that highlight patterns, strengths, weaknesses, and actionable recommendations via the analytics-insights API. |
 
 | **Voice Input** | Speech-to-text via Web Speech API in the AI chat interface for hands-free task creation. |
@@ -460,7 +464,7 @@ flowsync-ai/
 │   │   ├── analyticsController.js         # Stats, weekly, monthly aggregation
 │   │   ├── notificationController.js      # Create, list, mark-read
 │   │   ├── settingsController.js          # Profile, avatar, password, delete account, achievements
-│   │   ├── aiController.js               # Chat, plan, prioritize, rescue, suggest-task, analytics-insights
+│   │   ├── aiController.js               # Chat, plan, prioritize, rescue, suggest-task, analytics-insights, habit-insights, focus-suggest, profile-insights, organize-notifications
 │   │   ├── pushController.js             # Web push subscribe/unsubscribe
 │   │   └── chatController.js             # Chat history get/save/delete/clear
 │   │
@@ -717,6 +721,10 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 | **Rescue Mode** | Overloaded task list, 48h window | `{ criticalTasks[], compressedSchedule[], dropRecommendations[] }` | Empty arrays |
 | **Suggest Task** | Task title + existing tasks context | `{ suggestedPriority, suggestedEstimatedTime, suggestedTags[], reason }` | Medium priority defaults |
 | **Analytics Insights** | Full task/habit/goal data | `{ strengths[], weaknesses[], recommendations[], productivityScore, predictedCompletionRate }` | Static fallback |
+| **Focus Suggestion** | Selected task + active tasks context | `{ title, desc, breakSuggestion, focusTime, energyRequired, reason }` | Priority-based local fallback |
+| **Profile Insights** | Tasks + habits + goals aggregated | `{ productivityScore, completionRate, strength, weakness, personalizedTip, peakTime, motivationalMessage }` | Calculated local fallback |
+| **Organize Notifications** | Full notification list | `{ groups[{name, priority, ids, reason}], prioritizedIds[], summary }` | Flat time-based grouping |
+| **Rescue Mode Activation** | Overloaded tasks + 48h window | `{ criticalTasks[], compressedSchedule[], dropRecommendations[], strategy, recoveryHours }` | Empty arrays |
 | **Voice Input** | Web Speech API → text → AI chat | Same as Chat | Text input fallback |
 
 ---
@@ -842,6 +850,18 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 | **v0.4** | `Production+Cleanup` | UI re-render audit, 51 CSS transition fixes, backend CSP/process handlers, accessibility ARIA toggles, error boundaries, rate limiter hardening, account lockout, hardcoded limits → config, ObjectId validation, request ID middleware, removed all email/OTP code, auto-verify on signup, cleanup dead code (+400 lines removed) |
 | **v0.5** | `Audit+Stability` | Full production audit: fixed errorHandler crash on non-ValidationError, account delete password not being sent, email format validation, password info leak, seed.js unused import, aiService.js console.log → console.error, qa-seed.js broken endpoint, removed dashboard period filter, +25 unused-import/variable cleanups, 48→22 lint issues, email references fully purged from README |
 | **v0.6** | `Multilingual+Models` | Expanded AI fallback chain from 7→11 models, reduced max_tokens 4096→1024 for low-credit environments, removed 402 error from hard-fail (models skip gracefully), full multilingual support (25+ languages), tone/style matching — AI mirrors user's language, formality, and slang |
+| **v0.7** | `Full AI+Layout` | AI in every tab — FocusMode real API (replaced local heuristic), Profile AI Productivity Summary, Notifications AI Smart Sort, Settings Rescue Mode wired to backend. Layout standardization: consistent `px-4 sm:px-6 lg:px-8 py-8` on all pages, card padding normalized to `p-6`, AIPlanner overflow fixed. Zero ESLint errors in source code. |
+
+### Version History — v0.7
+
+| Feature | Before | After |
+|---------|--------|-------|
+| **FocusMode AI** | Local heuristic (if/else priority checks) with hardcoded strings | Real `POST /api/ai/focus-suggest` API — AI recommends focus time, energy level, break strategy, and reasoning |
+| **Profile AI** | No AI — just UserStats (local task counts) | AI Productivity Summary card — score, completion rate, strength/weakness, personalized tip, peak time, motivational message |
+| **Notifications AI** | Flat time-based groups (Today/This Week/Earlier) | "AI Sort" button — calls `POST /api/ai/organize-notifications` — groups by urgency with AI summary |
+| **Settings Rescue Mode** | Dummy toggle — no backend call | Wired to `POST /api/ai/rescue` — shows critical tasks, compression strategy, drop recommendations |
+| **Layout** | Inconsistent max-widths (4xl/5xl/6xl/7xl), mixed py-8/py-10, AIPlanner negative margin overflow | All pages: `px-4 sm:px-6 lg:px-8 py-8`, cards `p-6`, AIPlanner with rounded border, Dashboard padding fixed |
+| **ESLint** | 1 error (FocusMode setState in effect) | **Zero errors** in all source files |
 
 ### Responsive Design Audit (8 Breakpoints) — v0.2
 
