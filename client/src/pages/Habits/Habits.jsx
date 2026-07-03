@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion'
-import { Plus, X, Flame, CheckCircle2, Trash2 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Plus, X, Flame, CheckCircle2, Trash2, Brain, Lightbulb, Clock, Target, Sparkles, TrendingUp, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { getHabits, createHabit, updateHabit as updateHabitApi, deleteHabit as deleteHabitApi } from '../../services/habitService'
+import { getHabitInsights } from '../../services/aiService'
 
-// Habit tracker with weekly calendar, logging, and streak tracking
 function getWeekDates() {
   const dates = []
   const now = new Date()
@@ -69,6 +69,22 @@ function Habits() {
   const [habits, setHabits] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
+  const [aiInsights, setAiInsights] = useState(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState(false)
+
+  const fetchAiInsights = useCallback(async () => {
+    setAiLoading(true)
+    setAiError(false)
+    try {
+      const data = await getHabitInsights()
+      setAiInsights(data)
+    } catch {
+      setAiError(true)
+    } finally {
+      setAiLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     const load = async () => {
@@ -81,6 +97,10 @@ function Habits() {
     }
     load()
   }, [])
+
+  useEffect(() => {
+    if (habits.length > 0) Promise.resolve().then(() => fetchAiInsights())
+  }, [habits.length, fetchAiInsights])
 
   const reload = async () => {
     try {
@@ -127,18 +147,20 @@ function Habits() {
 
   const today = getToday()
   const weekDates = getWeekDates()
+  const doneCount = habits.filter(h => h.logs?.includes(today)).length
 
   return (
     <motion.div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10" variants={containerVariants} initial="hidden" animate="visible">
       <Helmet>
         <title>Habits - FlowSync AI</title>
-        <meta name="description" content="Track your daily habits" />
+        <meta name="description" content="Track your daily habits with AI-powered insights" />
       </Helmet>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Habits</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {habits.filter(h => h.logs?.includes(today)).length}/{habits.length} habits done today
+            {doneCount}/{habits.length} habits done today
           </p>
         </div>
         <button onClick={() => { setEditing(null); setShowForm(true) }} className="flex items-center gap-2 bg-indigo-600 dark:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition shadow-sm">
@@ -154,46 +176,146 @@ function Habits() {
           <p className="text-lg font-medium text-slate-500 dark:text-slate-400">No habits yet. Start building one!</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {habits.map(habit => {
-            const isDone = habit.logs?.includes(today)
-            return (
-              <motion.div key={habit._id} variants={itemVariants} className={`bg-white dark:bg-zinc-900 rounded-2xl p-5 border transition ${isDone ? 'border-indigo-200 dark:border-indigo-800' : 'border-slate-200 dark:border-zinc-800'} hover:shadow-sm`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => toggleLog(habit._id)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${isDone ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'}`}>
-                      <CheckCircle2 size={20} />
-                    </button>
+        <>
+          {aiLoading ? (
+            <div className="mb-5 bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                  <Brain size={18} className="text-indigo-500" />
+                </div>
+                <div>
+                  <div className="h-4 w-32 bg-slate-200 dark:bg-zinc-700 rounded animate-pulse" />
+                  <div className="h-3 w-48 bg-slate-100 dark:bg-zinc-800 rounded animate-pulse mt-1.5" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 bg-slate-100 dark:bg-zinc-800 rounded animate-pulse w-full" />
+                <div className="h-3 bg-slate-100 dark:bg-zinc-800 rounded animate-pulse w-3/4" />
+              </div>
+            </div>
+          ) : aiInsights && !aiError ? (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5 bg-gradient-to-r from-indigo-50 to-violet-50/50 dark:from-indigo-950/30 dark:to-violet-950/20 rounded-2xl p-5 border border-indigo-100/50 dark:border-indigo-800/30"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
+                      <Brain size={17} className="text-white" />
+                    </div>
                     <div>
-                      <h3 className={`font-semibold text-sm ${isDone ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-900 dark:text-slate-100'}`}>{habit.title}</h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{habit.frequency}</span>
-                        <span className="flex items-center gap-1 text-xs font-medium text-orange-500"><Flame size={12} /> {habit.streak || 0} day streak</span>
-                      </div>
+                      <h3 className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">AI Habit Coach</h3>
+                      <p className="text-[11px] text-indigo-400 dark:text-indigo-500">Personalized insight for today</p>
                     </div>
                   </div>
-                  <button onClick={() => deleteHabit(habit._id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"><Trash2 size={14} /></button>
-                </div>
 
-                <div className="flex gap-1 sm:gap-1.5">
-                  {weekDates.map(date => {
-                    const isToday = date === today
-                    const logged = habit.logs?.includes(date)
-                    const dayLabel = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)
-                    return (
-                      <div key={date} className={`flex-1 flex flex-col items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-center transition ${isToday ? 'bg-slate-50 dark:bg-zinc-800 ring-1 ring-indigo-500' : ''}`}>
-                        <span className="text-[9px] sm:text-[10px] font-medium text-slate-400 dark:text-slate-500">{dayLabel}</span>
-                        <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded flex sm:rounded-md items-center justify-center text-[10px] sm:text-xs transition ${logged ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-300 dark:text-slate-600'}`}>
-                          {logged ? <CheckCircle2 size={10} className="sm:w-3 sm:h-3" /> : '-'}
+                  {aiInsights.focusHabit && (
+                    <div className="flex items-start gap-2.5 mb-2.5">
+                      <Target size={14} className="text-violet-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-slate-700 dark:text-slate-300">
+                        <span className="font-medium text-violet-600 dark:text-violet-400">Focus on:</span> {aiInsights.focusHabit}
+                        {aiInsights.focusReason && <span className="text-slate-500 dark:text-slate-400"> — {aiInsights.focusReason}</span>}
+                      </p>
+                    </div>
+                  )}
+
+                  {aiInsights.optimalTime && (
+                    <div className="flex items-start gap-2.5 mb-2.5">
+                      <Clock size={14} className="text-indigo-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-medium text-indigo-600 dark:text-indigo-400">Best time:</span> {aiInsights.optimalTime}
+                      </p>
+                    </div>
+                  )}
+
+                  {aiInsights.streakMessage && (
+                    <div className="flex items-start gap-2.5 mb-2.5">
+                      <TrendingUp size={14} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{aiInsights.streakMessage}</p>
+                    </div>
+                  )}
+
+                  {aiInsights.pattern && (
+                    <div className="flex items-start gap-2.5 mb-2.5">
+                      <Lightbulb size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-medium text-amber-600 dark:text-amber-400">Pattern:</span> {aiInsights.pattern}
+                      </p>
+                    </div>
+                  )}
+
+                  {aiInsights.tip && (
+                    <div className="flex items-start gap-2.5">
+                      <Sparkles size={14} className="text-indigo-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-medium text-indigo-600 dark:text-indigo-400">Tip:</span> {aiInsights.tip}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={fetchAiInsights}
+                  className="p-2 rounded-xl text-indigo-400 hover:text-indigo-600 hover:bg-white/50 dark:hover:bg-zinc-800/50 transition-colors flex-shrink-0"
+                  title="Refresh AI insights"
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+            </motion.div>
+          ) : aiError && (
+            <div className="mb-5 bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-slate-200 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-zinc-800 flex items-center justify-center">
+                  <Brain size={18} className="text-slate-400" />
+                </div>
+                <p className="text-sm text-slate-500 dark:text-slate-400">AI insights unavailable right now</p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {habits.map(habit => {
+              const isDone = habit.logs?.includes(today)
+              return (
+                <motion.div key={habit._id} variants={itemVariants} className={`bg-white dark:bg-zinc-900 rounded-2xl p-5 border transition ${isDone ? 'border-indigo-200 dark:border-indigo-800' : 'border-slate-200 dark:border-zinc-800'} hover:shadow-sm`}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => toggleLog(habit._id)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${isDone ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'}`}>
+                        <CheckCircle2 size={20} />
+                      </button>
+                      <div>
+                        <h3 className={`font-semibold text-sm ${isDone ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-900 dark:text-slate-100'}`}>{habit.title}</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-slate-400 dark:text-slate-500">{habit.frequency}</span>
+                          <span className="flex items-center gap-1 text-xs font-medium text-orange-500"><Flame size={12} /> {habit.streak || 0} day streak</span>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              </motion.div>
-            )
-          })}
-        </div>
+                    </div>
+                    <button onClick={() => deleteHabit(habit._id)} className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"><Trash2 size={14} /></button>
+                  </div>
+
+                  <div className="flex gap-1 sm:gap-1.5">
+                    {weekDates.map(date => {
+                      const isToday = date === today
+                      const logged = habit.logs?.includes(date)
+                      const dayLabel = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)
+                      return (
+                        <div key={date} className={`flex-1 flex flex-col items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-center transition ${isToday ? 'bg-slate-50 dark:bg-zinc-800 ring-1 ring-indigo-500' : ''}`}>
+                          <span className="text-[9px] sm:text-[10px] font-medium text-slate-400 dark:text-slate-500">{dayLabel}</span>
+                          <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded flex sm:rounded-md items-center justify-center text-[10px] sm:text-xs transition ${logged ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-300 dark:text-slate-600'}`}>
+                            {logged ? <CheckCircle2 size={10} className="sm:w-3 sm:h-3" /> : '-'}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
+        </>
       )}
     </motion.div>
   )

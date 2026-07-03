@@ -202,4 +202,33 @@ Respond EXACTLY with this JSON:
   }
 }
 
-module.exports = { generatePlan, prioritizeTasks, rescueMode, chatWithContext, suggestTask, generateAnalyticsInsights }
+async function generateHabitInsights(habits, tasks = [], goals = []) {
+  const sysMsg = `You are FlowSync AI, a habit coach. Analyze habits and provide insights. Respond with valid JSON only. Write text in the user's language if detectable from habit/task titles.`
+  const userMsg = `Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, frequency: h.frequency, streak: h.streak, logs: (h.logs || []).slice(-30) })))}
+Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, status: t.status, priority: t.priority })))}
+Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, progress: g.progress })))}
+
+Respond EXACTLY with this JSON:
+{
+  "focusHabit": "title of the habit to focus on today",
+  "focusReason": "brief reason why this habit matters today",
+  "streakMessage": "motivational message based on their best streak",
+  "optimalTime": "suggested best time of day for this habit",
+  "pattern": "observed pattern or insight from their habit logs",
+  "tip": "actionable tip to improve consistency"
+}`
+
+  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const parsed = parseJSON(raw)
+  if (parsed && parsed.focusHabit) return parsed
+  return {
+    focusHabit: '',
+    focusReason: '',
+    streakMessage: 'Keep going! Every day counts.',
+    optimalTime: '',
+    pattern: '',
+    tip: 'Try to check in at the same time each day to build consistency.',
+  }
+}
+
+module.exports = { generatePlan, prioritizeTasks, rescueMode, chatWithContext, suggestTask, generateAnalyticsInsights, generateHabitInsights }

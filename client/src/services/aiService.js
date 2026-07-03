@@ -25,3 +25,8 @@ export const getAnalyticsInsights = async () => {
   const { data } = await api.get('/api/ai/analytics-insights')
   return data
 }
+
+export const getHabitInsights = async () => {
+  const { data } = await api.get('/api/ai/habit-insights')
+  return data
+}

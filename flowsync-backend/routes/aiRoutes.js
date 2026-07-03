@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const { plan, prioritize, rescue, chatAI, suggestTaskAI, getUsage, analyticsInsights } = require('../controllers/aiController')
+const { plan, prioritize, rescue, chatAI, suggestTaskAI, getUsage, analyticsInsights, habitInsights } = require('../controllers/aiController')
 const { protect } = require('../middleware/auth')
 const { aiLimiter } = require('../middleware/rateLimiter')
 
@@ -14,5 +14,6 @@ router.post('/chat', chatAI)
 router.post('/suggest-task', suggestTaskAI)
 router.get('/usage', getUsage)
 router.get('/analytics-insights', analyticsInsights)
+router.get('/habit-insights', habitInsights)
 
 module.exports = router
