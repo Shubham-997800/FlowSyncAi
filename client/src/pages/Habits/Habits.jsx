@@ -150,7 +150,7 @@ function Habits() {
   const doneCount = habits.filter(h => h.logs?.includes(today)).length
 
   return (
-    <motion.div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10" variants={containerVariants} initial="hidden" animate="visible">
+    <motion.div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
       <Helmet>
         <title>Habits - FlowSync AI</title>
         <meta name="description" content="Track your daily habits with AI-powered insights" />

@@ -302,7 +302,7 @@ function TaskAndGoals() {
   }
 
   return (
-    <motion.div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10" variants={containerVariants} initial="hidden" animate="visible">
+    <motion.div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8" variants={containerVariants} initial="hidden" animate="visible">
       <Helmet>
         <title>Tasks & Goals - FlowSync AI</title>
         <meta name="description" content="Manage your tasks and goals" />
