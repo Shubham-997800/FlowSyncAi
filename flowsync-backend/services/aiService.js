@@ -2,16 +2,16 @@ const { getAI } = require('../config/aiConfig')
 
 const AI_MODELS = [
   process.env.AI_MODEL,
-  'openai/gpt-4o',
-  'anthropic/claude-3.5-haiku-20241022',
-  'google/gemini-2.0-flash-001',
-  'meta-llama/llama-3.3-70b-instruct',
   'openai/gpt-4o-mini',
+  'google/gemini-2.0-flash-001',
   'anthropic/claude-3-haiku-20240307',
-  'cohere/command-r-plus',
+  'meta-llama/llama-3.3-70b-instruct',
   'mistralai/mistral-small-24b-instruct-2501',
+  'cohere/command-r-plus',
   'qwen/qwen-2.5-72b-instruct',
   'deepseek/deepseek-chat',
+  'openai/gpt-4o',
+  'anthropic/claude-3.5-haiku-20241022',
 ].filter(Boolean)
 
 async function callAI(systemMsg, userMsg, temperature = 0.7) {
@@ -25,7 +25,7 @@ async function callAI(systemMsg, userMsg, temperature = 0.7) {
           { role: 'user', content: userMsg },
         ],
         temperature,
-        max_tokens: 4096,
+        max_tokens: 1024,
       })
       const content = res.choices[0]?.message?.content || ''
       if (content) {
@@ -35,7 +35,7 @@ async function callAI(systemMsg, userMsg, temperature = 0.7) {
       const info = `${err.message || ''} ${err.error?.message || ''}`
       console.error(`[AI] ${model} failed: ${info.slice(0, 100)}`)
       const status = err.status || err.error?.code || 0
-      if (status === 401 || status === 402 || info.includes('401') || info.includes('402') || info.includes('invalid_api_key') || info.includes('Incorrect API key')) {
+      if (status === 401 || info.includes('401') || info.includes('invalid_api_key') || info.includes('Incorrect API key')) {
         throw new Error('AI_SERVICE_UNAVAILABLE')
       }
     }
