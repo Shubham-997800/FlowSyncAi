@@ -26,19 +26,23 @@ function Timer({ mode: externalMode, onComplete }) {
   const FOCUS_TIME = settings.focus * 60
   const BREAK_TIME = settings.break * 60
 
-  const [timeLeft, setTimeLeft] = useState(() => externalMode === 'focus' ? FOCUS_TIME : BREAK_TIME)
+  const initialMode = externalMode || 'focus'
+  const [timeLeft, setTimeLeft] = useState(() => initialMode === 'focus' ? FOCUS_TIME : BREAK_TIME)
   const [isRunning, setIsRunning] = useState(false)
-  const [mode, setMode] = useState(externalMode || 'focus')
+  const [mode, setMode] = useState(initialMode)
   const intervalRef = useRef(null)
   const onCompleteRef = useRef(onComplete)
 
   useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
 
+  const prevExternalMode = useRef(externalMode)
   useEffect(() => {
+    if (externalMode === prevExternalMode.current) return
+    prevExternalMode.current = externalMode
     setMode(externalMode)
     setIsRunning(false)
     setTimeLeft(externalMode === 'focus' ? FOCUS_TIME : BREAK_TIME)
-  }, [externalMode, settings])
+  }, [externalMode, settings, FOCUS_TIME, BREAK_TIME])
 
   useEffect(() => {
     if (!isRunning) return
@@ -57,7 +61,7 @@ function Timer({ mode: externalMode, onComplete }) {
       })
     }, 1000)
     return () => clearInterval(intervalRef.current)
-  }, [isRunning, mode, settings])
+  }, [isRunning, mode, settings, FOCUS_TIME, BREAK_TIME])
 
   const toggleTimer = () => setIsRunning(!isRunning)
 

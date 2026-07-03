@@ -70,7 +70,19 @@ function Habits() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
 
-  const fetchHabits = async () => {
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getHabits()
+        setHabits(Array.isArray(data) ? data : [])
+      } catch {
+        toast.error('Failed to load habits')
+      }
+    }
+    load()
+  }, [])
+
+  const reload = async () => {
     try {
       const data = await getHabits()
       setHabits(Array.isArray(data) ? data : [])
@@ -79,21 +91,19 @@ function Habits() {
     }
   }
 
-  useEffect(() => { fetchHabits() }, [])
-
   const addHabit = async (data) => {
     await createHabit(data)
-    await fetchHabits()
+    await reload()
   }
 
   const updateHabit = async (id, data) => {
     await updateHabitApi(id, data)
-    await fetchHabits()
+    await reload()
   }
 
   const deleteHabit = async (id) => {
     await deleteHabitApi(id)
-    await fetchHabits()
+    await reload()
     toast.success('Habit deleted')
   }
 

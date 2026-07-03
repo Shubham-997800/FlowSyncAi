@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Info, Bell, AlertTriangle, Sparkles } from 'lucide-react'
 
@@ -49,7 +49,12 @@ function NotificationCard({ notification, onMarkRead }) {
   const border = borderColorMap[type] || borderColorMap.system
   const colors = bgColorMap[type] || bgColorMap.system
   const id = notification.id || notification._id
-  const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time])
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60000)
+    return () => clearInterval(interval)
+  }, [])
+  const timeAgo = Math.floor((now - new Date(time).getTime()) / 60000)
 
   const handleClick = () => {
     const path = notification.link || actionMap[type] || '/dashboard'

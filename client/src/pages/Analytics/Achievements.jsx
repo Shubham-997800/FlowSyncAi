@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, startTransition } from 'react'
 import { Trophy, Flame, Target, CheckCircle, Zap, Star, Loader2 } from 'lucide-react'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
@@ -16,6 +16,7 @@ const milestones = [
 function Achievements({ tasks, goals, habits }) {
   const [saved, setSaved] = useState([])
   const [saving, setSaving] = useState(false)
+  const savingRef = useRef(false)
 
   const unlockedIds = milestones
     .filter(m => m.check(tasks) || m.check(goals) || m.check(habits))
@@ -32,17 +33,20 @@ function Achievements({ tasks, goals, habits }) {
     })()
   }, [])
 
+  const unlockedKey = unlockedIds.join(',')
   useEffect(() => {
+    if (savingRef.current) return
     const newUnlocks = unlockedIds.filter(id => !saved.includes(id))
-    if (newUnlocks.length === 0 || saving) return
-    setSaving(true)
+    if (newUnlocks.length === 0) return
+    savingRef.current = true
+    startTransition(() => { setSaving(true) })
     const updated = [...new Set([...saved, ...unlockedIds])]
     const payload = updated.map(name => ({ name, unlockedAt: new Date() }))
     api.put('/api/settings/achievements', { achievements: payload })
       .then(() => { setSaved(updated); if (newUnlocks.length > 0) toast.success(`Achievement${newUnlocks.length > 1 ? 's' : ''} unlocked!`) })
       .catch(() => {})
-      .finally(() => setSaving(false))
-  }, [unlockedIds.join(',')])
+      .finally(() => { setSaving(false); savingRef.current = false })
+  }, [unlockedKey, saved, unlockedIds])
 
   const progress = Math.round((unlockedIds.length / milestones.length) * 100)
 

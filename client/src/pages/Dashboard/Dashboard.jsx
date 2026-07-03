@@ -113,30 +113,46 @@ function Dashboard() {
   const tasksRef = useRef(tasks)
   useEffect(() => { tasksRef.current = tasks }, [tasks])
 
-  const fetchTasks = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true)
-    else setRefreshing(true)
-    try {
-      const data = await getTasks()
-      setTasks(Array.isArray(data) ? data : [])
-      setLastSyncTime(Date.now())
-    } catch {
-      if (!silent) toast.error('Failed to load tasks')
-    }
-    if (!silent) setLoading(false)
-    else setRefreshing(false)
+  const fetchTasks = useCallback(async () => {
+    const data = await getTasks()
+    return Array.isArray(data) ? data : []
   }, [])
+
+  const applyTasks = useCallback((data) => {
+    setTasks(data)
+    setLastSyncTime(Date.now())
+  }, [])
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const data = await fetchTasks()
+      applyTasks(data)
+    } catch {
+      toast.error('Failed to load tasks')
+    }
+    setRefreshing(false)
+  }, [fetchTasks, applyTasks])
 
   useEffect(() => {
     fetchTasks()
-    intervalRef.current = setInterval(() => fetchTasks(true), 60000)
-    const handleVisibility = () => { if (document.visibilityState === 'visible') fetchTasks(true) }
+      .then(data => { applyTasks(data) })
+      .catch(() => toast.error('Failed to load tasks'))
+      .finally(() => setLoading(false))
+    intervalRef.current = setInterval(() => {
+      fetchTasks().then(data => applyTasks(data)).catch(() => {})
+    }, 60000)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchTasks().then(data => applyTasks(data)).catch(() => {})
+      }
+    }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       clearInterval(intervalRef.current)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
-  }, [fetchTasks])
+  }, [fetchTasks, applyTasks])
 
   const handleToggle = useCallback(async (id) => {
     const current = tasksRef.current
@@ -223,7 +239,7 @@ function Dashboard() {
         ) : (
           <>
             <motion.div variants={section}>
-              <DashboardHeader onRefresh={() => fetchTasks(true)} refreshing={refreshing} lastSyncTime={lastSyncTime} />
+              <DashboardHeader onRefresh={handleRefresh} refreshing={refreshing} lastSyncTime={lastSyncTime} />
             </motion.div>
 
             <div className="flex items-center justify-end">

@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react'
+import { useState, useEffect, useMemo, memo } from 'react'
 import { ListTodo, CheckCircle, CalendarClock, Timer } from 'lucide-react'
 import { motion } from 'framer-motion'
 import StatCard from '../../components/ui/StatCard'
@@ -12,17 +12,20 @@ function getDateStr(d) {
 
 function AnimatedNumber({ value, duration = 600 }) {
   const [display, setDisplay] = useState(0)
+  if (value === 0 && display !== 0) setDisplay(0)
   useEffect(() => {
-    if (value === 0) { setDisplay(0); return }
+    if (value === 0) return
+    let mounted = true
     const start = performance.now()
     const step = (now) => {
       const elapsed = now - start
       const progress = Math.min(elapsed / duration, 1)
       const eased = 1 - Math.pow(1 - progress, 3)
-      setDisplay(Math.round(eased * value))
-      if (progress < 1) requestAnimationFrame(step)
+      if (mounted) setDisplay(Math.round(eased * value))
+      if (progress < 1 && mounted) requestAnimationFrame(step)
     }
     requestAnimationFrame(step)
+    return () => { mounted = false }
   }, [value, duration])
   return <>{display}</>
 }
@@ -45,9 +48,7 @@ const cardVariant = {
 
 const DashboardCards = memo(function DashboardCards({ tasks }) {
   const today = new Date().toISOString().split('T')[0]
-  const [dailyCounts, setDailyCounts] = useState([])
-
-  useEffect(() => {
+  const dailyCounts = useMemo(() => {
     const counts = []
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
@@ -56,7 +57,7 @@ const DashboardCards = memo(function DashboardCards({ tasks }) {
       const done = tasks.filter(t => t.status === 'done' && getDateStr(t.updatedAt) === ds).length
       counts.push(done)
     }
-    setDailyCounts(counts)
+    return counts
   }, [tasks])
 
   const todayTaskCount = tasks.filter(t => { const d = getDateStr(t.deadline); return d === today && t.status !== 'done' }).length

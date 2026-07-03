@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from 'react'
+import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { Brain, Lightbulb, Coffee, ArrowRight, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { getTasks } from '../../services/taskService'
@@ -26,19 +26,17 @@ const AIRecommendation = memo(function AIRecommendation() {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const mountedRef = useRef(true)
 
-  const fetchRecommendations = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true)
-    setError(null)
+  useEffect(() => { return () => { mountedRef.current = false } }, [])
 
+  const fetchRecommendations = useCallback(async () => {
     try {
       const cached = sessionStorage.getItem('flowsync_ai_cache')
-      if (cached && silent) {
+      if (cached) {
         const parsed = JSON.parse(cached)
         if (Date.now() - parsed.timestamp < 300000) {
-          setRecommendations(parsed.data)
-          setLoading(false)
-          return
+          return { data: parsed.data }
         }
       }
 
@@ -47,9 +45,8 @@ const AIRecommendation = memo(function AIRecommendation() {
 
       if (active.length === 0) {
         const data = [{ icon: CheckCircle2, title: 'All caught up!', desc: 'No active tasks. Create a new task to get AI suggestions.', priority: 'low', badge: 'Info' }]
-        setRecommendations(data)
         sessionStorage.setItem('flowsync_ai_cache', JSON.stringify({ data, timestamp: Date.now() }))
-        return
+        return { data }
       }
 
       const res = await prioritizeTasks()
@@ -72,22 +69,31 @@ const AIRecommendation = memo(function AIRecommendation() {
           { icon: Lightbulb, title: overdue.length > 0 ? `${overdue.length} overdue tasks` : 'Review your tasks', desc: overdue.length > 0 ? 'Focus on clearing overdue items first.' : 'You have active tasks to review.', priority: 'medium', badge: 'Active' },
         ]
       }
-      setRecommendations(data)
       sessionStorage.setItem('flowsync_ai_cache', JSON.stringify({ data, timestamp: Date.now() }))
+      return { data }
     } catch {
-      setError('Could not fetch recommendations. Check connection.')
       const cached = sessionStorage.getItem('flowsync_ai_cache')
       if (cached) {
-        try { setRecommendations(JSON.parse(cached).data) } catch {}
-      } else {
-        setRecommendations([{ icon: AlertCircle, title: 'AI unavailable', desc: 'Could not fetch recommendations. Check connection.', priority: 'low', badge: 'Offline' }])
+        try { return { data: JSON.parse(cached).data } } catch {}
       }
-    } finally {
-      setLoading(false)
+      return { error: 'Could not fetch recommendations. Check connection.', fallback: [{ icon: AlertCircle, title: 'AI unavailable', desc: 'Could not fetch recommendations. Check connection.', priority: 'low', badge: 'Offline' }] }
     }
   }, [])
 
-  useEffect(() => { fetchRecommendations() }, [fetchRecommendations])
+  useEffect(() => {
+    fetchRecommendations()
+      .then(result => {
+        if (!mountedRef.current) return
+        if (result.error) {
+          setError(result.error)
+          setRecommendations(result.fallback)
+        } else {
+          setRecommendations(result.data)
+        }
+      })
+      .catch(() => { if (mountedRef.current) setError('Failed to fetch') })
+      .finally(() => { if (mountedRef.current) setLoading(false) })
+  }, [fetchRecommendations])
 
   return (
     <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">

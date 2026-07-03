@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 
@@ -16,7 +16,12 @@ function AlertCard({ notification, onMarkRead }) {
   const navigate = useNavigate()
   const { title, message, time, read, type } = notification
   const id = notification.id || notification._id
-  const timeAgo = useMemo(() => Math.floor((Date.now() - new Date(time).getTime()) / 60000), [time])
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60000)
+    return () => clearInterval(interval)
+  }, [])
+  const timeAgo = Math.floor((now - new Date(time).getTime()) / 60000)
 
   const handleAction = () => {
     const path = notification.link || actionMap[type] || '/tasks'

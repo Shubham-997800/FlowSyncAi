@@ -5,7 +5,7 @@ import { prioritizeTasks } from '../../services/aiService'
 // Sidebar panel showing AI task rankings and schedule suggestions
 function SchedulePreview({ tasks, selectedDate }) {
   const [aiRankings, setAiRankings] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const today = new Date().toISOString().split('T')[0]
   const dateStr = selectedDate || today
@@ -18,15 +18,26 @@ function SchedulePreview({ tasks, selectedDate }) {
   const dateLabel = displayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
 
   useEffect(() => {
-    if (dayTasks.length === 0) return
-    setLoading(true)
-    prioritizeTasks()
-      .then(res => {
-        if (res?.rankings) setAiRankings(res.rankings)
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [dateStr])
+    let mounted = true
+    Promise.resolve().then(() => {
+      if (!mounted) return
+      if (dayTasks.length === 0) {
+        setAiRankings([])
+        setLoading(false)
+      } else {
+        setLoading(true)
+      }
+    })
+    if (dayTasks.length > 0) {
+      prioritizeTasks()
+        .then(res => {
+          if (mounted && res?.rankings) setAiRankings(res.rankings)
+        })
+        .catch(() => {})
+        .finally(() => { if (mounted) setLoading(false) })
+    }
+    return () => { mounted = false }
+  }, [dateStr, dayTasks.length])
 
   const suggestions = []
   if (loadPercent > 80) suggestions.push('Your day is heavily loaded. Consider moving low priority tasks.')

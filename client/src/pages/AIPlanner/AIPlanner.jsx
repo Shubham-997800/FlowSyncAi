@@ -135,21 +135,24 @@ function AIPlanner() {
     setListening(true)
   }, [listening, checkMicPermission, stopVoice])
 
+  const stopVoiceRef = useRef(stopVoice)
+  useEffect(() => { stopVoiceRef.current = stopVoice }, [stopVoice])
+
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden && listeningRef.current) {
-        stopVoice()
+        stopVoiceRef.current()
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility)
-      stopVoice()
+      stopVoiceRef.current()
     }
   }, [])
 
   const loadSession = useCallback(async (sid) => {
-    if (listeningRef.current) stopVoice()
+    if (listeningRef.current) stopVoiceRef.current()
     setInitialLoading(true)
     setShowSessions(false)
     try {
@@ -177,7 +180,7 @@ function AIPlanner() {
   }, [loadSession])
 
   const newChat = useCallback(async () => {
-    if (listeningRef.current) stopVoice()
+    if (listeningRef.current) stopVoiceRef.current()
     const sid = genId()
     setSessionId(sid)
     setMessages([defaultMessage])

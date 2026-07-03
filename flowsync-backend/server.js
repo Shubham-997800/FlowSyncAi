@@ -18,7 +18,6 @@ const { requestId } = require('./middleware/requestId')
 const { startReminderService } = require('./services/reminderService')
 
 dotenv.config()
-connectDB()
 
 const required = ['MONGODB_URI', 'JWT_SECRET']
 for (const key of required) {
@@ -31,6 +30,7 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
   console.error('FATAL: JWT_SECRET is too short. Use a 256-bit (64+ character hex) random string.')
   process.exit(1)
 }
+connectDB()
 const app = express()
 const PORT = process.env.PORT || 5000
 

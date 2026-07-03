@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 // Dashboard header with greeting, date, and refresh button
 function DashboardHeader({ onRefresh, refreshing, lastSyncTime }) {
   const { user } = useAuth()
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(() => Date.now())
   const [syncText, setSyncText] = useState('')
+  const syncTextRef = useRef(syncText)
+  useEffect(() => { syncTextRef.current = syncText }, [syncText])
 
   useEffect(() => {
     const tick = () => setNow(Date.now())
-    tick()
     const interval = setInterval(tick, 60000)
     return () => clearInterval(interval)
   }, [])
@@ -19,13 +20,11 @@ function DashboardHeader({ onRefresh, refreshing, lastSyncTime }) {
   const greeting = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening'
 
   useEffect(() => {
-    if (!lastSyncTime) { setSyncText(''); return }
+    if (!lastSyncTime) return
     const update = () => {
       const diff = Math.floor((Date.now() - lastSyncTime) / 1000)
-      if (diff < 5) setSyncText('Just now')
-      else if (diff < 60) setSyncText(`${diff}s ago`)
-      else if (diff < 3600) setSyncText(`${Math.floor(diff / 60)}m ago`)
-      else setSyncText(`${Math.floor(diff / 3600)}h ago`)
+      const text = diff < 5 ? 'Just now' : diff < 60 ? `${diff}s ago` : diff < 3600 ? `${Math.floor(diff / 60)}m ago` : `${Math.floor(diff / 3600)}h ago`
+      setSyncText(text)
     }
     update()
     const interval = setInterval(update, 5000)

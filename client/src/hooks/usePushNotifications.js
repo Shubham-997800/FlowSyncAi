@@ -14,13 +14,13 @@ export function usePushNotifications(skipAutoSetup) {
 
   useEffect(() => {
     if (skipAutoSetup) return
-    if (!user) {
-      unsubscribeFromPush().catch(() => {})
-      setSubscribed(false)
-      return
-    }
     let mounted = true
     ;(async () => {
+      if (!user) {
+        await unsubscribeFromPush().catch(() => {})
+        if (mounted) setSubscribed(false)
+        return
+      }
       try {
         if (getPermission() === 'denied') return
         if (getPermission() !== 'granted') {
