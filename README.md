@@ -33,9 +33,9 @@
 </p>
 
 <p align="center">
-   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.6_Multilingual-8B5CF6?style=for-the-badge" /></a>
-   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.7_Full_AI-f59e0b?style=for-the-badge" /></a>
-   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.8_Solid-64748b?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v1.0_Core-6366f1?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v2.0_Production-22c55e?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.0_AI_Complete-f59e0b?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -840,9 +840,9 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 
 | Version | Tag | Highlights |
 |---------|-----|------------|
-| **v0.6** | `Multilingual+Models` | Expanded AI fallback chain from 7→11 models, reduced max_tokens 4096→1024 for low-credit environments, removed 402 error from hard-fail (models skip gracefully), full multilingual support (25+ languages), tone/style matching — AI mirrors user's language, formality, and slang |
-| **v0.7** | `Full AI+Layout` | AI in every tab — FocusMode real API (replaced local heuristic), Profile AI Productivity Summary, Notifications AI Smart Sort, Settings Rescue Mode wired to backend. Layout standardization: consistent `px-4 sm:px-6 lg:px-8 py-8` on all pages, card padding normalized to `p-6`, AIPlanner overflow fixed. Zero ESLint errors in source code. |
-| **v0.8** | `Solid Colors` | All gradients removed across 8 files (21 instances) — replaced with solid background colors. Radial-gradient dot patterns replaced with solid bg overlays. Build passes zero errors. |
+| **v1.0** | `Core` | Initial 14 pages — Landing, Auth (Login/Register with JWT), Dashboard, Tasks & Goals, Calendar (monthly/weekly/daily), Habits (streak tracking), Focus Mode (Pomodoro), Analytics (charts), Notifications, Settings, Profile, AI Planner (chat), 404/401. Full responsive audit across 8 breakpoints (320px–1920px+). Basic AI features (chat, plan, prioritize). MongoDB Atlas + Express backend. |
+| **v2.0** | `Production` | Performance audit — re-render fixes, 51 CSS transitions optimized, 12 files deleted (+400 lines of dead code removed), React.memo + useCallback + ErrorBoundary everywhere. Security — CSP headers, rate limiting, account lockout, ObjectId validation, request ID tracing, JWT secret enforcement. Accessibility — skip-to-content, focus trap, prefers-reduced-motion, ARIA toggles. Dashboard overhaul — animated counters, sparkline charts, bulk actions, inline editing, AI caching, widget toggles. UX — undo toast, skeleton loading, polling optimization, framer-motion speed tuning. AI expansion — 11-model failover chain, 25+ languages, tone matching, reduced token cost. |
+| **v3.0** | `AI Complete` | AI in every tab — FocusMode real API (replaced local heuristic), Profile AI Productivity Summary, Notifications AI Smart Sort, Settings Rescue Mode wired to backend. Layout standardization — consistent `px-4 sm:px-6 lg:px-8 py-8` on all pages, card padding normalized to `p-6`, AIPlanner full-screen overflow fixed. Zero ESLint errors. All gradients removed — 21 instances across 8 files replaced with solid colors. |
 
 ---
 
