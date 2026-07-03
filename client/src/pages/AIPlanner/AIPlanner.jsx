@@ -196,7 +196,7 @@ function AIPlanner() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] -m-4 sm:-m-6 lg:-m-8 overflow-hidden bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-zinc-950 dark:to-indigo-950/20 rounded-2xl border border-slate-200/50 dark:border-zinc-800/50 shadow-sm">
+    <div className="flex h-[calc(100vh-3.5rem)] overflow-hidden bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-zinc-950 dark:to-indigo-950/20">
       <Helmet>
         <title>AI Chat - FlowSync AI</title>
         <meta name="description" content="Chat with AI to plan tasks" />
