@@ -40,6 +40,7 @@
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.5_Audit-22c55e?style=for-the-badge" /></a>
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.6_Multilingual-8B5CF6?style=for-the-badge" /></a>
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.7_Full_AI-f59e0b?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v0.8_Solid-64748b?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -851,6 +852,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 | **v0.5** | `Audit+Stability` | Full production audit: fixed errorHandler crash on non-ValidationError, account delete password not being sent, email format validation, password info leak, seed.js unused import, aiService.js console.log → console.error, qa-seed.js broken endpoint, removed dashboard period filter, +25 unused-import/variable cleanups, 48→22 lint issues, email references fully purged from README |
 | **v0.6** | `Multilingual+Models` | Expanded AI fallback chain from 7→11 models, reduced max_tokens 4096→1024 for low-credit environments, removed 402 error from hard-fail (models skip gracefully), full multilingual support (25+ languages), tone/style matching — AI mirrors user's language, formality, and slang |
 | **v0.7** | `Full AI+Layout` | AI in every tab — FocusMode real API (replaced local heuristic), Profile AI Productivity Summary, Notifications AI Smart Sort, Settings Rescue Mode wired to backend. Layout standardization: consistent `px-4 sm:px-6 lg:px-8 py-8` on all pages, card padding normalized to `p-6`, AIPlanner overflow fixed. Zero ESLint errors in source code. |
+| **v0.8** | `Solid Colors` | All gradients removed across 8 files (21 instances) — replaced with solid background colors. Radial-gradient dot patterns replaced with solid bg overlays. Build passes zero errors. |
 
 ### Version History — v0.7
 
