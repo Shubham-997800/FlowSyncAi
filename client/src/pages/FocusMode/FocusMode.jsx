@@ -43,13 +43,14 @@ function FocusMode() {
   const [sessionComplete, setSessionComplete] = useState(false)
 
   useEffect(() => {
-    if (!selectedTask) { setAiSuggestion(null); return }
-    setAiLoading(true)
     Promise.resolve().then(async () => {
+      if (!selectedTask) { setAiSuggestion(null); return }
+      setAiLoading(true)
       try {
         const data = await getFocusSuggestion(selectedTask._id)
         setAiSuggestion(data)
       } catch {
+        if (!selectedTask) return
         setAiSuggestion({
           title: selectedTask.priority === 'high' ? 'High Priority Focus' : 'Steady Focus',
           desc: `Focus on "${selectedTask.title}".`,
