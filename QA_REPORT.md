@@ -3,7 +3,7 @@
 **Date:** 2026-08-03 (updated after v3.3 round: frontend unit tests, backend lint + CI, DB indexes, compression, retry/backoff, mark-all-read)
 **Scope:** Live HTTP tests against the real Vercel entrypoint (`api/index.js`), real MongoDB (in-memory 6.0.9 via `mongodb-memory-server`), frontend unit tests (Vitest + Testing Library), frontend lint + production build, plus route/auth/security/DB/perf audit.
 **Harness:** `flowsync-backend/test/run-tests.js` — **120** tests booting `api/index.js` (same handler Vercel runs) + real Mongo. Frontend: **30** Vitest unit tests.
-**Result:** **120 PASSED / 0 FAILED / 120 TOTAL** (backend) · **30/30** (frontend) · backend + frontend lint clean · frontend build succeeds · CI: GitHub Actions (backend lint + tests, frontend lint + tests + build)
+**Result:** **120 PASSED / 0 FAILED / 120 TOTAL** (backend) · **30/30** (frontend) · backend + frontend lint clean · frontend build succeeds · CI: GitHub Actions on **Node 24** (backend lint + tests, frontend lint + tests + build) — all green
 
 ---
 
@@ -221,4 +221,4 @@ Health/ping, X-Request-ID, helmet headers, CORS allowlist + non-reflection, 404s
 
 ---
 
-*Committed on `main`: v3.3 round — backend harness **120/120**, frontend **30/30** Vitest, backend + frontend lint clean, build succeeds, CI covers lint + tests + build. Harness: `flowsync-backend/test/run-tests.js` (120 tests) + `client` Vitest (30 tests).*
+*Committed on `main`: v3.3 round — backend harness **120/120**, frontend **30/30** Vitest, backend + frontend lint clean, build succeeds, CI covers lint + tests + build on **Node 24** (fixed after GitHub deprecated Node 20 runners and jsdom 30 required ≥22) — all jobs green. Harness: `flowsync-backend/test/run-tests.js` (120 tests) + `client` Vitest (30 tests).*

@@ -29,8 +29,11 @@
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Tests-150%2F150-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/github/actions/workflow/status/Shubham-997800/FlowSync-Ai/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
   <img src="https://img.shields.io/github/last-commit/Shubham-997800/FlowSync-Ai?style=flat-square" />
+  <img src="https://img.shields.io/github/languages/top/Shubham-997800/FlowSync-Ai?style=flat-square&logo=javascript&logoColor=white" />
+  <img src="https://img.shields.io/github/repo-size/Shubham-997800/FlowSync-Ai?style=flat-square" />
 </p>
 
 <p align="center">
@@ -57,6 +60,8 @@
 - [Folder Structure](#-folder-structure)
 - [Database Schema](#-database-schema)
 - [API Architecture](#-api-architecture)
+- [API Reference](#-api-reference)
+- [Database Indexes](#-database-indexes)
 - [AI Architecture](#-ai-architecture)
 - [Request Lifecycle](#-request-lifecycle)
 - [Performance & Build Optimizations](#-performance--build-optimizations)
@@ -312,6 +317,8 @@ flowchart TD
 
     DASH --> NOTIF["🔔 Notifications — deadline alerts · AI sort"]
     SCHEDULE --> NOTIF
+    DASH --> SET["⚙️ Settings — AI prefs · theme · account"]
+    SET --> AIENGINE
 ```
 
 ---
@@ -603,6 +610,79 @@ flowchart TB
 
 ---
 
+## 🔌 API Reference
+
+All endpoints are served under `https://flowsync-backend.vercel.app/api` (local: `http://localhost:5000/api`). Protected routes require an `Authorization: Bearer <token>` header; the client auto-refreshes expired access tokens via `POST /api/auth/refresh`.
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/auth/signup` | — | Create account (bcrypt hash, duplicate → 400) |
+| POST | `/auth/login` | — | Login, issues access + refresh token (login rate-limit 5/min) |
+| POST | `/auth/refresh` | — | Rotate access/refresh token pair (verifies type + `tokenVersion`) |
+| POST | `/auth/logout` | 🔒 | Revoke refresh token via `tokenVersion++` |
+| GET | `/tasks` | 🔒 | List tasks — paginated `?page&limit` (default 500, max 1000) + `X-Total-Count` |
+| POST | `/tasks` | 🔒 | Create task (sanitized fields, AI suggestion support) |
+| GET | `/tasks/:id` | 🔒 | Get single task (cross-user → 404) |
+| PUT | `/tasks/:id` | 🔒 | Update task |
+| DELETE | `/tasks/:id` | 🔒 | Delete task |
+| GET | `/goals` · POST `/goals` | 🔒 | List / create goals |
+| PUT | `/goals/:id` · DELETE `/goals/:id` | 🔒 | Update / delete goal |
+| GET | `/habits` · POST `/habits` | 🔒 | List / create habits |
+| PUT | `/habits/:id` · DELETE `/habits/:id` | 🔒 | Update / delete habit |
+| POST | `/habits/:id/checkin` | 🔒 | Check in — streak auto-calculated, same-day dedupe |
+| GET | `/analytics/stats` | 🔒 | Productivity score, completion rates, trends |
+| GET | `/analytics/weekly` · `/analytics/monthly` | 🔒 | Time-series aggregation |
+| GET | `/notifications` | 🔒 | List notifications — paginated + `X-Total-Count` |
+| POST | `/notifications` | 🔒 | Create notification (system/internal) |
+| PUT | `/notifications/read-all` | 🔒 | Mark all notifications read (batch) |
+| PUT | `/notifications/:id/read` | 🔒 | Mark single notification read |
+| DELETE | `/notifications/:id` | 🔒 | Delete notification |
+| GET | `/settings/profile` · PUT `/settings/profile` | 🔒 | Get / update profile |
+| PUT | `/settings/avatar` | 🔒 | Upload avatar |
+| PUT | `/settings/password` | 🔒 | Change password (old password verified, tokens invalidated) |
+| PUT | `/settings/achievements` | 🔒 | Update achievements |
+| GET | `/settings/ai` · PUT `/settings/ai` | 🔒 | Get / update AI preferences (autosaved) |
+| DELETE | `/settings/account` | 🔒 | Delete account — cascades Chat/Push/AiUsage |
+| POST | `/push/subscribe` · POST `/push/unsubscribe` | 🔒 | Web push subscription management |
+| GET | `/chat/sessions` | 🔒 | List chat sessions |
+| GET | `/chat` | 🔒 | Chat history — paginated + `X-Total-Count` |
+| POST | `/chat` | 🔒 | Save chat message (6-session cap) |
+| DELETE | `/chat/clear` | 🔒 | Clear entire chat history |
+| DELETE | `/chat/:id` | 🔒 | Delete single message |
+| POST | `/ai/chat` | 🔒 | AI chat — natural-language task creation |
+| POST | `/ai/plan` | 🔒 | Smart daily planning |
+| POST | `/ai/prioritize` | 🔒 | Priority engine (urgency/risk scores) |
+| POST | `/ai/rescue` | 🔒 | Rescue Mode (48h overload window) |
+| POST | `/ai/suggest-task` | 🔒 | Real-time task suggestions |
+| GET | `/ai/usage` | 🔒 | Daily AI quota usage |
+| GET | `/ai/analytics-insights` | 🔒 | Productivity coach report |
+| GET | `/ai/habit-insights` | 🔒 | Habit pattern insights |
+| POST | `/ai/focus-suggest` | 🔒 | Focus coach suggestions |
+| GET | `/ai/profile-insights` | 🔒 | AI profile summary |
+| POST | `/ai/organize-notifications` | 🔒 | AI notification organizer |
+| GET | `/health` | — | Service health (DB state + uptime) |
+
+> 🔒 = requires JWT Bearer token. AI endpoints share a 20/min limit; general endpoints 100/min; auth 10/min; login 5/min.
+
+---
+
+## 🗂️ Database Indexes
+
+Query-heavy paths are covered by composite indexes (MongoDB Atlas). Notifications are auto-purged after **90 days** via a TTL index.
+
+| Collection | Index | Purpose |
+|-----------|-------|---------|
+| `tasks` | `{ user: 1, createdAt: -1 }` | Dashboard / task list pagination |
+| `tasks` | `{ user: 1, status: 1, deadline: 1 }` | Filtering by status + deadline sort |
+| `goals` | `{ user: 1, createdAt: -1 }` | Goal list pagination |
+| `goals` | `{ user: 1, status: 1, targetDate: 1 }` | Status + target-date queries |
+| `habits` | `{ user: 1, createdAt: -1 }` | Habit list pagination |
+| `habits` | `{ user: 1, status: 1 }` | Status-based habit queries |
+| `notifications` | `{ user: 1, createdAt: -1 }` | Notification drawer (recent-first) |
+| `notifications` | `{ createdAt: 1 }` — TTL | Auto-delete notifications after 90 days |
+
+---
+
 ## 🤖 AI Architecture
 
 FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in a failover chain (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, Mistral Small, Cohere Command R+, Qwen 2.5 72B, DeepSeek Chat, GPT-4o, Claude 3.5 Haiku, plus env override), accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, graceful fallbacks, and full multilingual support with tone matching.
@@ -729,7 +809,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 | **v3.1** | `Hardening` | Full-stack security & reliability round. Backend: NoSQL + regex injection closed, cross-user task write and push-subscription hijack blocked, no error leaks on 500, crash-proof VAPID init (fixes live Vercel 500), awaited DB connect with FATAL exit, validated request IDs, cascade account delete, AI quota only on success, notifications TTL index, `GET /tasks/:id` + notification DELETE, AI settings persisted via `GET/PUT /api/settings/ai`, UTC-vs-local date normalization. Frontend: Achievements real checks, AI settings autosave, StrictMode-safe timer, TodayTasks edit (no longer toggles status), real best-streak data, custom FocusMode durations. **110/110 integration tests passing.** |
 | **v3.1.1** | `Cleanup` | Dead code removed — unused seed scripts (`seed.js`, `qa-seed.js`), unused client assets (`hero.png`, `react.svg`, `vite.svg`), stock Vite template README replaced. Broken push icon refs (`/favicon.ico`) fixed to `/favicon.svg`. `VAPID_SUBJECT` env wired into push config. ~599 lines of dead code deleted; harness still 110/110. |
 | **v3.2** | `Hardened` | Auth: **7-day access tokens + 30-day refresh tokens** with rotation, server-side logout revocation (token versioning), and auto-refresh on the client. Reliability: **CI pipeline** (GitHub Actions — backend tests + frontend lint/build), **always-on pagination** (bounded default 500–1000), **API-side XSS sanitization** (strips `<script>`/`<iframe>`), **structured JSON error logs** with request IDs, and a **`/api/health` endpoint** (DB state + uptime). Performance: **Settings page code-split** (428 kB → 3.4 kB main chunk; `jspdf`/`html2canvas` load only on demand). AI: no-key failures now map to graceful 503 instead of 500. **Harness: 119/119 tests passing.** |
-| **v3.3** | `Tested + Optimized` | **Frontend unit tests** — Vitest + Testing Library (30 tests: email validation, browser detection, Pomodoro timer logic incl. fake timers, auth context flows), full coverage of auth/pagination/security paths. **Backend lint** added (ESLint) + wired into CI alongside frontend **tests**. **DB indexes** added on goals/habits (`user+createdAt`, `user+status+targetDate`, `user+status`). **API performance** — gzip compression, strict CORS allowlist, network-error **retry with exponential backoff** on the client. **Notifications** — batch "mark all read" endpoint (`PUT /api/notifications/read-all`) + UI button. A11y: Timer settings inputs got `htmlFor`/`id` + button `aria-label` (found via new tests). **Backend harness 120/120 + frontend 30/30.** |
+| **v3.3** | `Tested + Optimized` | **Frontend unit tests** — Vitest + Testing Library (30 tests: email validation, browser detection, Pomodoro timer logic incl. fake timers, auth context flows), full coverage of auth/pagination/security paths. **Backend lint** added (ESLint) + wired into CI alongside frontend **tests**. **DB indexes** added on goals/habits (`user+createdAt`, `user+status+targetDate`, `user+status`). **API performance** — gzip compression, strict CORS allowlist, network-error **retry with exponential backoff** on the client. **Notifications** — batch "mark all read" endpoint (`PUT /api/notifications/read-all`) + UI button. A11y: Timer settings inputs got `htmlFor`/`id` + button `aria-label` (found via new tests). **CI now runs on Node 24** (jsdom 30 requires ≥22) — **backend harness 120/120 + frontend 30/30, all jobs green.** |
 
 ---
 
@@ -737,14 +817,14 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 120/120 + frontend 30/30 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (backend lint + tests, frontend lint + tests + build).**
+**Current status: backend 120/120 + frontend 30/30 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green.**
 
 | Coverage Area | What's Verified |
 |---|---|
 | 🔐 **Auth & Security** | Signup/login, duplicate & non-string → 400, no password-hash leak, NoSQL injection blocked, account lockout (423) + auto-reset, expired/tampered/garbage JWT → 401, rate limiting (429), CORS allowlist + non-reflection, Helmet headers, request IDs |
 | 📝 **Tasks / Goals / Habits** | Full CRUD, validation 400s, status transitions, `GET /tasks/:id`, cross-user isolation (404), progress clamping, check-in + same-day dedupe, streak calculation |
 | 🔔 **Notifications / Push** | Create/list/mark-read/**delete**, cross-user isolation, subscribe/unsubscribe, missing keys → 400, subscription ownership |
-| 💬 **Chat** | Save/history/sessions/delete/clear, 7-session cap, per-user isolation |
+| 💬 **Chat** | Save/history/sessions/delete/clear, 6-session cap, per-user isolation |
 | ⚙️ **Settings** | Profile update, weak-password → 400, password change invalidates old token, account delete cascade (Chat/Push/AiUsage), **AI settings persist + invalid → 400** |
 | 🤖 **AI** | Usage tracking, quota check, no-prompt → 400, graceful 5xx without API key |
 | ⚡ **DB & Reliability** | Pagination (`?limit&page` + `X-Total-Count`), 413 body limit, atomic reminder claims (no duplicate notifications), TTL cleanup |
@@ -816,8 +896,15 @@ Point the client at the API via the Vite proxy or `.env` (see `client/.env.examp
 | `MONGODB_URI` | ✅ | MongoDB Atlas connection string |
 | `JWT_SECRET` | ✅ | ≥ 32 random characters; app refuses to boot without it |
 | `CLIENT_URL` | ✅ | CORS allowlist for your frontend origin |
-| `OPENROUTER_API_KEY` | ⭐ | Enables all AI features |
+| `CLIENT_URL_2` | 🔶 | Optional second allowed origin (e.g. staging) |
+| `OPENROUTER_API_KEY` | ⭐ | Enables all AI features (OpenRouter gateway) |
+| `XAI_API_KEY` | 🔶 | Fallback AI key if OpenRouter is unset |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | ⭐ | Web Push; if invalid, push auto-disables instead of crashing |
+| `VAPID_SUBJECT` | 🔶 | Email/mailto used by web-push |
+| `AI_DAILY_LIMIT` | 🔶 | Max AI calls per user/day (default 200) |
+| `MAX_CHAT_SESSIONS` | 🔶 | Max chat sessions kept per user (default 6) |
+| `REMINDER_CHECK_INTERVAL` | 🔶 | Reminder sweep interval in ms (default 30 min) |
+| `RATE_LIMIT_AUTH` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_AI` / `RATE_LIMIT_GENERAL` | 🔶 | Per-endpoint rate limits (req/min) |
 
 > [!TIP]
 > Generate VAPID keys with `npx web-push generate-vapid-keys`.
