@@ -1,31 +1,31 @@
 const Task = require('../models/Task')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
+const { sanitizeText } = require('../utils/sanitize')
 const allowedTaskFields = ['title', 'description', 'priority', 'status', 'deadline', 'estimatedTime', 'tags']
 
 function sanitize(body) {
   const safe = {}
   for (const key of allowedTaskFields) {
-    if (body[key] !== undefined) safe[key] = body[key]
+    if (body[key] !== undefined) {
+      safe[key] = (key === 'title' || key === 'description') ? sanitizeText(body[key]) : body[key]
+    }
   }
   return safe
 }
 
 function parsePagination(query) {
   const page = Math.max(parseInt(query.page) || 1, 1)
-  const limit = Math.min(Math.max(parseInt(query.limit) || 200, 1), 500)
+  const limit = Math.min(Math.max(parseInt(query.limit) || 500, 1), 1000)
   return { page, limit, skip: (page - 1) * limit }
 }
 
 const getTasks = async (req, res) => {
   try {
     const filter = { user: req.user._id }
-    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined
     const { skip, limit } = parsePagination(req.query)
     const total = await Task.countDocuments(filter)
-    const query = Task.find(filter).sort({ createdAt: -1 })
-    if (hasPagination) query.skip(skip).limit(limit)
-    const tasks = await query
+    const tasks = await Task.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit)
     res.set('X-Total-Count', total)
     res.json(tasks)
   } catch (error) {

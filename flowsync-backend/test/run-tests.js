@@ -98,13 +98,17 @@ async function main() {
   const ChatMessage = require('../models/ChatMessage')
   const AiUsage = require('../models/AiUsage')
 
-  let userA, tokenA, userB, tokenB
+  let userA, tokenA, refreshTokenA, userB, tokenB
 
   // ============ 1. HEALTH / HOST ============
   console.log('\n===== 1. HEALTH & HOST =====')
   await t('GET / returns service message', async () => {
     const r = await request('/')
     return r.status === 200 && r.data.message === 'FlowSync AI API is running'
+  })
+  await t('GET /api/health reports ok + db state', async () => {
+    const r = await request('/api/health')
+    return r.status === 200 && r.data.status === 'ok' && typeof r.data.database === 'string' && typeof r.data.uptime === 'number'
   })
   await t('GET / returns X-Request-ID header', async () => {
     const r = await request('/')
@@ -173,12 +177,22 @@ async function main() {
     })
     return r.status >= 400
   })
-  await t('Name XSS stored unsanitized (backend finding)', async () => {
+  await t('Name XSS stripped on API (sanitized)', async () => {
     const r = await request('/api/auth/signup', {
       method: 'POST',
       body: { name: '<script>alert(1)</script>', email: 'xss@test.com', password: 'Password123!' },
     })
-    return r.status === 201 && String(r.data.user.name).includes('<script>')
+    return r.status === 201 && !String(r.data.user.name).includes('<script>')
+  })
+  await t('Task title XSS stripped on API', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'xss@test.com', password: 'Password123!' } })
+    if (r.status !== 200) return `login status=${r.status}`
+    const c = await request('/api/tasks', {
+      method: 'POST',
+      token: r.data.token,
+      body: { title: '<script>alert(2)</script><iframe src=x></iframe>', priority: 'high' },
+    })
+    return c.status === 201 && !String(c.data.title).includes('<script>') && !String(c.data.title).includes('<iframe')
   })
   await t('Empty request body -> no 500', async () => {
     const r = await request('/api/auth/signup', { method: 'POST', body: {} })
@@ -284,6 +298,19 @@ async function main() {
     const wrong = jwt.sign({ id: userA._id }, 'n'.repeat(64), { expiresIn: '1h' })
     const r = await request('/api/tasks', { token: wrong })
     return r.status === 401
+  })
+  await t('Logout revokes access + refresh tokens', async () => {
+    const r = await request('/api/auth/logout', { method: 'POST', token: tokenA })
+    if (r.status !== 200) return `status=${r.status}`
+    const after = await request('/api/tasks', { token: tokenA })
+    return after.status === 401
+  })
+  await t('Re-login works after logout', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'Password123!' } })
+    if (r.status !== 200 || !r.data.token || !r.data.refreshToken) return `status=${r.status}`
+    tokenA = r.data.token
+    refreshTokenA = r.data.refreshToken
+    return true
   })
 
   // ============ 6. TASKS ============
@@ -581,6 +608,32 @@ async function main() {
     if (r.status !== 200) return `status=${r.status}`
     const relog = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'Password123!' } })
     return relog.status === 401
+  })
+  await t('Old access token revoked after password change', async () => {
+    const r = await request('/api/settings/profile', { token: tokenA })
+    return r.status === 401
+  })
+  await t('Login again after password change (new credentials)', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    if (r.status !== 200 || !r.data.token || !r.data.refreshToken) return `status=${r.status}`
+    tokenA = r.data.token
+    return true
+  })
+  await t('Refresh token issues new access token', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    const refresh = await request('/api/auth/refresh', { method: 'POST', body: { refreshToken: r.data.refreshToken } })
+    if (refresh.status !== 200 || !refresh.data.token) return `status=${refresh.status}`
+    const use = await request('/api/settings/profile', { token: refresh.data.token })
+    return use.status === 200
+  })
+  await t('Refresh with garbage token -> 401', async () => {
+    const r = await request('/api/auth/refresh', { method: 'POST', body: { refreshToken: 'garbage' } })
+    return r.status === 401
+  })
+  await t('Refresh token cannot be used as access token -> 401', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    const use = await request('/api/settings/profile', { token: r.data.refreshToken })
+    return use.status === 401
   })
   await t('AI settings default -> 200', async () => {
     const r = await request('/api/settings/ai', { token: tokenA })

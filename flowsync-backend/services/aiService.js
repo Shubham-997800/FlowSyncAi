@@ -15,7 +15,12 @@ const AI_MODELS = [
 ].filter(Boolean)
 
 async function callAI(systemMsg, userMsg, temperature = 0.7) {
-  const ai = getAI()
+  let ai
+  try {
+    ai = getAI()
+  } catch {
+    throw new Error('AI_SERVICE_UNAVAILABLE')
+  }
   for (const model of AI_MODELS) {
     try {
       const res = await ai.chat.completions.create({

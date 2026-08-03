@@ -2,7 +2,7 @@ import api from './api'
 
 // API functions for fetching and managing notifications
 export const getNotifications = async () => {
-  const { data } = await api.get('/api/notifications')
+  const { data } = await api.get('/api/notifications', { params: { limit: 1000 } })
   return data
 }
 

@@ -1,4 +1,5 @@
 const { handleError, handleValidationError } = require('../utils/errorHandler')
+const { sanitizeText } = require('../utils/sanitize')
 const User = require('../models/User')
 
 function isValidUrl(str) {
@@ -20,7 +21,7 @@ const updateProfile = async (req, res) => {
     const updates = {}
     if (name !== undefined) {
       if (typeof name !== 'string' || name.length > 100) return res.status(400).json({ message: 'Name too long (max 100)' })
-      updates.name = name
+      updates.name = sanitizeText(name)
     }
     if (email !== undefined && email !== req.user.email) {
       if (typeof email !== 'string') return res.status(400).json({ message: 'Invalid email' })
@@ -32,7 +33,7 @@ const updateProfile = async (req, res) => {
     }
     if (bio !== undefined) {
       if (typeof bio !== 'string' || bio.length > 500) return res.status(400).json({ message: 'Bio too long (max 500)' })
-      updates.bio = bio
+      updates.bio = sanitizeText(bio)
     }
     if (phone !== undefined) {
       if (phone && !/^[\d\s\-+().]{7,20}$/.test(phone)) return res.status(400).json({ message: 'Invalid phone number' })
@@ -40,11 +41,11 @@ const updateProfile = async (req, res) => {
     }
     if (location !== undefined) {
       if (typeof location !== 'string' || location.length > 200) return res.status(400).json({ message: 'Location too long (max 200)' })
-      updates.location = location
+      updates.location = sanitizeText(location)
     }
     if (jobTitle !== undefined) {
       if (typeof jobTitle !== 'string' || jobTitle.length > 100) return res.status(400).json({ message: 'Job title too long (max 100)' })
-      updates.jobTitle = jobTitle
+      updates.jobTitle = sanitizeText(jobTitle)
     }
     const user = await User.findByIdAndUpdate(
       req.user._id,
@@ -86,6 +87,7 @@ const updatePassword = async (req, res) => {
       return res.status(400).json({ message: 'Current password is incorrect' })
     }
     user.password = newPassword
+    user.tokenVersion = (user.tokenVersion || 0) + 1
     await user.save()
     res.json({ message: 'Password updated successfully' })
   } catch (error) {

@@ -2,31 +2,31 @@ const Habit = require('../models/Habit')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { localDateKey } = require('../utils/dateKey')
+const { sanitizeText } = require('../utils/sanitize')
 const allowedFields = ['title', 'frequency', 'streak', 'lastChecked', 'logs', 'status']
 
 function sanitize(body) {
   const safe = {}
   for (const key of allowedFields) {
-    if (body[key] !== undefined) safe[key] = body[key]
+    if (body[key] !== undefined) {
+      safe[key] = (key === 'title') ? sanitizeText(body[key]) : body[key]
+    }
   }
   return safe
 }
 
 function parsePagination(query) {
   const page = Math.max(parseInt(query.page) || 1, 1)
-  const limit = Math.min(Math.max(parseInt(query.limit) || 200, 1), 500)
+  const limit = Math.min(Math.max(parseInt(query.limit) || 500, 1), 1000)
   return { page, limit, skip: (page - 1) * limit }
 }
 
 const getHabits = async (req, res) => {
   try {
     const filter = { user: req.user._id }
-    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined
     const { skip, limit } = parsePagination(req.query)
     const total = await Habit.countDocuments(filter)
-    const query = Habit.find(filter).sort({ createdAt: -1 })
-    if (hasPagination) query.skip(skip).limit(limit)
-    const habits = await query
+    const habits = await Habit.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit)
     res.set('X-Total-Count', total)
     res.json(habits)
   } catch (error) {

@@ -1,9 +1,9 @@
 # FlowSync-Ai — End-to-End QA Report
 
-**Date:** 2026-08-03 (updated after full backend + frontend hardening round + code cleanup)
+**Date:** 2026-08-03 (updated after v3.2 hardening round: refresh tokens, CI, pagination, XSS, health endpoint, code-split)
 **Scope:** Live HTTP tests against the real Vercel entrypoint (`api/index.js`), real MongoDB (in-memory 6.0.9 via `mongodb-memory-server`), frontend lint + production build, plus route/auth/security/DB/perf audit and dead-code cleanup.
-**Harness:** `flowsync-backend/test/run-tests.js` — 110 tests booting `api/index.js` (same handler Vercel runs) + real Mongo.
-**Result:** **110 PASSED / 0 FAILED / 110 TOTAL** · Frontend lint: clean · Frontend build: succeeds (1 chunk-size warning) · Dead code removed
+**Harness:** `flowsync-backend/test/run-tests.js` — 119 tests booting `api/index.js` (same handler Vercel runs) + real Mongo.
+**Result:** **119 PASSED / 0 FAILED / 119 TOTAL** · Frontend lint: clean · Frontend build: succeeds · CI: GitHub Actions (backend tests + frontend lint/build)
 
 ---
 
@@ -11,15 +11,15 @@
 
 | Dimension | Before | After | Justification |
 |---|---|---|---|
-| **Overall Health** | 77 | **92** | All P1–P3 audit findings fixed + dead code removed; only UX/ops hardening + CI remain |
-| Frontend | 88 | **95** | Lint + build clean; Achievements, AI settings, Timer, TodayTasks edit, streak, favicon refs all fixed |
-| Backend | 78 | **96** | NoSQL/regex injection, cross-user write, push hijack, module-load crash closed; seed scripts removed |
-| Database | 82 | 94 | TTL cleanup + UTC/local date slicing normalized across quota/habits/analytics |
-| API | 85 | **97** | 110/110 pass; GET task + notification DELETE + AI settings endpoints added |
-| Security | 70 | **92** | NoSQL + regex + IDOR vectors closed, VAPID crash-proof, profile input guarded |
-| Performance | 75 | 82 | Pagination available; unbounded default + big chunk remain |
-| Architecture | 80 | **89** | Clean serverless + lazy reminder; dead seed scripts/assets removed |
-| **Production-Readiness** | 68 | **84** | Core hardened + module-load crash fixed + repo cleaned; no CI/logging/monitoring yet |
+| **Overall Health** | 92 | **95** | v3.2 round closed: CI, refresh-token auth, always-on pagination, XSS stripping, health endpoint, structured logs; live deploy still needs user-side Vercel redeploy |
+| Frontend | 95 | **96** | Settings code-split (428 kB → 3.4 kB main), lazy tabs, jspdf/html2canvas on-demand; lint + build clean |
+| Backend | 96 | **97** | Refresh-token rotation + logout revocation, AI no-key → 503, structured JSON error logs, /api/health |
+| Database | 94 | 94 | Unchanged this round — still solid |
+| API | 97 | **98** | 119/119 pass; always-on pagination + health endpoint added |
+| Security | 92 | **95** | XSS sanitization on all text inputs, token-version revocation, refresh-token hygiene |
+| Performance | 82 | **86** | Always-on pagination + Settings code-split; remaining: per-query indexes / DB read-tier |
+| Architecture | 89 | **92** | CI pipeline, serverless entrypoint kept clean, lazy reminder + code-split pattern extended |
+| **Production-Readiness** | 84 | **88** | CI + logging + health monitoring in; missing: live deploy verification (Vercel dashboard, user-side) |
 
 ---
 
@@ -36,7 +36,7 @@
 | `/favicon.ico` refs | Broken link | Only `favicon.svg` exists — fixed in push hook + `sw.js` | 2 files |
 | `VAPID_SUBJECT` | Dead env var | Defined in `.env.example` but never read — now wired into `pushController.js` | wired |
 
-**Net: ~599 lines of dead code deleted. Harness still 110/110, lint clean, build succeeds.**
+**Net: ~599 lines of dead code deleted. Harness now 119/119, lint clean, build succeeds.**
 
 ---
 
@@ -178,9 +178,9 @@
 
 ## Failed Tests
 
-**0 failed — 110 passed.**
+**0 failed — 119 passed.**
 
-## Passed Tests (110) — coverage summary
+## Passed Tests (119) — coverage summary
 
 Health/ping, X-Request-ID, helmet headers, CORS allowlist + non-reflection, 404s · Auth: signup, duplicate/non-string → 400, no hash leak, login, wrong/ghost password → 401, NoSQL injection → 4xx, wrong content-type, lockout 423 + reset, expired/tampered/garbage token → 401 · Tasks: CRUD, validation 400s, filters, status transitions, due-today, **GET by id (200/400/404)**, cross-user isolation · Goals: CRUD, progress clamp · Habits: CRUD, check-in, streak, same-day dedupe · Notifications: create/list/mark-read, **DELETE**, dedup, cross-user isolation · Push: subscribe/unsubscribe, missing keys → 400, ownership · Chat: create/sessions/history/delete/clear, session cap, isolation · Settings: profile update, weak-password → 400, password change invalidates old, account delete cascade (incl. Chat/Push/AiUsage), **AI settings default/persist/invalid → 400** · AI: usage, quota check, no-prompt → 400, graceful 5xx without key, auth required · Analytics · Pagination (`?limit&page` + `X-Total-Count`) · Rate-limit 429 · Reminder atomic claim + no duplicate notifications.
 
@@ -221,4 +221,4 @@ Health/ping, X-Request-ID, helmet headers, CORS allowlist + non-reflection, 404s
 
 ---
 
-*Committed on `main`: includes the full hardening round — backend harness **110/110**, client lint + build clean. Harness: `flowsync-backend/test/run-tests.js` (110 tests, local).*
+*Committed on `main`: includes the full hardening round — backend harness **119/119**, client lint + build clean, CI pipeline added. Harness: `flowsync-backend/test/run-tests.js` (119 tests, local).*

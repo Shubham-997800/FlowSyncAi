@@ -44,6 +44,20 @@ app.get('/', (req, res) => {
   res.json({ message: 'FlowSync AI API is running' })
 })
 
+app.get('/api/health', async (req, res) => {
+  const mongoose = require('mongoose')
+  const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting']
+  const mongoState = dbStates[mongoose.connection.readyState] || 'unknown'
+  res.status(mongoState === 'connected' ? 200 : 503).json({
+    status: mongoState === 'connected' ? 'ok' : 'degraded',
+    uptime: Math.round(process.uptime()),
+    timestamp: new Date().toISOString(),
+    version: '3.1.1',
+    database: mongoState,
+    environment: process.env.NODE_ENV || 'development',
+  })
+})
+
 app.use('/api/auth', authRoutes)
 app.use('/api/tasks', taskRoutes)
 app.use('/api/ai', aiRoutes)
@@ -56,7 +70,10 @@ app.use('/api/push', pushRoutes)
 app.use('/api/chat', chatRoutes)
 
 app.use((err, req, res, next) => {
-  console.error(err.message)
+  const log = { id: req.id, method: req.method, url: req.originalUrl, error: err.message, name: err.name }
+  if (err.stack) log.stack = err.stack.split('\n').slice(0, 3).join(' ')
+  if (process.env.NODE_ENV === 'production') console.error(JSON.stringify(log))
+  else console.error(log)
   if (err.name === 'ValidationError') {
     const msgs = Object.values(err.errors).map(e => e.message).join(', ')
     return res.status(400).json({ message: msgs })

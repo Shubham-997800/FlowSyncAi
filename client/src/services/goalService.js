@@ -2,7 +2,7 @@ import api from './api'
 
 // API functions for goals CRUD operations
 export const getGoals = async () => {
-  const { data } = await api.get('/api/goals')
+  const { data } = await api.get('/api/goals', { params: { limit: 1000 } })
   return data
 }
 

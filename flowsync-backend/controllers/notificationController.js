@@ -1,12 +1,15 @@
 const Notification = require('../models/Notification')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
+const { sanitizeText } = require('../utils/sanitize')
 const allowedFields = ['type', 'title', 'message', 'link']
 
 function sanitize(body) {
   const safe = {}
   for (const key of allowedFields) {
-    if (body[key] !== undefined) safe[key] = body[key]
+    if (body[key] !== undefined) {
+      safe[key] = (key === 'title' || key === 'message') ? sanitizeText(body[key]) : body[key]
+    }
   }
   return safe
 }
@@ -14,7 +17,7 @@ function sanitize(body) {
 const getNotifications = async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page) || 1, 1)
-    const limit = Math.min(Math.max(parseInt(req.query.limit) || 50, 1), 200)
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 1000)
     const filter = { user: req.user._id }
     const total = await Notification.countDocuments(filter)
     const notifications = await Notification.find(filter)

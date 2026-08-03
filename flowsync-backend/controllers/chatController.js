@@ -1,6 +1,7 @@
 const ChatMessage = require('../models/ChatMessage')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
+const { sanitizeText } = require('../utils/sanitize')
 const getChatSessions = async (req, res) => {
   try {
     const sessions = await ChatMessage.aggregate([
@@ -25,7 +26,7 @@ const getChatHistory = async (req, res) => {
     const filter = { user: req.user._id }
     if (req.query.sessionId) filter.sessionId = req.query.sessionId
     const page = Math.max(parseInt(req.query.page) || 1, 1)
-    const limit = Math.min(Math.max(parseInt(req.query.limit) || 200, 1), 500)
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 500, 1), 1000)
     const total = await ChatMessage.countDocuments(filter)
     const messages = await ChatMessage.find(filter)
       .sort({ createdAt: 1 })
@@ -44,7 +45,7 @@ const saveChatMessage = async (req, res) => {
   try {
     const { sessionId, role, text, tasks, createdTasks } = req.body
     if (!sessionId) return res.status(400).json({ message: 'sessionId is required' })
-    const message = await ChatMessage.create({ user: req.user._id, sessionId, role, text, tasks, createdTasks })
+    const message = await ChatMessage.create({ user: req.user._id, sessionId, role, text: sanitizeText(text), tasks, createdTasks })
     const sessions = await ChatMessage.distinct('sessionId', { user: req.user._id })
     if (sessions.length > MAX_CHAT_SESSIONS) {
       const oldSessions = await ChatMessage.aggregate([

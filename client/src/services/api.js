@@ -13,6 +13,31 @@ const api = axios.create({
   },
 })
 
+let refreshPromise = null
+
+const clearSession = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('refreshToken')
+  localStorage.removeItem('user')
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
+const attemptRefresh = async () => {
+  const refreshToken = localStorage.getItem('refreshToken')
+  if (!refreshToken) return null
+  try {
+    const { data } = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken })
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    localStorage.setItem('user', JSON.stringify(data.user))
+    return data.token
+  } catch {
+    return null
+  }
+}
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) {
@@ -23,11 +48,21 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const original = error.config
+    if (error.response?.status === 401 && original && !original._retry) {
+      original._retry = true
+      if (!refreshPromise) {
+        refreshPromise = attemptRefresh().finally(() => { refreshPromise = null })
+      }
+      const newToken = await refreshPromise
+      if (newToken) {
+        original.headers.Authorization = `Bearer ${newToken}`
+        return api(original)
+      }
+    }
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      clearSession()
     }
     return Promise.reject(error)
   },

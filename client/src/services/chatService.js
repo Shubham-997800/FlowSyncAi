@@ -7,7 +7,7 @@ export const getChatSessions = async () => {
 }
 
 export const getChatHistory = async (sessionId) => {
-  const params = sessionId ? { sessionId } : {}
+  const params = sessionId ? { sessionId, limit: 1000 } : { limit: 1000 }
   const { data } = await api.get('/api/chat', { params })
   return data
 }

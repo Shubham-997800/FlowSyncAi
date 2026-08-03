@@ -1,5 +1,6 @@
 import { createContext, useEffect, useContext, useReducer } from 'react'
 import { login as loginService, register as registerService } from '../services/authService'
+import api from '../services/api'
 
 const AuthContext = createContext(null)
 
@@ -22,10 +23,15 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'INIT', user: storedUser && token ? JSON.parse(storedUser) : null })
   }, [])
 
+  const persistSession = (data) => {
+    localStorage.setItem('token', data.token)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    localStorage.setItem('user', JSON.stringify(data.user))
+  }
+
   const login = async (email, password) => {
     const data = await loginService({ email, password })
-    localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
+    persistSession(data)
     dispatch({ type: 'LOGIN', user: data.user })
     return data
   }
@@ -33,8 +39,7 @@ export function AuthProvider({ children }) {
   const register = async (name, email, password) => {
     const data = await registerService({ name, email, password })
     if (data.token) {
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('user', JSON.stringify(data.user))
+      persistSession(data)
       dispatch({ type: 'LOGIN', user: data.user })
     }
     return data
@@ -45,8 +50,14 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'UPDATE_USER', user })
   }
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await api.post('/api/auth/logout')
+    } catch {
+      // best-effort: revoke server-side even if network fails silently
+    }
     localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     dispatch({ type: 'LOGOUT' })
   }

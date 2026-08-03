@@ -37,6 +37,7 @@
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v1.0_Core-6366f1?style=for-the-badge" /></a>
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v2.0_Production-22c55e?style=for-the-badge" /></a>
    <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.0_AI_Complete-f59e0b?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.2_Hardened-22c55e?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -863,6 +864,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 | **v3.0** | `AI Complete` | AI in every tab — FocusMode real API (replaced local heuristic), Profile AI Productivity Summary, Notifications AI Smart Sort, Settings Rescue Mode wired to backend. Layout standardization — consistent `px-4 sm:px-6 lg:px-8 py-8` on all pages, card padding normalized to `p-6`, AIPlanner full-screen overflow fixed. Zero ESLint errors. All gradients removed — 21 instances across 8 files replaced with solid colors. |
 | **v3.1** | `Hardening` | Full-stack security & reliability round. Backend: NoSQL + regex injection closed, cross-user task write and push-subscription hijack blocked, no error leaks on 500, crash-proof VAPID init (fixes live Vercel 500), awaited DB connect with FATAL exit, validated request IDs, cascade account delete, AI quota only on success, notifications TTL index, `GET /tasks/:id` + notification DELETE, AI settings persisted via `GET/PUT /api/settings/ai`, UTC-vs-local date normalization. Frontend: Achievements real checks, AI settings autosave, StrictMode-safe timer, TodayTasks edit (no longer toggles status), real best-streak data, custom FocusMode durations. **110/110 integration tests passing.** |
 | **v3.1.1** | `Cleanup` | Dead code removed — unused seed scripts (`seed.js`, `qa-seed.js`), unused client assets (`hero.png`, `react.svg`, `vite.svg`), stock Vite template README replaced. Broken push icon refs (`/favicon.ico`) fixed to `/favicon.svg`. `VAPID_SUBJECT` env wired into push config. ~599 lines of dead code deleted; harness still 110/110. |
+| **v3.2** | `Hardened` | Auth: **7-day access tokens + 30-day refresh tokens** with rotation, server-side logout revocation (token versioning), and auto-refresh on the client. Reliability: **CI pipeline** (GitHub Actions — backend tests + frontend lint/build), **always-on pagination** (bounded default 500–1000), **API-side XSS sanitization** (strips `<script>`/`<iframe>`), **structured JSON error logs** with request IDs, and a **`/api/health` endpoint** (DB state + uptime). Performance: **Settings page code-split** (428 kB → 3.4 kB main chunk; `jspdf`/`html2canvas` load only on demand). AI: no-key failures now map to graceful 503 instead of 500. **Harness: 119/119 tests passing.** |
 
 ---
 
@@ -870,7 +872,7 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: 110/110 tests passing · frontend lint clean · production build succeeds.**
+**Current status: 119/119 tests passing · frontend lint clean · production build succeeds · CI: GitHub Actions (backend tests + frontend lint/build).**
 
 | Coverage Area | What's Verified |
 |---|---|

@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Palette, Bell, Brain, Shield } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import ErrorBoundary from '../../components/ErrorBoundary'
-import ThemeSettings from './ThemeSettings'
-import NotificationSettings from './NotificationSettings'
-import AISettings from './AISettings'
-import AccountSettings from './AccountSettings'
+import LoadingSpinner from '../../components/ui/LoadingSpinner'
+
+const ThemeSettings = lazy(() => import('./ThemeSettings'))
+const NotificationSettings = lazy(() => import('./NotificationSettings'))
+const AISettings = lazy(() => import('./AISettings'))
+const AccountSettings = lazy(() => import('./AccountSettings'))
 
 // Main settings page with sidebar navigation for theme, notifications, AI, account
 const sidebarItems = [
@@ -51,10 +53,12 @@ function Settings() {
 
         <div className="lg:col-span-3">
           <ErrorBoundary>
-            {tab === 'theme' && <ThemeSettings />}
-            {tab === 'notifications' && <NotificationSettings />}
-            {tab === 'ai' && <AISettings />}
-            {tab === 'account' && <AccountSettings />}
+            <Suspense fallback={<div className="flex justify-center py-16"><LoadingSpinner /></div>}>
+              {tab === 'theme' && <ThemeSettings />}
+              {tab === 'notifications' && <NotificationSettings />}
+              {tab === 'ai' && <AISettings />}
+              {tab === 'account' && <AccountSettings />}
+            </Suspense>
           </ErrorBoundary>
         </div>
       </div>

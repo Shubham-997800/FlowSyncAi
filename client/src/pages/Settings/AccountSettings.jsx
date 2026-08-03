@@ -3,7 +3,6 @@ import { useAuth } from '../../context/AuthContext'
 import { Shield, Trash2, Download, EyeOff, Loader2, Key } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
-import { jsPDF } from 'jspdf'
 import { deleteAccount as deleteAccountApi } from '../../services/settingsService'
 import { getTasks } from '../../services/taskService'
 import { getGoals } from '../../services/goalService'
@@ -29,6 +28,7 @@ function AccountSettings() {
       const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
       const date = new Date().toISOString().split('T')[0]
 
+      const { jsPDF } = await import('jspdf')
       const doc = new jsPDF()
       const pageW = doc.internal.pageSize.getWidth()
       let y = 20
