@@ -11,6 +11,11 @@ export const markAsRead = async (id) => {
   return data
 }
 
+export const markAllRead = async () => {
+  const { data } = await api.put('/api/notifications/read-all')
+  return data
+}
+
 export const createNotification = async (payload) => {
   const { data } = await api.post('/api/notifications', payload)
   return data

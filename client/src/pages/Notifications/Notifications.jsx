@@ -8,7 +8,7 @@ const isDev = import.meta.env.DEV
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
-import { getNotifications, markAsRead, createNotification } from '../../services/notificationService'
+import { getNotifications, markAsRead, markAllRead, createNotification } from '../../services/notificationService'
 import { organizeNotifications } from '../../services/aiService'
 
 // Notifications page with grouped list, mark-as-read, and dev sample buttons
@@ -85,6 +85,11 @@ function Notifications() {
     }
   }
 
+  const markAll = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true, status: 'read' })))
+    try { await markAllRead() } catch { toast.error('Failed to mark all as read') }
+  }
+
   const dismissAll = () => {
     setNotifications([])
   }
@@ -141,6 +146,11 @@ function Notifications() {
             {notifications.length > 0 && (
               <button onClick={organizeWithAI} disabled={aiLoading} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20 rounded-lg transition-colors disabled:opacity-50">
                 {aiLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} AI Sort
+              </button>
+            )}
+            {notifications.length > 0 && (
+              <button onClick={markAll} className="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/20 rounded-lg transition-colors">
+                <CheckCheck size={14} className="inline-block mr-1" /> Mark all read
               </button>
             )}
             {notifications.length > 0 && (

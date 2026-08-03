@@ -10,4 +10,7 @@ const habitSchema = new mongoose.Schema({
   status: { type: String, enum: ['active', 'paused', 'archived'], default: 'active' },
 }, { timestamps: true })
 
+habitSchema.index({ user: 1, createdAt: -1 })
+habitSchema.index({ user: 1, status: 1 })
+
 module.exports = mongoose.model('Habit', habitSchema)

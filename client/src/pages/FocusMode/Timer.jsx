@@ -101,7 +101,7 @@ function Timer({ mode: externalMode, onComplete }) {
         <button onClick={() => switchMode('break')} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${mode === 'break' ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'}`}>
           <Coffee size={16} /> Break
         </button>
-        <button onClick={() => { setEditFocus(settings.focus); setEditBreak(settings.break); setShowSettings(!showSettings) }} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${showSettings ? 'bg-slate-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'}`}>
+        <button onClick={() => { setEditFocus(settings.focus); setEditBreak(settings.break); setShowSettings(!showSettings) }} aria-label="Timer settings" className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${showSettings ? 'bg-slate-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'}`}>
           <Settings size={16} />
         </button>
       </div>
@@ -110,12 +110,12 @@ function Timer({ mode: externalMode, onComplete }) {
         <div className="mb-6 p-4 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700">
           <div className="flex gap-4 mb-3">
             <div className="flex-1">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Focus (min)</label>
-              <input type="number" min={1} max={180} value={editFocus} onChange={e => setEditFocus(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600" />
+              <label htmlFor="timer-focus" className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Focus (min)</label>
+              <input id="timer-focus" type="number" min={1} max={180} value={editFocus} onChange={e => setEditFocus(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600" />
             </div>
             <div className="flex-1">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Break (min)</label>
-              <input type="number" min={1} max={60} value={editBreak} onChange={e => setEditBreak(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600" />
+              <label htmlFor="timer-break" className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Break (min)</label>
+              <input id="timer-break" type="number" min={1} max={60} value={editBreak} onChange={e => setEditBreak(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600" />
             </div>
           </div>
           <button onClick={saveCustomSettings} className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white text-sm font-medium transition-colors">

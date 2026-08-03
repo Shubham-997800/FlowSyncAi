@@ -9,4 +9,7 @@ const goalSchema = new mongoose.Schema({
   progress: { type: Number, min: 0, max: 100, default: 0 },
 }, { timestamps: true })
 
+goalSchema.index({ user: 1, createdAt: -1 })
+goalSchema.index({ user: 1, status: 1, targetDate: 1 })
+
 module.exports = mongoose.model('Goal', goalSchema)

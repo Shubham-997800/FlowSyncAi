@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
+const compression = require('compression')
 const authRoutes = require('./routes/authRoutes')
 const taskRoutes = require('./routes/taskRoutes')
 const aiRoutes = require('./routes/aiRoutes')
@@ -36,9 +37,23 @@ app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }
 app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }))
 morgan.token('req-id', (req) => req.id)
 app.use(morgan(process.env.NODE_ENV === 'production' ? ':req-id :remote-addr :method :url :status :res[content-length] - :response-time ms' : ':req-id :method :url :status :response-time ms'))
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }))
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.CLIENT_URL_2,
+  'http://localhost:5173',
+  'http://localhost:5000',
+].filter(Boolean)
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true)
+    callback(null, false)
+  },
+  credentials: true,
+}))
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '1mb' }))
+app.use(compression())
 
 app.get('/', (req, res) => {
   res.json({ message: 'FlowSync AI API is running' })
@@ -69,7 +84,7 @@ app.use('/api/settings', settingsRoutes)
 app.use('/api/push', pushRoutes)
 app.use('/api/chat', chatRoutes)
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   const log = { id: req.id, method: req.method, url: req.originalUrl, error: err.message, name: err.name }
   if (err.stack) log.stack = err.stack.split('\n').slice(0, 3).join(' ')
   if (process.env.NODE_ENV === 'production') console.error(JSON.stringify(log))

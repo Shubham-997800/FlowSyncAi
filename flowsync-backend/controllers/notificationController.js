@@ -45,6 +45,18 @@ const markRead = async (req, res) => {
   }
 }
 
+const markAllRead = async (req, res) => {
+  try {
+    const result = await Notification.updateMany(
+      { user: req.user._id, status: 'unread' },
+      { status: 'read' }
+    )
+    res.json({ updated: result.modifiedCount })
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
 const createNotification = async (req, res) => {
   try {
     const n = await Notification.create({ ...sanitize(req.body), user: req.user._id })
@@ -64,4 +76,4 @@ const deleteNotification = async (req, res) => {
   }
 }
 
-module.exports = { getNotifications, markRead, createNotification, deleteNotification }
+module.exports = { getNotifications, markRead, markAllRead, createNotification, deleteNotification }

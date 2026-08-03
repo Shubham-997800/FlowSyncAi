@@ -499,6 +499,13 @@ async function main() {
     const r = await request(`/api/notifications/${notifId}/read`, { method: 'PUT', token: tokenA })
     return r.status === 200
   })
+  await t('Mark all notifications read (PUT /read-all) -> 200 + count', async () => {
+    await Notification.create({ user: userA._id, type: 'reminder', title: 'Reminder', message: 'Test' })
+    const r = await request('/api/notifications/read-all', { method: 'PUT', token: tokenA })
+    if (r.status !== 200) return `status=${r.status}`
+    const unread = await Notification.countDocuments({ user: userA._id, status: 'unread' })
+    return unread === 0
+  })
   await t('DELETE /api/notifications/:id removes notification', async () => {
     const r = await request(`/api/notifications/${notifId}`, { method: 'DELETE', token: tokenA })
     if (r.status !== 200) return `status=${r.status}`

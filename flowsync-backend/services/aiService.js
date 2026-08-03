@@ -41,7 +41,9 @@ async function callAI(systemMsg, userMsg, temperature = 0.7) {
       console.error(`[AI] ${model} failed: ${info.slice(0, 100)}`)
       const status = err.status || err.error?.code || 0
       if (status === 401 || info.includes('401') || info.includes('invalid_api_key') || info.includes('Incorrect API key')) {
-        throw new Error('AI_SERVICE_UNAVAILABLE')
+        const unavailable = new Error('AI_SERVICE_UNAVAILABLE')
+        unavailable.cause = err
+        throw unavailable
       }
     }
   }

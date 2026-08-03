@@ -23,10 +23,11 @@ jobs:
           cache: npm
           cache-dependency-path: flowsync-backend/package-lock.json
       - run: npm ci
+      - run: npm run lint
       - run: npm test
 
   frontend:
-    name: Frontend lint + build
+    name: Frontend lint + test + build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,4 +41,5 @@ jobs:
           cache-dependency-path: client/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm test
       - run: npm run build

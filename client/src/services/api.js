@@ -11,7 +11,18 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000,
 })
+
+const MAX_RETRIES = 2
+const RETRYABLE_STATUS = [408, 429, 500, 502, 503, 504]
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const isRetryable = (error) =>
+  !error.config?._retried &&
+  error.config?.method !== 'post' &&
+  (error.response ? RETRYABLE_STATUS.includes(error.response.status) : true)
 
 let refreshPromise = null
 
@@ -63,6 +74,15 @@ api.interceptors.response.use(
     }
     if (error.response?.status === 401) {
       clearSession()
+    }
+    if (isRetryable(error)) {
+      original._retried = true
+      const retries = original._retryCount || 0
+      if (retries < MAX_RETRIES) {
+        original._retryCount = retries + 1
+        await sleep(300 * 2 ** retries)
+        return api(original)
+      }
     }
     return Promise.reject(error)
   },

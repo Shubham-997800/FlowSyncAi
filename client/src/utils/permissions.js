@@ -1,9 +1,9 @@
 export function detectBrowser() {
   const ua = navigator.userAgent.toLowerCase()
-  if (ua.includes('edge')) return 'edge'
-  if (ua.includes('chrome') && !ua.includes('edge')) return 'chrome'
+  if (ua.includes('edg')) return 'edge'
+  if (ua.includes('chrome')) return 'chrome'
   if (ua.includes('firefox')) return 'firefox'
-  if (ua.includes('safari') && !ua.includes('chrome')) return 'safari'
+  if (ua.includes('safari')) return 'safari'
   return 'other'
 }
 
