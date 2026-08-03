@@ -5,7 +5,7 @@ self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (e) => e.waitUntil(clients.claim()))
 
 self.addEventListener('push', (e) => {
-  let data = { title: 'FlowSync AI', body: '', icon: '/favicon.ico', badge: '/favicon.ico' }
+  let data = { title: 'FlowSync AI', body: '', icon: '/favicon.svg', badge: '/favicon.svg' }
   try {
     const parsed = e.data?.json()
     if (parsed) data = { ...data, ...parsed }

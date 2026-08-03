@@ -368,7 +368,9 @@ flowsync-ai/
 │
 ├── client/                                # 🎨 React Frontend
 │   ├── public/
-│   │   └── favicon.ico
+│   │   ├── favicon.svg                    # Site favicon (also used for push icon/badge)
+│   │   ├── icons.svg
+│   │   └── sw.js                         # Push notification service worker
 │   ├── src/
 │   │   ├── main.jsx                       # Entry point
 │   │   ├── App.jsx                        # Root component
