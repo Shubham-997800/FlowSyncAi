@@ -27,7 +27,7 @@
   <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tests-110%2F110-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/Tests-150%2F150-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
   <img src="https://img.shields.io/github/last-commit/Shubham-997800/FlowSync-Ai?style=flat-square" />
@@ -181,11 +181,13 @@ We believe productivity tools should work **for** you, not the other way around.
 
 ---
 
-## 📸 Screenshots
+## 📸 Product Tour
 
-> 🔗 **Live demo**: [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) — No login required to explore the landing page.
+> 🔗 **Live demo**: [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) — No login required to explore the landing page. Sign up for free to try the full app.
 
-| Feature Area | Description |
+Every core screen is covered below; for a visual walkthrough, open the live demo and click through the sidebar.
+
+| Feature Area | What You'll See |
 |-------------|-------------|
 | 🏠 **Landing Page** | Animated hero, feature cards, how-it-works section, CTA with framer-motion scroll animations |
 | 📊 **Dashboard** | AI-powered priority cards, animated stat counters, sparkline charts, deadline risk pulse, recent activity, widget toggles |
@@ -498,7 +500,7 @@ flowsync-ai/
 │   │   └── validateId.js                  # ObjectId validation
 │   │
 │   ├── test/
-│   │   └── run-tests.js                   # 110-test integration harness (real Mongo, same handler Vercel runs)
+│   │   └── run-tests.js                   # 120-test integration harness (real Mongo, same handler Vercel runs)
 │   │
 │   └── package.json
 │
@@ -891,7 +893,12 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 ```bash
 cd flowsync-backend
 npm install
-node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 110 checks
+node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 120 checks
+
+cd ../client
+npm install
+npm test                   # 30 Vitest unit tests
+npm run lint && npm run build
 ```
 
 The full audit — findings, fixes, and remaining recommendations — lives in [`QA_REPORT.md`](./QA_REPORT.md).
@@ -903,10 +910,10 @@ The full audit — findings, fixes, and remaining recommendations — lives in [
 | Focus | Improvements |
 |-------|-------------|
 | **TypeScript** | Migrate frontend to TypeScript (strict mode) + backend type definitions |
-| **Testing** | Expand harness to E2E (Playwright); wire the existing 110 tests into CI (GitHub Actions) |
-| **Backend Validation** | Input validation middleware (express-validator/zod), MongoDB indexes |
-| **Auth Upgrade** | Refresh tokens, server-side logout, API versioning, social login |
-| **Performance** | React Query/SWR for caching, default pagination, AI streaming via SSE |
+| **Testing** | Expand to E2E (Playwright); grow frontend unit coverage beyond 30 tests |
+| **Backend Validation** | Input validation middleware (zod) on top of existing type/sanitize guards |
+| **Auth Upgrade** | API versioning, social login (Google/GitHub OAuth) |
+| **Performance** | React Query/SWR for caching, AI streaming via SSE, DB read-tier |
 | **UX Pro** | Keyboard shortcuts, drag-and-drop tasks, file attachments, PWA offline |
 | **Platform** | Docker setup, i18n multi-language, Storybook |
 
@@ -939,7 +946,7 @@ npm install
 npm run dev                 # app on http://localhost:5173
 ```
 
-Point the client at the API via the Vite proxy / `.env` (see `client/.env.example` if present).
+Point the client at the API via the Vite proxy or `.env` (see `client/.env.example` — `VITE_API_URL`).
 
 ### Environment variables (backend `.env`)
 
