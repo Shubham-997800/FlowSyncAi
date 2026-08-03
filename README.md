@@ -26,7 +26,7 @@
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" />
   <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
-  <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
@@ -228,8 +228,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | Technology | Purpose |
 |------------|---------|
 | **OpenRouter** | AI chat, planning, prioritization, rescue mode — 11 models in failover chain (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, Mistral, Cohere, Qwen 2.5 72B, DeepSeek, GPT-4o, Claude 3.5 Haiku) via OpenAI-compatible SDK |
-| **Vercel** | Frontend hosting with auto-deploy from GitHub, edge CDN |
-| **Railway** | Backend hosting with auto-deploy from GitHub, HTTPS, zero-downtime deploys |
+| **Vercel** | Frontend + backend hosting with auto-deploy from GitHub, HTTPS, edge CDN |
 
 ---
 
@@ -259,7 +258,7 @@ We believe productivity tools should work **for** you, not the other way around.
 │                                  │                                       │
 │                    HTTPS + JSON + JWT Bearer Token                       │
 │                                  ▼                                       │
-│  ┌───────────────────── BACKEND (Railway) ───────────────────────────┐  │
+│  ┌───────────────────── BACKEND (Vercel Functions) ──────────────────┐  │
 │  │                                                                   │  │
 │  │  Express 4 + Mongoose 9 + Helmet 8 + Rate Limiter                │  │
 │  │                                                                   │  │
@@ -607,7 +606,7 @@ erDiagram
                       HTTPS / JSON
                             │
 ┌───────────────────────────▼──────────────────────────────────────────┐
-│                         🖥️ EXPRESS SERVER (Railway)                   │
+│                         🖥️ EXPRESS SERVER (Vercel)                    │
 │                                                                      │
 │   ┌──────────────────────────────────────────────────────┐          │
 │   │                 MIDDLEWARE PIPELINE                   │          │
@@ -919,8 +918,7 @@ I'm happy to discuss collaboration, licensing, or any other use — just ask.
 ## 🙏 Acknowledgements
 
 - **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, and 7 more models in failover chain)
-- **[Vercel](https://vercel.com)** — For frontend deployment platform
-- **[Railway](https://railway.com)** — For reliable backend hosting with zero-downtime deploys
+- **[Vercel](https://vercel.com)** — For frontend and backend hosting with auto-deploys
 - **[MongoDB Atlas](https://mongodb.com/atlas)** — For the generous free tier and global database infrastructure
 - **[Tailwind CSS](https://tailwindcss.com)** — For the most productive CSS framework ever built
 - **[Lucide](https://lucide.dev)** — For the beautiful, consistent icon set

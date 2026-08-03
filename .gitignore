@@ -3,4 +3,6 @@ node_modules/
 dist/
 
 .vercel
-.env*
+.env
+.env.*
+!.env.example

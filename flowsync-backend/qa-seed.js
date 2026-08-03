@@ -1,5 +1,5 @@
-// QA Seed Script — creates realistic test data via Railway API
-const API = 'https://flowsync-ai-production.up.railway.app'
+// QA Seed Script — creates realistic test data via the deployed backend API
+const API = 'https://flowsync-backend.vercel.app'
 const TEST_EMAIL = 'test@flowsync.ai'
 const TEST_PASSWORD = 'Test@123456'
 

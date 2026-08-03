@@ -1,7 +1,8 @@
 import axios from 'axios'
 
-// Axios instance with auth interceptor and base URL config
-const PROD_API = 'https://flowsync-ai-production.up.railway.app'
+// Axios instance with auth interceptor and base URL config.
+// VITE_API_URL overrides everything; otherwise dev uses localhost, prod uses the Vercel backend.
+const PROD_API = 'https://flowsync-backend.vercel.app'
 const DEV_API = 'http://localhost:5000'
 const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? DEV_API : PROD_API)
 

@@ -45,7 +45,7 @@ const sections = [
     title: '4. AI Processing & Third-Party Services',
     content: [
       'AI Provider: OpenRouter (openrouter.ai) — processes task titles, descriptions, and deadlines for planning/prioritization',
-      'Hosting: Vercel (frontend) and Railway (backend) — standard cloud infrastructure',
+      'Hosting: Vercel — standard cloud infrastructure',
       'Database: MongoDB Atlas — cloud database with automated backups',
       'Email: SMTP provider of your choice (default: Ethereal for testing)',
       'We do NOT sell, rent, or share your personal data with advertisers or data brokers',
