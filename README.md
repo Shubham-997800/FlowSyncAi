@@ -612,7 +612,7 @@ flowchart TB
 
 ## 🔌 API Reference
 
-All endpoints are served under `https://flowsync-backend.vercel.app/api` (local: `http://localhost:5000/api`). Protected routes require an `Authorization: Bearer <token>` header; the client auto-refreshes expired access tokens via `POST /api/auth/refresh`.
+All endpoints are served under `https://flowsyncai30.vercel.app/api` (local: `http://localhost:5000/api`). Protected routes require an `Authorization: Bearer <token>` header; the client auto-refreshes expired access tokens via `POST /api/auth/refresh`.
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
@@ -911,7 +911,20 @@ Point the client at the API via the Vite proxy or `.env` (see `client/.env.examp
 
 ### Deployment
 
-Backend and frontend both deploy to **Vercel** (auto-deploy from the `main` branch). The backend uses the serverless entrypoint `flowsync-backend/api/index.js`; set the same env vars above in your Vercel project settings.
+Frontend and backend deploy together as a **single Vercel project** from the repository root (monorepo). The root `vercel.json` builds the Vite client to `client/dist` and exposes the Express API under `/api/*` via the serverless entrypoint `api/index.js` → `flowsync-backend/api/index.js`. Set the env vars above in the Vercel project settings, then `vercel deploy --prod` (or push to `main`).
+
+| Setting | Value |
+|---------|-------|
+| Project | `flowsyncai` |
+| Live URL | https://flowsyncai30.vercel.app |
+| API base | `https://flowsyncai30.vercel.app/api` (same origin) |
+| Root directory | repository root (empty) |
+| Build command | `npm --prefix client run build` |
+| Install command | `npm --prefix client install && npm --prefix flowsync-backend install` |
+| Output directory | `client/dist` |
+| Node version | 24.x |
+
+Frontend and backend share the same origin, so the client calls relative `/api/*` paths — no separate backend URL or CORS origin needed in production.
 
 ---
 

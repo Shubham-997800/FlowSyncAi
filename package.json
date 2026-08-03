@@ -1,0 +1,9 @@
+{
+  "name": "flowsync-monorepo",
+  "private": true,
+  "version": "3.3.0",
+  "description": "FlowSync AI — client (React/Vite) + flowsync-backend (Express) deployed together on Vercel",
+  "engines": {
+    "node": "24.x"
+  }
+}
