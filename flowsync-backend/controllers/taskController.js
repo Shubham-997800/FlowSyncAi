@@ -11,10 +11,33 @@ function sanitize(body) {
   return safe
 }
 
+function parsePagination(query) {
+  const page = Math.max(parseInt(query.page) || 1, 1)
+  const limit = Math.min(Math.max(parseInt(query.limit) || 200, 1), 500)
+  return { page, limit, skip: (page - 1) * limit }
+}
+
 const getTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 })
+    const filter = { user: req.user._id }
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined
+    const { skip, limit } = parsePagination(req.query)
+    const total = await Task.countDocuments(filter)
+    const query = Task.find(filter).sort({ createdAt: -1 })
+    if (hasPagination) query.skip(skip).limit(limit)
+    const tasks = await query
+    res.set('X-Total-Count', total)
     res.json(tasks)
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
+const getTask = async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.id, user: req.user._id })
+    if (!task) return res.status(404).json({ message: 'Task not found' })
+    res.json(task)
   } catch (error) {
     handleError(res, error)
   }
@@ -53,4 +76,4 @@ const deleteTask = async (req, res) => {
   }
 }
 
-module.exports = { getTasks, createTask, updateTask, deleteTask }
+module.exports = { getTasks, getTask, createTask, updateTask, deleteTask }

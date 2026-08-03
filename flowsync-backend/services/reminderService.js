@@ -7,6 +7,8 @@ const { REMINDER_CHECK_INTERVAL } = require('../config/constants')
 
 const SWEEP_KEY = 'reminderSweep'
 
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 let intervalId = null
 
 async function checkReminders() {
@@ -24,7 +26,7 @@ async function checkReminders() {
     const existing = await Notification.findOne({
       user: task.user._id,
       type: 'deadline_alert',
-      title: { $regex: task.title, $options: 'i' },
+      title: { $regex: escapeRegex(task.title), $options: 'i' },
       createdAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) },
     })
     if (existing) continue

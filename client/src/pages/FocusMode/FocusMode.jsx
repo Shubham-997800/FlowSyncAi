@@ -14,6 +14,17 @@ const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, trans
 const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }
 const fadeUp = { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }
 
+function loadTimerSettings() {
+  try {
+    const raw = localStorage.getItem('flowsync_timer_settings')
+    if (raw) {
+      const s = JSON.parse(raw)
+      if (s && Number(s.focus) > 0) return { focus: Number(s.focus), break: Number(s.break) > 0 ? Number(s.break) : 5 }
+    }
+  } catch {}
+  return { focus: 25, break: 5 }
+}
+
 function FocusMode() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -55,7 +66,7 @@ function FocusMode() {
           title: selectedTask.priority === 'high' ? 'High Priority Focus' : 'Steady Focus',
           desc: `Focus on "${selectedTask.title}".`,
           breakSuggestion: 'Standard 5-min breaks recommended',
-          focusTime: 25,
+          focusTime: loadTimerSettings().focus,
         })
       } finally {
         setAiLoading(false)
@@ -64,8 +75,9 @@ function FocusMode() {
   }, [selectedTask, suggestionKey])
 
   const handleSessionComplete = () => {
+    const timer = loadTimerSettings()
     const newSessions = sessions + 1
-    const newMinutes = totalFocusMinutes + (mode === 'focus' ? 25 : 5)
+    const newMinutes = totalFocusMinutes + (mode === 'focus' ? timer.focus : timer.break)
     setSessions(newSessions)
     setTotalFocusMinutes(newMinutes)
     localStorage.setItem('flowsync_focus_sessions', newSessions.toString())

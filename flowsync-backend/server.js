@@ -18,7 +18,19 @@ const { startReminderService } = require('./services/reminderService')
 
 const PORT = process.env.PORT || 5000
 
-connectDB()
+const start = async () => {
+  try {
+    await connectDB()
+  } catch (err) {
+    console.error('FATAL: Failed to connect to MongoDB:', err.message)
+    process.exit(1)
+  }
+
+  app.listen(PORT, () => {
+    console.log(`FlowSync AI server running on port ${PORT}`)
+    startReminderService()
+  })
+}
 
 process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION:', err)
@@ -29,7 +41,4 @@ process.on('uncaughtException', (err) => {
   process.exit(1)
 })
 
-app.listen(PORT, () => {
-  console.log(`FlowSync AI server running on port ${PORT}`)
-  startReminderService()
-})
+start()

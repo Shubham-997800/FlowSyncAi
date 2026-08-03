@@ -1,24 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Brain, Zap, Timer, ArrowDown, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 
+const DEFAULT_SETTINGS = {
+  aggressiveness: 'medium',
+  autoScheduling: true,
+  smartPrioritization: true,
+  rescueMode: false,
+}
+
 function AISettings() {
-  const [settings, setSettings] = useState({
-    aggressiveness: 'medium',
-    autoScheduling: true,
-    smartPrioritization: true,
-    rescueMode: false,
-  })
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+  const [loaded, setLoaded] = useState(false)
   const [rescueResult, setRescueResult] = useState(null)
   const [rescueLoading, setRescueLoading] = useState(false)
 
+  useEffect(() => {
+    api.get('/api/settings/ai')
+      .then(({ data }) => setSettings({ ...DEFAULT_SETTINGS, ...(data || {}) }))
+      .catch(() => toast.error('Failed to load AI settings'))
+      .finally(() => setLoaded(true))
+  }, [])
+
+  useEffect(() => {
+    if (!loaded) return
+    const { aggressiveness, autoScheduling, smartPrioritization, rescueMode } = settings
+    api.put('/api/settings/ai', { aggressiveness, autoScheduling, smartPrioritization, rescueMode })
+      .catch(() => toast.error('Failed to save AI settings'))
+  }, [settings, loaded])
+
   const toggle = (key) => {
-    setSettings(s => {
-      const updated = { ...s, [key]: !s[key] }
-      toast.success(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} ${updated[key] ? 'enabled' : 'disabled'}`)
-      return updated
-    })
+    const updated = { ...settings, [key]: !settings[key] }
+    setSettings(updated)
+    toast.success(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} ${updated[key] ? 'enabled' : 'disabled'}`)
   }
 
   const activateRescue = async () => {

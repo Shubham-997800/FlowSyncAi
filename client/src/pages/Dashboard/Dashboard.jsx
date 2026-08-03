@@ -163,6 +163,15 @@ function Dashboard() {
     try { await updateTask(id, { status: newStatus }) } catch { toast.error('Failed to update task') }
   }, [])
 
+  const handleEdit = useCallback(async (id, title) => {
+    const prev = tasksRef.current.find(t => t._id === id)
+    setTasks(prevList => prevList.map(t => t._id === id ? { ...t, title } : t))
+    try { await updateTask(id, { title }) } catch {
+      toast.error('Failed to update task')
+      if (prev) setTasks(list => list.map(t => t._id === id ? { ...t, title: prev.title } : t))
+    }
+  }, [])
+
   const handleDelete = useCallback(async (id) => {
     const current = tasksRef.current
     const deleted = current.find(t => t._id === id)
@@ -288,7 +297,7 @@ function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {widgets.todayTasks && (
                 <motion.div variants={section}>
-                  <TodayTasks tasks={tasks} onToggle={handleToggle} onDelete={handleDelete} />
+                  <TodayTasks tasks={tasks} onToggle={handleToggle} onDelete={handleDelete} onEdit={handleEdit} />
                 </motion.div>
               )}
               {widgets.productivityScore && (

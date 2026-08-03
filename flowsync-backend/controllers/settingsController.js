@@ -1,4 +1,4 @@
-const { handleError } = require('../utils/errorHandler')
+const { handleError, handleValidationError } = require('../utils/errorHandler')
 const User = require('../models/User')
 
 function isValidUrl(str) {
@@ -18,8 +18,12 @@ const updateProfile = async (req, res) => {
   try {
     const { name, email, bio, phone, location, jobTitle, currentPassword } = req.body
     const updates = {}
-    if (name !== undefined) updates.name = name
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.length > 100) return res.status(400).json({ message: 'Name too long (max 100)' })
+      updates.name = name
+    }
     if (email !== undefined && email !== req.user.email) {
+      if (typeof email !== 'string') return res.status(400).json({ message: 'Invalid email' })
       if (!currentPassword) return res.status(400).json({ message: 'Invalid password' })
       const user = await User.findById(req.user._id)
       if (!(await user.comparePassword(currentPassword))) return res.status(400).json({ message: 'Invalid password' })
@@ -27,15 +31,21 @@ const updateProfile = async (req, res) => {
       updates.isVerified = false
     }
     if (bio !== undefined) {
-      if (bio.length > 500) return res.status(400).json({ message: 'Bio too long (max 500)' })
+      if (typeof bio !== 'string' || bio.length > 500) return res.status(400).json({ message: 'Bio too long (max 500)' })
       updates.bio = bio
     }
     if (phone !== undefined) {
       if (phone && !/^[\d\s\-+().]{7,20}$/.test(phone)) return res.status(400).json({ message: 'Invalid phone number' })
       updates.phone = phone
     }
-    if (location !== undefined) updates.location = location
-    if (jobTitle !== undefined) updates.jobTitle = jobTitle
+    if (location !== undefined) {
+      if (typeof location !== 'string' || location.length > 200) return res.status(400).json({ message: 'Location too long (max 200)' })
+      updates.location = location
+    }
+    if (jobTitle !== undefined) {
+      if (typeof jobTitle !== 'string' || jobTitle.length > 100) return res.status(400).json({ message: 'Job title too long (max 100)' })
+      updates.jobTitle = jobTitle
+    }
     const user = await User.findByIdAndUpdate(
       req.user._id,
       updates,
@@ -43,7 +53,9 @@ const updateProfile = async (req, res) => {
     )
     res.json(user)
   } catch (error) {
-    handleError(res, error)
+    if (error.code === 11000) return res.status(400).json({ message: 'Email already in use' })
+    if (error.name === 'CastError') return res.status(400).json({ message: 'Invalid value' })
+    return handleValidationError(res, error)
   }
 }
 
@@ -66,6 +78,9 @@ const uploadAvatar = async (req, res) => {
 const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+      return res.status(400).json({ message: 'Current and new password are required' })
+    }
     const user = await User.findById(req.user._id)
     if (!(await user.comparePassword(currentPassword))) {
       return res.status(400).json({ message: 'Current password is incorrect' })
@@ -74,7 +89,7 @@ const updatePassword = async (req, res) => {
     await user.save()
     res.json({ message: 'Password updated successfully' })
   } catch (error) {
-    handleError(res, error)
+    return handleValidationError(res, error)
   }
 }
 
@@ -82,6 +97,9 @@ const Task = require('../models/Task')
 const Goal = require('../models/Goal')
 const Habit = require('../models/Habit')
 const Notification = require('../models/Notification')
+const ChatMessage = require('../models/ChatMessage')
+const PushSubscription = require('../models/PushSubscription')
+const AiUsage = require('../models/AiUsage')
 
 const deleteAccount = async (req, res) => {
   try {
@@ -96,8 +114,43 @@ const deleteAccount = async (req, res) => {
       Goal.deleteMany({ user: userId }),
       Habit.deleteMany({ user: userId }),
       Notification.deleteMany({ user: userId }),
+      ChatMessage.deleteMany({ user: userId }),
+      PushSubscription.deleteMany({ user: userId }),
+      AiUsage.deleteMany({ user: userId }),
     ])
     res.json({ message: 'Account deleted' })
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
+const AI_SETTINGS_DEFAULTS = { aggressiveness: 'medium', autoScheduling: true, smartPrioritization: true, rescueMode: false }
+
+const getAiSettings = async (req, res) => {
+  try {
+    const current = req.user.aiSettings ? req.user.aiSettings.toObject() : {}
+    res.json({ ...AI_SETTINGS_DEFAULTS, ...current })
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
+const updateAiSettings = async (req, res) => {
+  try {
+    const { aggressiveness, autoScheduling, smartPrioritization, rescueMode } = req.body
+    const updates = {}
+    if (aggressiveness !== undefined) {
+      if (!['low', 'medium', 'high'].includes(aggressiveness)) {
+        return res.status(400).json({ message: 'Invalid aggressiveness' })
+      }
+      updates['aiSettings.aggressiveness'] = aggressiveness
+    }
+    if (autoScheduling !== undefined) updates['aiSettings.autoScheduling'] = Boolean(autoScheduling)
+    if (smartPrioritization !== undefined) updates['aiSettings.smartPrioritization'] = Boolean(smartPrioritization)
+    if (rescueMode !== undefined) updates['aiSettings.rescueMode'] = Boolean(rescueMode)
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true })
+    const current = user.aiSettings ? user.aiSettings.toObject() : {}
+    res.json({ ...AI_SETTINGS_DEFAULTS, ...current })
   } catch (error) {
     handleError(res, error)
   }
@@ -121,4 +174,4 @@ const updateAchievements = async (req, res) => {
   }
 }
 
-module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, updateAchievements }
+module.exports = { getProfile, updateProfile, updatePassword, deleteAccount, uploadAvatar, updateAchievements, getAiSettings, updateAiSettings }

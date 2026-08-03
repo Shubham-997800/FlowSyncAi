@@ -47,21 +47,21 @@ function Timer({ mode: externalMode, onComplete }) {
   useEffect(() => {
     if (!isRunning) return
     intervalRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current)
-          setTimeout(() => {
-            onCompleteRef.current()
-            setIsRunning(false)
-            setTimeLeft(mode === 'focus' ? FOCUS_TIME : BREAK_TIME)
-          }, 0)
-          return 0
-        }
-        return prev - 1
-      })
+      setTimeLeft(prev => (prev > 0 ? prev - 1 : prev))
     }, 1000)
     return () => clearInterval(intervalRef.current)
-  }, [isRunning, mode, settings, FOCUS_TIME, BREAK_TIME])
+  }, [isRunning])
+
+  useEffect(() => {
+    if (!isRunning || timeLeft > 0) return
+    clearInterval(intervalRef.current)
+    const t = setTimeout(() => {
+      onCompleteRef.current()
+      setIsRunning(false)
+      setTimeLeft(mode === 'focus' ? FOCUS_TIME : BREAK_TIME)
+    }, 0)
+    return () => clearTimeout(t)
+  }, [timeLeft, isRunning, mode, FOCUS_TIME, BREAK_TIME])
 
   const toggleTimer = () => setIsRunning(!isRunning)
 

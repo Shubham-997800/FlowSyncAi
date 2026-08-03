@@ -24,7 +24,14 @@ const getChatHistory = async (req, res) => {
   try {
     const filter = { user: req.user._id }
     if (req.query.sessionId) filter.sessionId = req.query.sessionId
-    const messages = await ChatMessage.find(filter).sort({ createdAt: 1 })
+    const page = Math.max(parseInt(req.query.page) || 1, 1)
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 200, 1), 500)
+    const total = await ChatMessage.countDocuments(filter)
+    const messages = await ChatMessage.find(filter)
+      .sort({ createdAt: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+    res.set('X-Total-Count', total)
     res.json(messages)
   } catch (error) {
     handleError(res, error)

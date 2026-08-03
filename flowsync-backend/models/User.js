@@ -28,6 +28,15 @@ const userSchema = new mongoose.Schema({
   jobTitle: { type: String, default: '' },
   isVerified: { type: Boolean, default: true },
   achievements: [{ name: String, unlockedAt: Date }],
+  aiSettings: {
+    type: {
+      aggressiveness: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
+      autoScheduling: { type: Boolean, default: true },
+      smartPrioritization: { type: Boolean, default: true },
+      rescueMode: { type: Boolean, default: false },
+    },
+    default: {},
+  },
   loginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date, default: null },
 }, { timestamps: true })

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Flame, TrendingUp, Target, ListTodo } from 'lucide-react'
 import { getTasks } from '../../services/taskService'
+import { getHabits } from '../../services/habitService'
 // Stats dashboard showing task counts, weekly chart, focus time and streak
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -12,14 +13,14 @@ function UserStats() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getTasks()
+        const [data, habitsData] = await Promise.all([getTasks(), getHabits()])
         const tasks = Array.isArray(data) ? data : []
         const total = tasks.length
         const completed = tasks.filter(t => t.status === 'done').length
         const inProgress = tasks.filter(t => t.status === 'in-progress').length
         const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
         const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
-        const habits = JSON.parse(localStorage.getItem('flowsync_habits') || '[]')
+        const habits = Array.isArray(habitsData) ? habitsData : []
         const streak = habits.reduce((max, h) => Math.max(max, h.streak || 0), 0)
         setStats({ total, completed, inProgress, focusMinutes, focusSessions, streak })
 

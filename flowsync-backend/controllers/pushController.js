@@ -6,11 +6,15 @@ const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || ''
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    'mailto:support@flowsync-ai.com',
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-  )
+  try {
+    webpush.setVapidDetails(
+      'mailto:support@flowsync-ai.com',
+      VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY
+    )
+  } catch (err) {
+    console.error('Push notifications disabled — invalid VAPID keys:', err.message)
+  }
 }
 
 const subscribe = async (req, res) => {
@@ -20,11 +24,18 @@ const subscribe = async (req, res) => {
       return res.status(400).json({ message: 'Invalid subscription' })
     }
 
-    await PushSubscription.findOneAndUpdate(
-      { endpoint },
-      { user: req.user._id, endpoint, keys },
-      { upsert: true, new: true }
-    )
+    try {
+      await PushSubscription.findOneAndUpdate(
+        { endpoint, user: req.user._id },
+        { user: req.user._id, endpoint, keys },
+        { upsert: true, new: true }
+      )
+    } catch (err) {
+      if (err.code === 11000) {
+        return res.status(400).json({ message: 'This device is already registered to another account' })
+      }
+      throw err
+    }
 
     res.json({ message: 'Subscribed' })
   } catch (error) {

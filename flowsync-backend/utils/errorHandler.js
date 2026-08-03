@@ -1,6 +1,6 @@
 const handleError = (res, error, statusCode = 500) => {
-  const message = process.env.NODE_ENV === 'production' ? 'Server error' : error.message
-  if (statusCode === 500) console.error(error)
+  console.error(error)
+  const message = statusCode >= 500 ? 'Server error' : error.message
   res.status(statusCode).json({ message })
 }
 

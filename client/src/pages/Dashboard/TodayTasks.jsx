@@ -16,7 +16,7 @@ const taskVariant = {
   show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.05 } }),
 }
 
-const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete }) {
+const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete, onEdit }) {
   const navigate = useNavigate()
   const today = new Date().toISOString().split('T')[0]
   const todayTasks = tasks.filter(t => { if (!t.deadline) return false; return getDateStr(t.deadline) === today })
@@ -35,8 +35,10 @@ const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete }) {
   }
 
   const handleSaveEdit = (id) => {
-    if (editValue.trim() && editValue !== tasks.find(t => t._id === id)?.title) {
-      onToggle(id)
+    const value = editValue.trim()
+    const original = tasks.find(t => t._id === id)?.title
+    if (value && original && value !== original) {
+      onEdit(id, value)
     }
     setEditingId(null)
     setEditValue('')

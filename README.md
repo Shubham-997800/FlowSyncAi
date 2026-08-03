@@ -27,9 +27,10 @@
   <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tests-110%2F110-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
+  <img src="https://img.shields.io/github/last-commit/Shubham-997800/FlowSync-Ai?style=flat-square" />
 </p>
 
 <p align="center">
@@ -57,6 +58,8 @@
 - [AI Architecture](#-ai-architecture)
 - [Request Lifecycle](#-request-lifecycle)
 - [Recent Improvements](#-recent-improvements)
+- [Quality Assurance & Testing](#-quality-assurance--testing)
+- [Quick Start](#-quick-start)
 - [License & Usage](#-license--usage)
 - [Author](#-author)
 - [Acknowledgements](#-acknowledgements)
@@ -149,6 +152,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | **AI Profile Summary** | Personalized productivity score, completion rate, best streak, top strength/weakness, actionable tip, daily goal recommendation, peak productivity time, and motivational message — all AI-generated via the profile-insights API. |
 | **AI Notification Organizer** | Smart "AI Sort" button that groups notifications by urgency/priority with AI-generated summaries and contextual reasons via the organize-notifications API. |
 | **AI Rescue Mode (Wired)** | Fully integrated Rescue Mode toggle in Settings — activates AI to identify critical tasks, compressed schedule, and drop recommendations when overloaded. |
+| **AI Preferences** | Aggressiveness (low/medium/high), auto-scheduling, smart prioritization and rescue-mode toggles — persisted to MongoDB and autosaved on every change. |
 | **Productivity Coach** | AI-generated reports that highlight patterns, strengths, weaknesses, and actionable recommendations via the analytics-insights API. |
 
 | **Voice Input** | Speech-to-text via Web Speech API in the AI chat interface for hands-free task creation. |
@@ -432,35 +436,40 @@ flowsync-ai/
 │
 ├── flowsync-backend/                      # ⚙️ Express API Server
 │   ├── server.js                          # Entry point, middleware, route mounting
+│   ├── api/index.js                       # Serverless entrypoint (Vercel Functions)
 │   │
 │   ├── config/
 │   │   ├── db.js                          # Mongoose connection with retry logic
-│   │   └── aiConfig.js                    # OpenRouter client (OpenAI SDK)
+│   │   ├── aiConfig.js                    # OpenRouter client (OpenAI SDK)
+│   │   └── constants.js                   # Shared app constants
 │   │
 │   ├── middleware/
 │   │   ├── auth.js                        # JWT verification
-│   │   └── rateLimiter.js                 # Rate limiting strategies
+│   │   ├── rateLimiter.js                 # Rate limiting strategies
+│   │   └── requestId.js                   # X-Request-ID correlation (validated/normalized)
 │   │
 │   ├── models/
-│   │   ├── User.js                        # name, email, hashed password, profile, achievements[]
+│   │   ├── User.js                        # name, email, hashed password, profile, achievements[], aiSettings
 │   │   ├── Task.js                        # title, priority, status, deadline, description
 │   │   ├── Goal.js                        # title, targetDate, progress
 │   │   ├── Habit.js                       # title, frequency, streak, logs[]
-│   │   ├── Notification.js                # type, title, message, status, userId
+│   │   ├── Notification.js                # type, title, message, status, userId (TTL index)
 │   │   ├── PushSubscription.js            # endpoint, keys for web push
 │   │   ├── ChatMessage.js                 # role, text, tasks[], createdTasks[]
-│   │   └── ChatSession.js                 # sessionId, userId, createdAt, updatedAt
+│   │   ├── ChatSession.js                 # sessionId, userId, createdAt, updatedAt
+│   │   ├── AiUsage.js                     # daily AI quota tracking
+│   │   └── ReminderState.js               # atomic reminder-sweep claims
 │   │
 │   ├── controllers/
 │   │   ├── authController.js              # signup, login
-│   │   ├── taskController.js              # CRUD with sanitization
+│   │   ├── taskController.js              # CRUD with sanitization + get by id
 │   │   ├── goalController.js              # CRUD with sanitization
-│   │   ├── habitController.js             # CRUD + check-in + streak calculation
+│   │   ├── habitController.js             # CRUD + check-in + streak calculation (local-timezone aware)
 │   │   ├── analyticsController.js         # Stats, weekly, monthly aggregation
-│   │   ├── notificationController.js      # Create, list, mark-read
-│   │   ├── settingsController.js          # Profile, avatar, password, delete account, achievements
+│   │   ├── notificationController.js      # Create, list, mark-read, delete
+│   │   ├── settingsController.js          # Profile, avatar, password, delete account, achievements, AI settings
 │   │   ├── aiController.js               # Chat, plan, prioritize, rescue, suggest-task, analytics-insights, habit-insights, focus-suggest, profile-insights, organize-notifications
-│   │   ├── pushController.js             # Web push subscribe/unsubscribe
+│   │   ├── pushController.js             # Web push subscribe/unsubscribe (crash-proof VAPID init)
 │   │   └── chatController.js             # Chat history get/save/delete/clear
 │   │
 │   ├── routes/
@@ -470,15 +479,22 @@ flowsync-ai/
 │   │   ├── habitRoutes.js
 │   │   ├── analyticsRoutes.js
 │   │   ├── notificationRoutes.js
-│   │   ├── settingsRoutes.js
+│   │   ├── settingsRoutes.js             # profile + AI settings (GET/PUT /api/settings/ai)
 │   │   ├── aiRoutes.js
 │   │   ├── pushRoutes.js
 │   │   └── chatRoutes.js                 # Chat history CRUD
 │   │
 │   ├── services/
 │   │   ├── aiService.js                   # Prompt engineering + JSON parsing (11 models, multilingual, tone matching, failover)
-│   │   └── reminderService.js             # Auto deadline alerts every 30 minutes
+│   │   └── reminderService.js             # Auto deadline alerts every 30 minutes (regex-safe)
 │   │
+│   ├── utils/
+│   │   ├── dateKey.js                     # Local-timezone date helpers
+│   │   ├── errorHandler.js                # Generic 5xx (no leak), 4xx validation mapping
+│   │   └── validateId.js                  # ObjectId validation
+│   │
+│   ├── test/
+│   │   └── run-tests.js                   # 110-test integration harness (real Mongo, same handler Vercel runs)
 │   │
 │   └── package.json
 │
@@ -510,6 +526,7 @@ erDiagram
         string phone
         string location
         string jobTitle
+        object aiSettings "aggressiveness, autoScheduling, smartPrioritization, rescueMode"
         date createdAt
         date updatedAt
     }
@@ -842,6 +859,35 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 | **v1.0** | `Core` | Initial 14 pages — Landing, Auth (Login/Register with JWT), Dashboard, Tasks & Goals, Calendar (monthly/weekly/daily), Habits (streak tracking), Focus Mode (Pomodoro), Analytics (charts), Notifications, Settings, Profile, AI Planner (chat), 404/401. Full responsive audit across 8 breakpoints (320px–1920px+). Basic AI features (chat, plan, prioritize). MongoDB Atlas + Express backend. |
 | **v2.0** | `Production` | Performance audit — re-render fixes, 51 CSS transitions optimized, 12 files deleted (+400 lines of dead code removed), React.memo + useCallback + ErrorBoundary everywhere. Security — CSP headers, rate limiting, account lockout, ObjectId validation, request ID tracing, JWT secret enforcement. Accessibility — skip-to-content, focus trap, prefers-reduced-motion, ARIA toggles. Dashboard overhaul — animated counters, sparkline charts, bulk actions, inline editing, AI caching, widget toggles. UX — undo toast, skeleton loading, polling optimization, framer-motion speed tuning. AI expansion — 11-model failover chain, 25+ languages, tone matching, reduced token cost. |
 | **v3.0** | `AI Complete` | AI in every tab — FocusMode real API (replaced local heuristic), Profile AI Productivity Summary, Notifications AI Smart Sort, Settings Rescue Mode wired to backend. Layout standardization — consistent `px-4 sm:px-6 lg:px-8 py-8` on all pages, card padding normalized to `p-6`, AIPlanner full-screen overflow fixed. Zero ESLint errors. All gradients removed — 21 instances across 8 files replaced with solid colors. |
+| **v3.1** | `Hardening` | Full-stack security & reliability round. Backend: NoSQL + regex injection closed, cross-user task write and push-subscription hijack blocked, no error leaks on 500, crash-proof VAPID init (fixes live Vercel 500), awaited DB connect with FATAL exit, validated request IDs, cascade account delete, AI quota only on success, notifications TTL index, `GET /tasks/:id` + notification DELETE, AI settings persisted via `GET/PUT /api/settings/ai`, UTC-vs-local date normalization. Frontend: Achievements real checks, AI settings autosave, StrictMode-safe timer, TodayTasks edit (no longer toggles status), real best-streak data, custom FocusMode durations. **110/110 integration tests passing.** |
+
+---
+
+## 🧪 Quality Assurance & Testing
+
+FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
+
+**Current status: 110/110 tests passing · frontend lint clean · production build succeeds.**
+
+| Coverage Area | What's Verified |
+|---|---|
+| 🔐 **Auth & Security** | Signup/login, duplicate & non-string → 400, no password-hash leak, NoSQL injection blocked, account lockout (423) + auto-reset, expired/tampered/garbage JWT → 401, rate limiting (429), CORS allowlist + non-reflection, Helmet headers, request IDs |
+| 📝 **Tasks / Goals / Habits** | Full CRUD, validation 400s, status transitions, `GET /tasks/:id`, cross-user isolation (404), progress clamping, check-in + same-day dedupe, streak calculation |
+| 🔔 **Notifications / Push** | Create/list/mark-read/**delete**, cross-user isolation, subscribe/unsubscribe, missing keys → 400, subscription ownership |
+| 💬 **Chat** | Save/history/sessions/delete/clear, 7-session cap, per-user isolation |
+| ⚙️ **Settings** | Profile update, weak-password → 400, password change invalidates old token, account delete cascade (Chat/Push/AiUsage), **AI settings persist + invalid → 400** |
+| 🤖 **AI** | Usage tracking, quota check, no-prompt → 400, graceful 5xx without API key |
+| ⚡ **DB & Reliability** | Pagination (`?limit&page` + `X-Total-Count`), 413 body limit, atomic reminder claims (no duplicate notifications), TTL cleanup |
+
+### Running the tests
+
+```bash
+cd flowsync-backend
+npm install
+node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 110 checks
+```
+
+The full audit — findings, fixes, and remaining recommendations — lives in [`QA_REPORT.md`](./QA_REPORT.md).
 
 ---
 
@@ -850,14 +896,60 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 | Focus | Improvements |
 |-------|-------------|
 | **TypeScript** | Migrate frontend to TypeScript (strict mode) + backend type definitions |
-| **Testing** | Unit tests (Vitest), API integration tests (Supertest), E2E (Playwright) |
+| **Testing** | Expand harness to E2E (Playwright); wire the existing 110 tests into CI (GitHub Actions) |
 | **Backend Validation** | Input validation middleware (express-validator/zod), MongoDB indexes |
 | **Auth Upgrade** | Refresh tokens, server-side logout, API versioning, social login |
-| **Performance** | React Query/SWR for caching, pagination, AI streaming via SSE |
+| **Performance** | React Query/SWR for caching, default pagination, AI streaming via SSE |
 | **UX Pro** | Keyboard shortcuts, drag-and-drop tasks, file attachments, PWA offline |
 | **Platform** | Docker setup, i18n multi-language, Storybook |
 
 ---
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js 24+** and npm
+- **MongoDB** (Atlas cluster or local) with a connection string
+- **OpenRouter API key** (for AI features) and generated **VAPID keys** (for push) — optional; the app degrades gracefully without them
+
+### 1. Backend
+
+```bash
+cd flowsync-backend
+npm install
+cp .env.example .env        # then fill in MONGODB_URI, JWT_SECRET, CLIENT_URL, OPENROUTER_API_KEY, VAPID keys
+npm run dev                 # API on http://localhost:5000
+```
+
+### 2. Frontend
+
+```bash
+cd client
+npm install
+npm run dev                 # app on http://localhost:5173
+```
+
+Point the client at the API via the Vite proxy / `.env` (see `client/.env.example` if present).
+
+### Environment variables (backend `.env`)
+
+| Variable | Required | Notes |
+|---|---|---|
+| `MONGODB_URI` | ✅ | MongoDB Atlas connection string |
+| `JWT_SECRET` | ✅ | ≥ 32 random characters; app refuses to boot without it |
+| `CLIENT_URL` | ✅ | CORS allowlist for your frontend origin |
+| `OPENROUTER_API_KEY` | ⭐ | Enables all AI features |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | ⭐ | Web Push; if invalid, push auto-disables instead of crashing |
+
+> [!TIP]
+> Generate VAPID keys with `npx web-push generate-vapid-keys`.
+
+### Deployment
+
+Backend and frontend both deploy to **Vercel** (auto-deploy from the `main` branch). The backend uses the serverless entrypoint `flowsync-backend/api/index.js`; set the same env vars above in your Vercel project settings.
 
 ---
 

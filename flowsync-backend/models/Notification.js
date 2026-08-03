@@ -10,5 +10,6 @@ const notificationSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 notificationSchema.index({ user: 1, createdAt: -1 })
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 })
 
 module.exports = mongoose.model('Notification', notificationSchema)

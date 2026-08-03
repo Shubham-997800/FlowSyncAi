@@ -11,9 +11,22 @@ function sanitize(body) {
   return safe
 }
 
+function parsePagination(query) {
+  const page = Math.max(parseInt(query.page) || 1, 1)
+  const limit = Math.min(Math.max(parseInt(query.limit) || 200, 1), 500)
+  return { page, limit, skip: (page - 1) * limit }
+}
+
 const getGoals = async (req, res) => {
   try {
-    const goals = await Goal.find({ user: req.user._id }).sort({ createdAt: -1 })
+    const filter = { user: req.user._id }
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined
+    const { skip, limit } = parsePagination(req.query)
+    const total = await Goal.countDocuments(filter)
+    const query = Goal.find(filter).sort({ createdAt: -1 })
+    if (hasPagination) query.skip(skip).limit(limit)
+    const goals = await query
+    res.set('X-Total-Count', total)
     res.json(goals)
   } catch (error) {
     handleError(res, error)

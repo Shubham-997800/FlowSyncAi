@@ -1,6 +1,7 @@
 const Task = require('../models/Task')
 
 const { handleError } = require('../utils/errorHandler')
+const { localDateKey } = require('../utils/dateKey')
 const getWeekly = async (req, res) => {
   try {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -17,7 +18,7 @@ const getWeekly = async (req, res) => {
       const dayEnd = new Date(d); dayEnd.setHours(23, 59, 59, 999)
       d.setHours(0, 0, 0, 0)
       const dayTasks = tasks.filter(t => new Date(t.createdAt) >= d && new Date(t.createdAt) <= dayEnd)
-      daily.push({ date: d.toISOString().split('T')[0], total: dayTasks.length, completed: dayTasks.filter(t => t.status === 'done').length })
+      daily.push({ date: localDateKey(d), total: dayTasks.length, completed: dayTasks.filter(t => t.status === 'done').length })
     }
 
     res.json({
@@ -43,9 +44,11 @@ const getMonthly = async (req, res) => {
     const highDone = tasks.filter(t => t.priority === 'high' && t.status === 'done').length
 
     const weekly = []
-    for (let w = 0; w < 4; w++) {
+    const daysInMonth = end.getDate()
+    const weeks = Math.ceil(daysInMonth / 7)
+    for (let w = 0; w < weeks; w++) {
       const ws = new Date(start); ws.setDate(ws.getDate() + w * 7)
-      const we = new Date(ws); we.setDate(ws.getDate() + 7)
+      const we = new Date(ws); we.setDate(we.getDate() + 7)
       const wt = tasks.filter(t => new Date(t.createdAt) >= ws && new Date(t.createdAt) < we)
       weekly.push({ week: w + 1, total: wt.length, completed: wt.filter(t => t.status === 'done').length })
     }

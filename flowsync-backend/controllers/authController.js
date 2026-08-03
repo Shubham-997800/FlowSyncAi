@@ -4,9 +4,14 @@ const { handleError } = require('../utils/errorHandler')
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' })
 
+const isNonEmptyString = (v) => typeof v === 'string' && v.trim() !== ''
+
 const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body
+    if (!isNonEmptyString(name) || !isNonEmptyString(email) || !isNonEmptyString(password)) {
+      return res.status(400).json({ message: 'Name, email and password are required' })
+    }
     const existing = await User.findOne({ email })
     if (existing) {
       return res.status(400).json({ message: 'An account with this email already exists. Try signing in.' })
@@ -29,6 +34,9 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body
+    if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
+      return res.status(401).json({ message: 'Invalid email or password' })
+    }
     const user = await User.findOne({ email })
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' })
