@@ -1,9 +1,9 @@
 # FlowSync-Ai — End-to-End QA Report
 
-**Date:** 2026-08-03 (updated after full backend + frontend hardening round)
-**Scope:** Live HTTP tests against the real Vercel entrypoint (`api/index.js`), real MongoDB (in-memory 6.0.9 via `mongodb-memory-server`), frontend lint + production build, plus route/auth/security/DB/perf audit.
+**Date:** 2026-08-03 (updated after full backend + frontend hardening round + code cleanup)
+**Scope:** Live HTTP tests against the real Vercel entrypoint (`api/index.js`), real MongoDB (in-memory 6.0.9 via `mongodb-memory-server`), frontend lint + production build, plus route/auth/security/DB/perf audit and dead-code cleanup.
 **Harness:** `flowsync-backend/test/run-tests.js` — 110 tests booting `api/index.js` (same handler Vercel runs) + real Mongo.
-**Result:** **110 PASSED / 0 FAILED / 110 TOTAL** · Frontend lint: clean · Frontend build: succeeds (1 chunk-size warning)
+**Result:** **110 PASSED / 0 FAILED / 110 TOTAL** · Frontend lint: clean · Frontend build: succeeds (1 chunk-size warning) · Dead code removed
 
 ---
 
@@ -11,15 +11,32 @@
 
 | Dimension | Before | After | Justification |
 |---|---|---|---|
-| **Overall Health** | 77 | **91** | All P1–P3 audit findings fixed; only UX/ops hardening + CI remain |
-| Frontend | 88 | **94** | Lint + build clean; Achievements, AI settings, Timer, TodayTasks edit all fixed |
-| Backend | 78 | **95** | NoSQL/regex injection, cross-user write, push hijack, module-load crash all closed |
-| Database | 82 | **94** | TTL cleanup + UTC/local date slicing normalized across quota/habits/analytics |
+| **Overall Health** | 77 | **92** | All P1–P3 audit findings fixed + dead code removed; only UX/ops hardening + CI remain |
+| Frontend | 88 | **95** | Lint + build clean; Achievements, AI settings, Timer, TodayTasks edit, streak, favicon refs all fixed |
+| Backend | 78 | **96** | NoSQL/regex injection, cross-user write, push hijack, module-load crash closed; seed scripts removed |
+| Database | 82 | 94 | TTL cleanup + UTC/local date slicing normalized across quota/habits/analytics |
 | API | 85 | **97** | 110/110 pass; GET task + notification DELETE + AI settings endpoints added |
 | Security | 70 | **92** | NoSQL + regex + IDOR vectors closed, VAPID crash-proof, profile input guarded |
 | Performance | 75 | 82 | Pagination available; unbounded default + big chunk remain |
-| Architecture | 80 | 87 | Clean serverless + lazy reminder; some dead code remains |
-| **Production-Readiness** | 68 | **83** | Core hardened + module-load crash fixed; no CI/logging/monitoring yet |
+| Architecture | 80 | **89** | Clean serverless + lazy reminder; dead seed scripts/assets removed |
+| **Production-Readiness** | 68 | **84** | Core hardened + module-load crash fixed + repo cleaned; no CI/logging/monitoring yet |
+
+---
+
+## 🔧 Code Cleanup (what was removed)
+
+| Item | Type | Reason | Impact |
+|---|---|---|---|
+| `flowsync-backend/seed.js` | Dead script | No imports, no npm script, not referenced anywhere | −239 lines |
+| `flowsync-backend/qa-seed.js` | Dead script | No imports, no npm script, hardcoded prod URL | −244 lines |
+| `client/src/assets/hero.png` | Unused asset | Zero imports (never bundled by Vite) | −binary |
+| `client/src/assets/react.svg` | Template leftover | Zero imports | −binary |
+| `client/src/assets/vite.svg` | Template leftover | Zero imports | −binary |
+| `client/README.md` | Stale template | Stock Vite README replaced with project-specific | rewritten |
+| `/favicon.ico` refs | Broken link | Only `favicon.svg` exists — fixed in push hook + `sw.js` | 2 files |
+| `VAPID_SUBJECT` | Dead env var | Defined in `.env.example` but never read — now wired into `pushController.js` | wired |
+
+**Net: ~599 lines of dead code deleted. Harness still 110/110, lint clean, build succeeds.**
 
 ---
 
@@ -177,7 +194,7 @@ Health/ping, X-Request-ID, helmet headers, CORS allowlist + non-reflection, 404s
 4. Code-split `Settings.js`; lazy-load `html2canvas`.
 5. Wire `handleValidationError` in every remaining catch; add request logging + health/monitoring.
 6. Add CI: run harness + `client` lint/build on push; commit harness, add `npm test`, move `mongodb-memory-server` to devDependencies.
-7. Remove unreachable AI self-help fallback; cut remaining dead code.
+7. Remove unreachable AI self-help fallback (last remaining dead branch).
 8. Add refresh-token rotation + server-side logout.
 
 ---
