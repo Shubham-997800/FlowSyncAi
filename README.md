@@ -50,7 +50,7 @@
 - [Problem Statement](#-problem-statement)
 - [Why FlowSync AI?](#-why-flowsync-ai)
 - [Key Features](#-key-features)
-- [Screenshots](#-screenshots)
+- [Product Tour](#-product-tour)
 - [Tech Stack](#-tech-stack)
 - [System Architecture](#-system-architecture)
 - [Project Workflow](#-project-workflow)
@@ -59,8 +59,10 @@
 - [API Architecture](#-api-architecture)
 - [AI Architecture](#-ai-architecture)
 - [Request Lifecycle](#-request-lifecycle)
+- [Performance & Build Optimizations](#-performance--build-optimizations)
 - [Recent Improvements](#-recent-improvements)
 - [Quality Assurance & Testing](#-quality-assurance--testing)
+- [Future Roadmap](#-future-roadmap)
 - [Quick Start](#-quick-start)
 - [License & Usage](#-license--usage)
 - [Author](#-author)
@@ -242,125 +244,74 @@ Every core screen is covered below; for a visual walkthrough, open the live demo
 
 ## 🏗️ System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        🌐 DNS (Vercel CDN)                             │
-│                      flowsyncai30.vercel.app                           │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  ┌───────────────────── FRONTEND (Vercel) ───────────────────────────┐  │
-│  │                                                                   │  │
-│  │  React 19 + Vite 8 + Tailwind 4 + Framer Motion                  │  │
-│  │                                                                   │  │
-│  │  ┌─────────┐ ┌───────────┐ ┌──────────┐ ┌──────────┐            │  │
-│  │  │ Landing │ │ Dashboard │ │  Tasks   │ │ Calendar │            │  │
-│  │  │  Page   │ │  + Stats  │ │ + Goals  │ │ + Views  │            │  │
-│  │  ├─────────┤ ├───────────┤ ├──────────┤ ├──────────┤            │  │
-│  │  │AI Plan. │ │  Focus    │ │ Analytics│ │  Habits  │            │  │
-│  │  │Chat+Plan│ │  Timer    │ │ + Reports│ │ + Streaks│            │  │
-│  │  ├─────────┤ ├───────────┤ ├──────────┤ ├──────────┤            │  │
-│  │  │Settings │ │  Profile  │ │Notificat.│ │   Auth   │            │  │
-│  │  │+ Theme  │ │ + Avatar  │ │ + Filters│ │ + JWT    │            │  │
-│  │  └─────────┘ └───────────┘ └──────────┘ └──────────┘            │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-│                                  │                                       │
-│                    HTTPS + JSON + JWT Bearer Token                       │
-│                                  ▼                                       │
-│  ┌───────────────────── BACKEND (Vercel Functions) ──────────────────┐  │
-│  │                                                                   │  │
-│  │  Express 4 + Mongoose 9 + Helmet 8 + Rate Limiter                │  │
-│  │                                                                   │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐         │  │
-│  │  │  Auth    │  │  Tasks   │  │  Goals   │  │  Habits  │         │  │
-│  │  │  Ctrl    │  │  Ctrl    │  │  Ctrl    │  │  Ctrl    │         │  │
-│  │  ├──────────┤  ├──────────┤  ├──────────┤  ├──────────┤         │  │
-│  │  │Analytics │  │ Settings │  │Notificat.│  │   AI     │         │  │
-│  │  │  Ctrl    │  │  Ctrl    │  │  Ctrl    │  │  Ctrl    │         │  │
-│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘         │  │
-│  │                                                                   │  │
-│  │  Middleware: JWT Auth → Rate Limiter → Helmet → CORS → Morgan    │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-│                                  │                                       │
-│                     ┌────────────┴────────────┐                         │
-│                     ▼                         ▼                         │
-│  ┌────────────────────────┐    ┌────────────────────────┐               │
-│  │   🗄️ MongoDB Atlas     │    │   🤖 OpenRouter AI    │               │
-│  │                        │    │                        │               │
-│  │   Users    Tasks       │    │  OpenAI-compatible     │               │
-│  │   Goals    Habits      │    │  chat.completions      │               │
-│  │   Notifications        │    │  Structured JSON       │               │
-│  └────────────────────────┘    └────────────────────────┘               │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph DNS["🌐 DNS — Vercel CDN"]
+        D1["flowsyncai30.vercel.app"]
+    end
+
+    subgraph FE["🖥️ FRONTEND — React 19 + Vite 8 + Tailwind 4 + Framer Motion"]
+        direction LR
+        F1["Landing / Auth"]
+        F2["Dashboard + Stats"]
+        F3["Tasks + Goals / Calendar"]
+        F4["AI Planner / Focus / Analytics"]
+        F5["Habits / Notifications / Settings / Profile"]
+    end
+
+    subgraph BE["⚙️ BACKEND — Express 4 + Mongoose 9 (Vercel Functions)"]
+        direction LR
+        B1["Auth / Tasks / Goals / Habits"]
+        B2["Analytics / Settings / Notifications"]
+        B3["AI / Chat Controllers"]
+        B4["Middleware: JWT → Rate Limit → Helmet → CORS"]
+    end
+
+    subgraph DATA["🗄️ MongoDB Atlas"]
+        M1["Users · Tasks · Goals · Habits · Notifications"]
+    end
+
+    subgraph AI["🤖 OpenRouter AI"]
+        A1["11-model failover chain · chat.completions · structured JSON"]
+    end
+
+    D1 --> FE
+    FE -- "HTTPS + JSON + JWT Bearer" --> BE
+    BE --> M1
+    BE -- "OpenAI-compatible API" --> A1
+    A1 -- "JSON responses" --> BE
+
+    style D1 fill:#6366f1,stroke:#fff,color:#fff
+    style FE fill:#0f172a,stroke:#334155,color:#fff
+    style BE fill:#0f172a,stroke:#334155,color:#fff
+    style M1 fill:#047857,stroke:#fff,color:#fff
+    style A1 fill:#ea580c,stroke:#fff,color:#fff
 ```
 
 ---
 
 ## 🔄 Project Workflow
 
-```
-                    ┌─────────────┐
-                    │  👤 User    │
-                    │  Arrives    │
-                    └──────┬──────┘
-                           ▼
-                    ┌─────────────┐
-                    │  🔐 Auth    │
-                    │  Login/Sign │
-                    └──────┬──────┘
-                           ▼ (JWT Issued)
-              ┌──────────────────────────┐
-              │      🏠 Dashboard        │
-              │  Task Stats  │  AI Cards │
-              │  Calendar   │  Focus     │
-              │  Risk Alerts│  Score     │
-              └──────┬───────────────────┘
-                     │
-      ┌──────────────┼──────────────┬──────────────┐
-      ▼              ▼              ▼              ▼
-┌──────────┐ ┌────────────┐ ┌──────────┐ ┌──────────────┐
-│ 📝 Tasks │ │ 🎯 Goals   │ │ 🔄 Habits│ │ 📅 Calendar  │
-│ Create   │ │ Set Target │ │ Check In │ │ View Tasks   │
-│ Edit     │ │ Track %    │ │ Streak   │ │ Filter by    │
-│ Priorit. │ │ Align Tasks│ │ Weekly   │ │ Month/Week   │
-└────┬─────┘ └──────┬─────┘ └────┬─────┘ └──────┬───────┘
-     │              │            │              │
-     └──────────────┴─────┬──────┘              │
-                          ▼                     │
-              ┌─────────────────────┐            │
-              │  🤖 AI Service      │            │
-              │                     │            │
-              │  Prompt Engineering │            │
-              │         ▼           │            │
-               │  OpenRouter API     │            │
-              │         ▼           │            │
-              │  Structured JSON    │            │
-              │         ▼           │            │
-              │  Response Parser    │            │
-              └──────────┬──────────┘            │
-                         ▼                       │
-              ┌─────────────────────┐            │
-              │  AI Outputs         │            │
-              │                     │            │
-              │  • Priority Scores  │            │
-              │  • Daily Schedule   │            │
-              │  • Rescue Plan      │            │
-              │  • Chat Reply       │            │
-              └──────────┬──────────┘            │
-                         │                       │
-                         ▼                       ▼
-              ┌──────────────────────────────────────┐
-              │         📊 Analytics Engine          │
-              │                                      │
-              │  Stats → Weekly → Monthly → Trends   │
-              │  Focus Sessions → Completion Rates   │
-              └──────────────────┬───────────────────┘
-                                 ▼
-                    ┌─────────────────────┐
-                    │  🔔 Notifications    │
-                    │  Real-time updates   │
-                    │  Deadline alerts     │
-                    └─────────────────────┘
+```mermaid
+flowchart TD
+    U["👤 User arrives"] --> AUTH["🔐 Login / Signup"]
+    AUTH -- "JWT issued" --> DASH["🏠 Dashboard — stats · AI cards · risk alerts"]
+
+    DASH --> TASKS["📝 Tasks — create / edit / prioritize"]
+    DASH --> GOALS["🎯 Goals — target date · progress %"]
+    DASH --> HABITS["🔄 Habits — check-in · streak · weekly"]
+    DASH --> CAL["📅 Calendar — month / week / day"]
+
+    TASKS --> AIENGINE["🤖 AI Priority Engine — urgency 0-100 · risk 0-100"]
+    GOALS --> AIENGINE
+    AIENGINE --> SCHEDULE["🗓️ Smart Daily Plan — focus blocks · breaks · buffers"]
+
+    SCHEDULE --> FOCUS["⏱️ Focus Mode — Pomodoro + task integration"]
+    FOCUS --> STATS["📈 Analytics — productivity score · trends"]
+    STATS --> RECAP["🔁 AI report → refine → repeat"]
+
+    DASH --> NOTIF["🔔 Notifications — deadline alerts · AI sort"]
+    SCHEDULE --> NOTIF
 ```
 
 ---
@@ -609,64 +560,45 @@ erDiagram
 
 ## 🌐 API Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                         📱 CLIENT (React)                           │
-│                                                                      │
-│   ┌────────────┐   ┌────────────┐   ┌────────────┐                  │
-│   │  Auth Page  │   │ Dashboard  │   │ AI Planner │    ...           │
-│   └──────┬─────┘   └──────┬─────┘   └──────┬─────┘                  │
-│          │                │                │                         │
-│          └────────────────┼────────────────┘                         │
-│                           │                                          │
-│                    ┌──────▼──────┐                                    │
-│                    │  Axios API  │                                    │
-│                    │  Service    │                                    │
-│                    │  + JWT      │                                    │
-│                    └──────┬──────┘                                    │
-└───────────────────────────┼──────────────────────────────────────────┘
-                            │
-                      HTTPS / JSON
-                            │
-┌───────────────────────────▼──────────────────────────────────────────┐
-│                         🖥️ EXPRESS SERVER (Vercel)                    │
-│                                                                      │
-│   ┌──────────────────────────────────────────────────────┐          │
-│   │                 MIDDLEWARE PIPELINE                   │          │
-│   │                                                       │          │
-│   │   Helmet → CORS → Morgan → Rate Limiter → JSON Parse │          │
-│   └──────────────────────┬───────────────────────────────┘          │
-│                          │                                           │
-│                    ┌─────▼──────┐                                    │
-│                    │   Router   │                                    │
-│                    └──┬──┬──┬──┘                                    │
-│          ┌────────────┘  │  └────────────┐                          │
-│          ▼               ▼               ▼                           │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
-│  │  Auth      │  │  Tasks     │  │    AI      │    ...              │
-│  │  Routes    │  │  Routes    │  │  Routes    │                     │
-│  └──────┬─────┘  └──────┬─────┘  └──────┬─────┘                    │
-│         │               │               │                            │
-│         ▼               ▼               ▼                            │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
-│  │  Auth      │  │  Task      │  │    AI      │                     │
-│  │Controller  │  │Controller  │  │Controller  │                     │
-│  └──────┬─────┘  └──────┬─────┘  └──────┬─────┘                    │
-│         │               │               │                            │
-│         ▼               ▼               ▼                            │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐                    │
-│  │  Services  │  │  Mongoose  │  │  AI        │                     │
-│  │            │  │  Models    │  │  Service   │                     │
-│  └────────────┘  └──────┬─────┘  └──────┬─────┘                    │
-│                         │               │                            │
-└─────────────────────────┼───────────────┼──────────────────────────┘
-                          ▼               ▼
-              ┌────────────────────┐  ┌────────────────────┐
-               │   🗄️ MongoDB Atlas │  │  🤖 OpenRouter AI │
-              │                    │  │                    │
-              │  5 Collections    │  │  OpenAI SDK        │
-              │  Indexed Queries  │  │  Structured JSON   │
-              └────────────────────┘  └────────────────────┘
+```mermaid
+flowchart TB
+    subgraph CLIENT["📱 Client — React"]
+        C1["Auth · Dashboard · AI Planner · ..."]
+        C2["Axios API Service + JWT Bearer"]
+    end
+
+    subgraph SERVER["🖥️ Express Server (Vercel)"]
+        direction TB
+        MW["Middleware: Helmet → CORS → Morgan → Rate Limit → JSON Parse"]
+        RT["Router"]
+        subgraph CTRLS["Controllers"]
+            AC["Auth Ctrl"]
+            TC["Tasks Ctrl"]
+            AIC["AI Ctrl"]
+        end
+        subgraph SRV["Services"]
+            SVC["Services"]
+            MM["Mongoose Models"]
+            AIS["AI Service"]
+        end
+        MW --> RT --> CTRLS --> SRV
+    end
+
+    subgraph EXT["External"]
+        DB["🗄️ MongoDB Atlas — indexed collections"]
+        OA["🤖 OpenRouter AI — OpenAI SDK · structured JSON"]
+    end
+
+    C1 --> C2
+    C2 -- "HTTPS / JSON" --> SERVER
+    MM --> DB
+    AIS --> OA
+
+    style CLIENT fill:#0f172a,stroke:#334155,color:#fff
+    style SERVER fill:#0f172a,stroke:#334155,color:#fff
+    style EXT fill:#1e293b,stroke:#475569,color:#fff
+    style DB fill:#047857,stroke:#fff,color:#fff
+    style OA fill:#ea580c,stroke:#fff,color:#fff
 ```
 
 ---
@@ -677,55 +609,21 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 
 ### Architecture Overview
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                         AI SERVICE LAYER                              │
-│                                                                       │
-│  ┌──────────────────────────────────────────────────────────┐        │
-│  │                    SYSTEM PROMPT                          │        │
-│  │                                                            │        │
-│  │  "You are FlowSync AI, a productivity engine. Always       │        │
-│  │   respond with valid JSON only. No markdown, no            │        │
-│  │   explanations."                                           │        │
-│  └──────────────────────────┬───────────────────────────────┘        │
-│                             │                                         │
-│  ┌──────────────────────────▼───────────────────────────────┐        │
-│  │                   PROMPT BUILDER                          │        │
-│  │                                                            │        │
-│  │  Injects: user message + current tasks + context           │        │
-│  │                                                            │        │
-│  │  Output: fully constructed prompt ready for API call       │        │
-│  └──────────────────────────┬───────────────────────────────┘        │
-│                             │                                         │
-│  ┌──────────────────────────▼───────────────────────────────┐        │
-│  │              OpenRouter API (via OpenAI SDK)               │        │
-│  │                                                            │        │
-│  │  Endpoint: https://openrouter.ai/api/v1                    │        │
-│  │  Model:    gpt-4o-mini (first available in 11-model chain)│        │
-│  │  Temp:     0.3 (deterministic output)                     │        │
-│  │                                                            │        │
-│  │  Response: structured JSON string                          │        │
-│  └──────────────────────────┬───────────────────────────────┘        │
-│                             │                                         │
-│  ┌──────────────────────────▼───────────────────────────────┐        │
-│  │                  JSON RESPONSE PARSER                     │        │
-│  │                                                            │        │
-│  │  1. Strip markdown code fences (```json ... ```)           │        │
-│  │  2. Attempt JSON.parse()                                   │        │
-│  │  3. If fails → find first { and last } -> slice + parse   │        │
-│  │  4. If all fails → return default fallback structure       │        │
-│  │                                                            │        │
-│  │  Output: validated JSON object                             │        │
-│  └──────────────────────────┬───────────────────────────────┘        │
-│                             │                                         │
-│  ┌──────────────────────────▼───────────────────────────────┐        │
-│  │               ERROR HANDLING & FALLBACKS                  │        │
-│  │                                                            │        │
-│  │  • 429 Rate Limit: return AI_SERVICE_UNAVAILABLE           │        │
-│  │  • Parse failure: return sensible defaults                 │        │
-│  │  • Network error: return cached last response (future)     │        │
-│  └──────────────────────────────────────────────────────────┘        │
-└──────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    SYS["🧠 System Prompt — 'You are FlowSync AI ... respond valid JSON only'"]
+    PB["📝 Prompt Builder — injects user message + current tasks + context"]
+    OR["🌐 OpenRouter API (OpenAI SDK) — 11-model failover chain"]
+    PARSER["🔧 JSON Response Parser — strip fences → parse → fallback structure"]
+    ERR["🚨 Error Handling — 429 → AI_SERVICE_UNAVAILABLE · parse fail → defaults · network → cached"]
+
+    SYS --> PB --> OR --> PARSER
+    PARSER --> ERR
+    ERR --> OUT["✅ Validated JSON object to caller"]
+
+    style SYS fill:#7c3aed,stroke:#fff,color:#fff
+    style OR fill:#ea580c,stroke:#fff,color:#fff
+    style OUT fill:#047857,stroke:#fff,color:#fff
 ```
 
 ### AI Capabilities Breakdown
@@ -749,82 +647,45 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 
 ## ⚡ Request Lifecycle
 
-```
-                      ┌────────────────┐
-                      │  🌐 Browser    │
-                      │  HTTP Request  │
-                      └───────┬────────┘
-                              │
-                      ┌───────▼────────┐
-                      │  React Router  │
-                      │  (Lazy Load)   │
-                      └───────┬────────┘
-                              │
-                      ┌───────▼────────┐
-                      │  Axios Call    │
-                      │  + JWT Header  │
-                      └───────┬────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              │               │               │
-        ┌─────▼─────┐  ┌─────▼─────┐  ┌─────▼─────┐
-        │  Auth     │  │  Rate     │  │  Helmet   │
-        │  Middle.  │  │  Limiter  │  │  Security │
-        └─────┬─────┘  └─────┬─────┘  └─────┬─────┘
-              │               │               │
-              └───────────────┼───────────────┘
-                              │
-                      ┌───────▼────────┐
-                      │  Express Route │
-                      │  (Router)      │
-                      └───────┬────────┘
-                              │
-                      ┌───────▼────────┐
-                      │  Controller    │
-                      │  (Validation)  │
-                      └───────┬────────┘
-                              │
-               ┌───────────────┬───────────────┐
-               │               │               │
-         ┌─────▼─────┐  ┌─────▼─────┐
-         │  MongoDB  │  │ OpenRouter│
-         │  Query    │  │  API Call │
-         └─────┬─────┘  └─────┬─────┘
-               │               │
-               └───────┬───────┘
-                              │
-                      ┌───────▼────────┐
-                      │  JSON Response │
-                      │  + Status Code │
-                      └───────┬────────┘
-                              │
-                      ┌───────▼────────┐
-                      │  Axios Res.    │
-                      │  Interceptor   │
-                      └───────┬────────┘
-                              │
-                      ┌───────▼────────┐
-                      │  React State   │
-                      │  Update + UI   │
-                      └───────┬────────┘
-                              │
-                      ┌───────▼────────┐
-                      │  🎨 Render    │
-                      └────────────────┘
+```mermaid
+sequenceDiagram
+    participant B as 🌐 Browser
+    participant R as React Router (lazy)
+    participant A as Axios + JWT
+    participant E as Express (auth → rate limit → helmet)
+    participant C as Controller
+    participant DB as MongoDB
+    participant AI as OpenRouter
+
+    B->>R: navigate
+    R->>A: API call
+    A->>E: HTTP + Bearer token
+    E->>E: validate JWT · rate-limit · security headers
+    E->>C: route handler
+    C->>DB: query / write
+    DB-->>C: data
+    alt AI feature
+        C->>AI: chat.completions
+        AI-->>C: JSON
+    end
+    C-->>A: JSON + status
+    A->>A: response interceptor (refresh/retry)
+    A-->>B: React state update
+    B->>B: 🎨 render
 ```
 
 ---
 
 ## ⚡ Performance & Build Optimizations
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    BUNDLE BREAKDOWN (Code Splitting)             │
-├─────────────────────────────────────────────────────────────────┤
-│  vendor (React 19)     181 kB  │  motion (Framer Motion) 125 kB│
-│  utils (Axios, etc.)    73 kB  │  router (React Router)   42 kB│
-│  icons (Lucide)         25 kB  │  app code                56 kB│
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+pie showData title "Production Bundle (gzip-friendly)"
+    "vendor (React 19)" : 181
+    "motion (Framer Motion)" : 125
+    "utils (Axios etc.)" : 73
+    "router (React Router)" : 42
+    "icons (Lucide)" : 25
+    "app code" : 56
 ```
 
 | Optimization | Implementation |
