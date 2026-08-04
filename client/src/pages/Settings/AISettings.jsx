@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Brain, Zap, Timer, ArrowDown, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { Brain, Zap, Timer, ArrowDown, Loader2, CheckCircle, XCircle, Gauge } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 
@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   autoScheduling: true,
   smartPrioritization: true,
   rescueMode: false,
+  quality: 'medium',
 }
 
 function AISettings() {
@@ -25,8 +26,8 @@ function AISettings() {
 
   useEffect(() => {
     if (!loaded) return
-    const { aggressiveness, autoScheduling, smartPrioritization, rescueMode } = settings
-    api.put('/api/settings/ai', { aggressiveness, autoScheduling, smartPrioritization, rescueMode })
+    const { aggressiveness, autoScheduling, smartPrioritization, rescueMode, quality } = settings
+    api.put('/api/settings/ai', { aggressiveness, autoScheduling, smartPrioritization, rescueMode, quality })
       .catch(() => toast.error('Failed to save AI settings'))
   }, [settings, loaded])
 
@@ -55,6 +56,17 @@ function AISettings() {
     setSettings(s => ({ ...s, aggressiveness: val }))
     toast.success(`AI aggressiveness set to ${val}`)
   }
+
+  const setQuality = (val) => {
+    setSettings(s => ({ ...s, quality: val }))
+    toast.success(`AI response quality set to ${val}`)
+  }
+
+  const qualityLevels = [
+    { key: 'low', label: 'Fast', desc: 'Quick replies, low cost', icon: Zap },
+    { key: 'medium', label: 'Balanced', desc: 'Good speed and quality', icon: Gauge },
+    { key: 'high', label: 'Smart', desc: 'Best answers, slower', icon: Brain },
+  ]
 
   const levels = [
     { key: 'low', label: 'Low', desc: 'Gentle suggestions, minimal automation' },
@@ -89,6 +101,21 @@ function AISettings() {
             <button key={key} onClick={() => setAggressiveness(key)} className={`p-3 rounded-xl border-2 text-left transition-all ${settings.aggressiveness === key ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/10' : 'border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-600'}`}>
               <p className={`text-sm font-semibold ${settings.aggressiveness === key ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-300'}`}>{label}</p>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Response Quality (Model)</h3>
+        <div className="grid sm:grid-cols-3 gap-2">
+          {qualityLevels.map(({ key, label, desc, icon: Icon }) => (
+            <button key={key} onClick={() => setQuality(key)} className={`p-3 rounded-xl border-2 text-left transition-all ${settings.quality === key ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-600'}`}>
+              <div className={`flex items-center gap-1.5 ${settings.quality === key ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300'}`}>
+                <Icon size={14} />
+                <p className="text-sm font-semibold">{label}</p>
+              </div>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{desc}</p>
             </button>
           ))}
         </div>

@@ -2,9 +2,10 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
-import { chatAI } from '../../services/aiService'
+import { chatAI, getAiUsage } from '../../services/aiService'
 import { createTask } from '../../services/taskService'
 import { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory } from '../../services/chatService'
+import api from '../../services/api'
 import toast from 'react-hot-toast'
 import { openBrowserSettings } from '../../utils/permissions'
 
@@ -39,11 +40,27 @@ function AIPlanner() {
   const [initialLoading, setInitialLoading] = useState(true)
   const [showSessions, setShowSessions] = useState(false)
   const [listening, setListening] = useState(false)
+  const [quality, setQuality] = useState('medium')
+  const [aiUsage, setAiUsage] = useState(null)
   const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
   const listeningRef = useRef(listening)
 
   useEffect(() => { listeningRef.current = listening }, [listening])
+
+  useEffect(() => {
+    api.get('/api/settings/ai')
+      .then(({ data }) => setQuality(data?.quality || 'medium'))
+      .catch(() => {})
+    getAiUsage()
+      .then(({ used, limit }) => setAiUsage({ used, limit }))
+      .catch(() => {})
+  }, [])
+
+  const changeQuality = async (q) => {
+    setQuality(q)
+    try { await api.put('/api/settings/ai', { quality: q }) } catch { toast.error('Failed to update AI quality') }
+  }
 
   const checkMicPermission = useCallback(async () => {
     try {
@@ -156,7 +173,7 @@ function AIPlanner() {
     try {
       const savedUser = await saveChatMessage(userMsg)
       setMessages(prev => [...prev, savedUser])
-      const res = await chatAI(msgText)
+      const res = await chatAI(msgText, sessionId)
       const savedAI = await saveChatMessage({
         sessionId, role: 'ai', text: res.reply, tasks: res.tasks || [], createdTasks: res.createdTasks || [],
       })
@@ -292,16 +309,35 @@ function AIPlanner() {
               <p className="text-xs text-slate-400 dark:text-slate-500">Plan, organize, and create tasks</p>
             </div>
           </div>
-          {messages.length > 1 && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={newChat}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-zinc-800/60 hover:text-slate-700 dark:hover:text-slate-300 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-zinc-700"
-            >
-              <Trash2 size={14} /> New Chat
-            </motion.button>
-          )}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {aiUsage && (
+              <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/60 text-[10px] font-medium text-slate-500 dark:text-slate-400" title="AI calls used today">
+                <Sparkles size={11} className="text-indigo-500" />
+                {aiUsage.used}/{aiUsage.limit} today
+              </div>
+            )}
+            <div className="hidden sm:flex items-center gap-0.5 p-1 rounded-xl bg-white/60 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/60 shadow-sm" title="AI model quality">
+              {[['low', 'Fast'], ['medium', 'Balanced'], ['high', 'Smart']].map(([key, label]) => (
+                <button
+                  key={key}
+                  onClick={() => changeQuality(key)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${quality === key ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {messages.length > 1 && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={newChat}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-zinc-800/60 hover:text-slate-700 dark:hover:text-slate-300 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-zinc-700"
+              >
+                <Trash2 size={14} /> New Chat
+              </motion.button>
+            )}
+          </div>
         </div>
 
         {/* Messages */}

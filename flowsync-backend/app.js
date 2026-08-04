@@ -1,8 +1,10 @@
 const express = require('express')
+require('express-async-errors')
 const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const compression = require('compression')
+const { normalizeError } = require('./utils/errorHandler')
 const authRoutes = require('./routes/authRoutes')
 const taskRoutes = require('./routes/taskRoutes')
 const aiRoutes = require('./routes/aiRoutes')
@@ -67,7 +69,7 @@ app.get('/api/health', async (req, res) => {
     status: mongoState === 'connected' ? 'ok' : 'degraded',
     uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
-    version: '3.1.1',
+    version: require('./package.json').version,
     database: mongoState,
     environment: process.env.NODE_ENV || 'development',
   })
@@ -85,18 +87,18 @@ app.use('/api/push', pushRoutes)
 app.use('/api/chat', chatRoutes)
 
 app.use((err, req, res, _next) => {
+  if (res.headersSent) return _next(err)
   const log = { id: req.id, method: req.method, url: req.originalUrl, error: err.message, name: err.name }
   if (err.stack) log.stack = err.stack.split('\n').slice(0, 3).join(' ')
   if (process.env.NODE_ENV === 'production') console.error(JSON.stringify(log))
   else console.error(log)
-  if (err.name === 'ValidationError') {
-    const msgs = Object.values(err.errors).map(e => e.message).join(', ')
-    return res.status(400).json({ message: msgs })
+  const normalized = normalizeError(err)
+  const isServer = normalized.statusCode >= 500
+  const body = {
+    message: isServer ? 'Server error' : normalized.message,
+    code: isServer ? 'SERVER_ERROR' : normalized.code,
   }
-  if (err.code === 11000) return res.status(400).json({ message: 'Duplicate field' })
-  if (err.name === 'CastError') return res.status(400).json({ message: 'Invalid ID' })
-  const statusCode = err.statusCode || 500
-  res.status(statusCode).json({ message: statusCode >= 500 ? 'Server error' : (err.message || 'Server error') })
+  res.status(normalized.statusCode).json(body)
 })
 
 module.exports = app

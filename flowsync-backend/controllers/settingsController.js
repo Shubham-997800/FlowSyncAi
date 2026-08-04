@@ -126,7 +126,7 @@ const deleteAccount = async (req, res) => {
   }
 }
 
-const AI_SETTINGS_DEFAULTS = { aggressiveness: 'medium', autoScheduling: true, smartPrioritization: true, rescueMode: false }
+const AI_SETTINGS_DEFAULTS = { aggressiveness: 'medium', autoScheduling: true, smartPrioritization: true, rescueMode: false, quality: 'medium' }
 
 const getAiSettings = async (req, res) => {
   try {
@@ -139,7 +139,7 @@ const getAiSettings = async (req, res) => {
 
 const updateAiSettings = async (req, res) => {
   try {
-    const { aggressiveness, autoScheduling, smartPrioritization, rescueMode } = req.body
+    const { aggressiveness, autoScheduling, smartPrioritization, rescueMode, quality } = req.body
     const updates = {}
     if (aggressiveness !== undefined) {
       if (!['low', 'medium', 'high'].includes(aggressiveness)) {
@@ -150,6 +150,12 @@ const updateAiSettings = async (req, res) => {
     if (autoScheduling !== undefined) updates['aiSettings.autoScheduling'] = Boolean(autoScheduling)
     if (smartPrioritization !== undefined) updates['aiSettings.smartPrioritization'] = Boolean(smartPrioritization)
     if (rescueMode !== undefined) updates['aiSettings.rescueMode'] = Boolean(rescueMode)
+    if (quality !== undefined) {
+      if (!['low', 'medium', 'high'].includes(quality)) {
+        return res.status(400).json({ message: 'Invalid quality' })
+      }
+      updates['aiSettings.quality'] = quality
+    }
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true })
     const current = user.aiSettings ? user.aiSettings.toObject() : {}
     res.json({ ...AI_SETTINGS_DEFAULTS, ...current })

@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
       autoScheduling: { type: Boolean, default: true },
       smartPrioritization: { type: Boolean, default: true },
       rescueMode: { type: Boolean, default: false },
+      quality: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
     },
     default: {},
   },

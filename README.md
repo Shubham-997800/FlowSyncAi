@@ -27,7 +27,7 @@
   <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tests-150%2F150-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/Tests-193%2F193-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/actions/workflow/status/Shubham-997800/FlowSync-Ai/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
@@ -111,7 +111,7 @@ FlowSync AI:  Input → AI Analysis → Priority Engine → Rescue Mode → Exec
 ```
 
 > [!NOTE]
-> FlowSync AI is not a to-do list. It is a **decision engine** that uses AI (OpenRouter with 11 models in failover chain) to understand context, predict risk, and optimize every minute of your day.
+> FlowSync AI is not a to-do list. It is a **decision engine** that uses AI (OpenRouter with quality-tiered model failover) to understand context, predict risk, and optimize every minute of your day.
 
 ---
 
@@ -150,6 +150,9 @@ We believe productivity tools should work **for** you, not the other way around.
 |---------|-------------|
 | **AI Chat Assistant** | Conversational interface — say "Schedule a standup at 10am tomorrow" and the task is created, prioritized, and slotted into your calendar. Chat history is persisted to the database across sessions. |
 | **AI Chat History** | Every conversation is saved to MongoDB — browse past chats, delete individual messages, or clear entire history with "New Chat" button. |
+| **AI Chat Context** | The assistant remembers the last 8 messages of the current session and grounds every reply in your real tasks, goals, and habits — no invented tasks. |
+| **AI Response Quality** | Pick **Fast / Balanced / Smart** model tiers from the AI Chat header or Settings — low/medium/high quality maps to cheaper-faster or smarter-slower model chains. |
+| **AI Usage Meter** | Live "used/limit today" counter in the AI Chat header so you always know your remaining daily AI quota. |
 | **Multilingual AI Chat** | Auto-detects user language (Hindi, Hinglish, English, Spanish, etc.) and responds in the same language — including Hinglish (Devanagari + English mix). |
 | **Smart Daily Planning** | AI analyzes all pending tasks, deadlines, and priorities to generate an optimal day schedule with focused work blocks, breaks, and buffers. |
 | **Task Prioritization Engine** | Every task receives a dynamic urgency score (0–100) and risk score (0–100) based on deadline proximity, dependencies, and current workload. |
@@ -161,7 +164,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | **AI Profile Summary** | Personalized productivity score, completion rate, best streak, top strength/weakness, actionable tip, daily goal recommendation, peak productivity time, and motivational message — all AI-generated via the profile-insights API. |
 | **AI Notification Organizer** | Smart "AI Sort" button that groups notifications by urgency/priority with AI-generated summaries and contextual reasons via the organize-notifications API. |
 | **AI Rescue Mode (Wired)** | Fully integrated Rescue Mode toggle in Settings — activates AI to identify critical tasks, compressed schedule, and drop recommendations when overloaded. |
-| **AI Preferences** | Aggressiveness (low/medium/high), auto-scheduling, smart prioritization and rescue-mode toggles — persisted to MongoDB and autosaved on every change. |
+| **AI Preferences** | Aggressiveness (low/medium/high), **response quality (Fast/Balanced/Smart)**, auto-scheduling, smart prioritization and rescue-mode toggles — persisted to MongoDB and autosaved on every change. |
 | **Productivity Coach** | AI-generated reports that highlight patterns, strengths, weaknesses, and actionable recommendations via the analytics-insights API. |
 
 | **Voice Input** | Speech-to-text via Web Speech API in the AI chat interface for hands-free task creation. |
@@ -176,11 +179,14 @@ We believe productivity tools should work **for** you, not the other way around.
 | 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid, framer-motion card animations + Helmet SEO |
 | 📅 **Calendar** | Multi-View | Monthly, weekly, and daily views with AI-priority-ranked task suggestions, framer-motion page animation + Helmet SEO |
 | ⏱️ **Focus Mode** | Pomodoro Timer | Configurable focus/break durations, task integration, AI break timing suggestions, framer-motion entrance + Helmet SEO |
-| 📊 **Analytics** | Deep Insights | Productivity score (animated ring chart), completion rates, weekly/monthly trends, focus session stats, AI-generated report, framer-motion staggered cards + Helmet SEO |
+| 📊 **Analytics** | Deep Insights | Productivity score (animated ring chart), completion rates, weekly/monthly trends, focus session stats, AI-generated report, **one-click report export in PDF / DOCX / TXT / JSON / XML / CSV**, framer-motion staggered cards + Helmet SEO |
 | 🏆 **Achievements** | Gamification | Milestone-based achievements (tasks, goals, focus) with MongoDB persistence |
 | 🔔 **Notifications** | Real-Time Drawer | All/Unread filters, grouped by Today / This Week / Earlier, auto deadline reminders, framer-motion list + Helmet SEO |
 | 🏠 **Dashboard** | Command Center | Task stats, AI priority cards (live API), productivity score, deadline risk indicators, animated counters with mini sparkline charts + trend indicators, inline task editing, bulk select/complete, collapse completed tasks, quick focus button, AI recommendation refresh + skeleton + error retry + sessionStorage cache (5 min), deadline risk pulse animation + inline mark-done + view all, recent activity grouped by Today/Yesterday/This Week, widget visibility toggle persisted to localStorage, date range filter (All/Week/Month), onboarding empty state with CTAs, ErrorBoundary for resilience, last sync timestamp, AnimatePresence page transitions |
 | ⚙️ **Settings** | Full Control | Theme toggle (light/dark/system), AI preferences, profile editing, account deletion, notification channels, framer-motion sidebar stagger + Helmet SEO |
+| ⌨️ **Keyboard Shortcuts** | Power Navigation | Press `1`-`9`/`0` to jump to any page, `←`/`→` to switch pages, `?` for the shortcut cheat-sheet — with a help dialog |
+| 📱 **Swipe Navigation** | Mobile First | Swipe left/right on any page to move between sections; swipe in from the left edge to open the sidebar |
+| 🎓 **Device Onboarding** | First-Run Guide | Device-aware welcome modal (desktop/tablet/phone) showing shortcuts, swipe gestures, voice input and push-notification tips, plus a help button in the header |
 | 👤 **Profile** | Customizable | Avatar upload, bio, phone, location, job title, password change, framer-motion tab animations + Helmet SEO |
 | 🎤 **Voice Input** | Speech-to-Text | Browser-native Web Speech API for AI chat and task creation |
 | 🌙 **Dark Mode** | Three Themes | Light, dark, and system-follow with smooth CSS transitions |
@@ -199,12 +205,12 @@ Every core screen is covered below; for a visual walkthrough, open the live demo
 | 🏠 **Landing Page** | Animated hero, feature cards, how-it-works section, CTA with framer-motion scroll animations |
 | 📊 **Dashboard** | AI-powered priority cards, animated stat counters, sparkline charts, deadline risk pulse, recent activity, widget toggles |
 | 📝 **Tasks & Goals** | Full CRUD with inline edit, bulk select, sorting (priority/deadline/title), goal progress slider |
-| 🤖 **AI Planner** | Chat interface with voice input, session history, task creation via natural language, rescue mode, daily planning |
+| 🤖 **AI Planner** | Chat interface with voice input, session history, Fast/Balanced/Smart quality selector, live usage meter, task creation via natural language, rescue mode, daily planning |
 | 📅 **Calendar** | Multi-view (monthly/weekly/daily) with AI-priority-ranked tasks, load indicators |
 | ⏱️ **Focus Mode** | Pomodoro timer with task integration, AI-suggested break timing, configurable intervals |
 | 📈 **Analytics** | Productivity score ring chart, completion trends, focus stats, AI-generated insights report |
 | 🔔 **Notifications** | Real-time drawer with grouped filters (Today/This Week/Earlier), deadline alerts |
-| ⚙️ **Settings** | Theme toggle (light/dark/system), AI consent, notification channels, account management |
+| ⚙️ **Settings** | Theme toggle (light/dark/system), AI preferences (aggressiveness, response quality, toggles), notification channels, account management |
 | 👤 **Profile** | Avatar upload, bio, stats overview, recent activity timeline |
 
 ---
@@ -242,7 +248,7 @@ Every core screen is covered below; for a visual walkthrough, open the live demo
 
 | Technology | Purpose |
 |------------|---------|
-| **OpenRouter** | AI chat, planning, prioritization, rescue mode — 11 models in failover chain (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, Mistral, Cohere, Qwen 2.5 72B, DeepSeek, GPT-4o, Claude 3.5 Haiku) via OpenAI-compatible SDK |
+| **OpenRouter** | AI chat, planning, prioritization, rescue mode — quality-tiered model failover (Fast/Balanced/Smart chains: GPT-4o-mini, Gemini 2.5 Flash/Flash-Lite, Llama 3.3 70B, Qwen3, DeepSeek, GLM-4.7, GPT-OSS, free tiers, GPT-4o, DeepSeek R1) via OpenAI-compatible SDK |
 | **Vercel** | Frontend + backend hosting with auto-deploy from GitHub, HTTPS, edge CDN |
 
 ---
@@ -277,7 +283,7 @@ flowchart TB
     end
 
     subgraph AI["🤖 OpenRouter AI"]
-        A1["11-model failover chain · chat.completions · structured JSON"]
+        A1["Quality-tiered model failover · chat.completions · structured JSON"]
     end
 
     D1 --> FE
@@ -367,9 +373,12 @@ flowsync-ai/
 │   │   │   ├── pushService.js
 │   │   │   └── chatService.js               # Chat history API layer
 │   │   │
-│   │   ├── components/
+│   │   │   ├── components/
 │   │   │   ├── Sidebar.jsx                # Navigation sidebar
 │   │   │   ├── NotificationPopup.jsx      # Real-time notification drawer
+│   │   │   ├── ShortcutsHelp.jsx          # Keyboard-shortcut cheat-sheet modal
+│   │   │   ├── DeviceOnboarding.jsx       # First-run device-aware welcome guide
+│   │   │   ├── ReportExportMenu.jsx       # Analytics report export (PDF/DOCX/TXT/JSON/XML/CSV)
 │   │   │   ├── LegalModal.jsx             # Terms & Privacy popup (framer-motion)
 │   │   │   ├── AuthLayout.jsx             # Shared auth sidebar layout (Login/Register)
 │   │   │   └── ui/                        # Reusable primitives
@@ -399,6 +408,7 @@ flowsync-ai/
 │   │   └── hooks/                         # Custom React hooks
 │   │       ├── useTheme.js
 │   │       ├── useAuth.js
+│   │       ├── useNavigation.js           # Keyboard + swipe navigation
 │   │       └── useMediaQuery.js
 │   │
 │   ├── vercel.json                        # Vite SPA settings (used only for standalone client deploys)
@@ -426,7 +436,6 @@ flowsync-ai/
 │   │   ├── Notification.js                # type, title, message, status, userId (TTL index)
 │   │   ├── PushSubscription.js            # endpoint, keys for web push
 │   │   ├── ChatMessage.js                 # role, text, tasks[], createdTasks[]
-│   │   ├── ChatSession.js                 # sessionId, userId, createdAt, updatedAt
 │   │   ├── AiUsage.js                     # daily AI quota tracking
 │   │   └── ReminderState.js               # atomic reminder-sweep claims
 │   │
@@ -455,16 +464,16 @@ flowsync-ai/
 │   │   └── chatRoutes.js                 # Chat history CRUD
 │   │
 │   ├── services/
-│   │   ├── aiService.js                   # Prompt engineering + JSON parsing (11 models, multilingual, tone matching, failover)
+│   │   ├── aiService.js                   # Prompt engineering + JSON parsing (quality-tiered model failover, multilingual, tone matching)
 │   │   └── reminderService.js             # Auto deadline alerts every 30 minutes (regex-safe)
 │   │
 │   ├── utils/
 │   │   ├── dateKey.js                     # Local-timezone date helpers
-│   │   ├── errorHandler.js                # Generic 5xx (no leak), 4xx validation mapping
+│   │   ├── errorHandler.js                # Unified { message, code } error mapping (no leak on 5xx)
 │   │   └── validateId.js                  # ObjectId validation
 │   │
 │   ├── test/
-│   │   └── run-tests.js                   # 120-test integration harness (real Mongo, same handler Vercel runs)
+│   │   └── run-tests.js                   # 135-test integration harness (real Mongo, same handler Vercel runs)
 │   │
 │   └── package.json
 │
@@ -496,7 +505,7 @@ erDiagram
         string phone
         string location
         string jobTitle
-        object aiSettings "aggressiveness, autoScheduling, smartPrioritization, rescueMode"
+        object aiSettings "aggressiveness, autoScheduling, smartPrioritization, rescueMode, quality"
         date createdAt
         date updatedAt
     }
@@ -549,7 +558,7 @@ erDiagram
         ObjectId _id PK
         ObjectId userId FK "ref User"
         string sessionId "chat session grouping"
-        string role "enum: user, assistant"
+        string role "enum: user, ai"
         string text
         array tasks "extracted tasks"
         date createdAt
@@ -691,7 +700,7 @@ Query-heavy paths are covered by composite indexes (MongoDB Atlas). Notification
 
 ## 🤖 AI Architecture
 
-FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in a failover chain (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, Mistral Small, Cohere Command R+, Qwen 2.5 72B, DeepSeek Chat, GPT-4o, Claude 3.5 Haiku, plus env override), accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, graceful fallbacks, and full multilingual support with tone matching.
+FlowSync AI's intelligence is powered by **OpenRouter** with **quality-tiered model failover** — Fast / Balanced / Smart chains covering GPT-4o-mini, Gemini 2.5 Flash / Flash-Lite, Llama 3.3 70B, Qwen3, DeepSeek Chat, GLM-4.7 Flash, GPT-OSS (incl. free tiers), GPT-4o, and DeepSeek R1, plus an env override — accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, graceful fallbacks, and full multilingual support with tone matching.
 
 ### Architecture Overview
 
@@ -699,9 +708,9 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **11 AI models** in
 flowchart TB
     SYS["🧠 System Prompt — 'You are FlowSync AI ... respond valid JSON only'"]
     PB["📝 Prompt Builder — injects user message + current tasks + context"]
-    OR["🌐 OpenRouter API (OpenAI SDK) — 11-model failover chain"]
+    OR["🌐 OpenRouter API (OpenAI SDK) — quality-tiered model failover"]
     PARSER["🔧 JSON Response Parser — strip fences → parse → fallback structure"]
-    ERR["🚨 Error Handling — 429 → AI_SERVICE_UNAVAILABLE · parse fail → defaults · network → cached"]
+    ERR["🚨 Error Handling — no key → AI_SERVICE_UNAVAILABLE · parse fail → defaults · per-model fallback"]
 
     SYS --> PB --> OR --> PARSER
     PARSER --> ERR
@@ -718,6 +727,8 @@ flowchart TB
 |------------|----------------|----------------|---------|
 | **Chat** | User message + current tasks context | `{ reply, tasks[], suggestions[] }` | Default polite response |
 | **Multilingual Chat** | Language detection + tone/style matching — supports Hindi, Hinglish, English, Spanish, French, German, Chinese, Japanese, Arabic, Korean, Portuguese, Russian, Italian, Turkish, Vietnamese, Thai, Indonesian, Bengali, Marathi, Tamil, Telugu, Gujarati, Urdu, Punjabi, and more | Same as Chat | Default English |
+| **Chat Context** | Last 8 messages of the current session fed as conversation history (current message de-duplicated) + grounded in real task/goal/habit data | Same as Chat | Default English |
+| **Response Quality** | Fast/Balanced/Smart tiers select which model chain to use (`quality` in AI settings) | `{ reply, tasks[], suggestions[] }` | Medium chain |
 | **Daily Plan** | User prompt + task list with deadlines | `{ priority[], schedule[], suggestions[], confidence }` | Empty plan |
 | **Prioritize** | Task list with IDs, titles, priorities | `{ rankings[], suggestedOrder[], summary }` | Equal scores |
 | **Rescue Mode** | Overloaded task list, 48h window | `{ criticalTasks[], compressedSchedule[], dropRecommendations[] }` | Empty arrays |
@@ -817,6 +828,8 @@ pie showData title "Production Bundle (gzip-friendly)"
 | **v3.2** | `Hardened` | Auth: **7-day access tokens + 30-day refresh tokens** with rotation, server-side logout revocation (token versioning), and auto-refresh on the client. Reliability: **CI pipeline** (GitHub Actions — backend tests + frontend lint/build), **always-on pagination** (bounded default 500–1000), **API-side XSS sanitization** (strips `<script>`/`<iframe>`), **structured JSON error logs** with request IDs, and a **`/api/health` endpoint** (DB state + uptime). Performance: **Settings page code-split** (428 kB → 3.4 kB main chunk; `jspdf`/`html2canvas` load only on demand). AI: no-key failures now map to graceful 503 instead of 500. **Harness: 119/119 tests passing.** |
 | **v3.3** | `Tested + Optimized` | **Frontend unit tests** — Vitest + Testing Library (30 tests: email validation, browser detection, Pomodoro timer logic incl. fake timers, auth context flows), full coverage of auth/pagination/security paths. **Backend lint** added (ESLint) + wired into CI alongside frontend **tests**. **DB indexes** added on goals/habits (`user+createdAt`, `user+status+targetDate`, `user+status`). **API performance** — gzip compression, strict CORS allowlist, network-error **retry with exponential backoff** on the client. **Notifications** — batch "mark all read" endpoint (`PUT /api/notifications/read-all`) + UI button. A11y: Timer settings inputs got `htmlFor`/`id` + button `aria-label` (found via new tests). **CI now runs on Node 24** (jsdom 30 requires ≥22) — **backend harness 120/120 + frontend 30/30, all jobs green.** |
 | **v3.4** | `Live Fix` | **Frontend + backend now deploy as ONE Vercel project** (root `vercel.json` → `client/dist` + `/api/*` via root `api/index.js`). Previously the API lived on a separate domain (`flowsync-backend.vercel.app`) that 500'd in production because the backend was never actually deployed to the `flowsyncai` project and its env vars were missing. Now: MongoDB Atlas, JWT secret, and CLIENT_URL are set in the project, the client calls **same-origin `/api/*`** (no separate URL, no CORS), `/api/health` returns `200 {"status":"ok","database":"connected"}`, and signup/login work end-to-end. Docs, CSP, `.env.example`, and README updated to the single-domain layout. |
+| **v3.4.1** | `Export + Errors` | **Report export menu** on Analytics — one click downloads your report as **PDF, DOCX, TXT, JSON, XML, or CSV** (jsPDF/DOCX lazy-loaded, only fetched when used). **Unified error handling** — every API error now returns a consistent `{ message, code }` shape with meaningful codes (`VALIDATION_ERROR`, `DUPLICATE_FIELD`, `INVALID_ID`, `INVALID_JSON`, `PAYLOAD_TOO_LARGE`, `AI_DAILY_LIMIT`, `AI_SERVICE_UNAVAILABLE`, …), JSON/malformed-body and oversized-payload map to clean 400/413 (never a hang), and async controller errors are auto-forwarded to the global handler via `express-async-errors` (no more stalled requests). **New client export unit tests (41 total)** covering CSV escaping, XML well-formedness, JSON round-trip, TXT layout, and download triggering for every text format. |
+| **v3.5** | `Polish + Coverage` | **AI quality tiers** — pick **Fast / Balanced / Smart** from the AI Chat header or Settings (`quality` in AI settings); model chains are tiered per quality. **AI chat context** — last 8 messages of a session are fed to the assistant (current message de-duplicated) for real conversational continuity, grounded in live task/goal/habit data. **AI usage meter** — live `used/limit today` pill in the AI Chat header. **Keyboard shortcuts + swipe navigation** — `1`-`9`/`0` jump to pages, `←`/`→` switch pages, `?` opens a shortcut cheat-sheet; swipe left/right navigates, edge-swipe opens the sidebar. **Device onboarding** — device-aware welcome guide (desktop/tablet/phone) with a help button in the header. **Hardening** — rate-limit responses now include `code: RATE_LIMITED`, `/api/health` version reads from `package.json`, global error handler guards against `headersSent`, daily AI limit raised to 400, dead `createError` util removed. **Coverage** — added backend unit tests for `normalizeError` + model-tier resolution + AI-settings quality validation, and frontend tests for `useNavigation` + `ReportExportMenu`; **backend 135/135 + frontend 58/58, both lint clean, build green.** |
 
 ---
 
@@ -824,7 +837,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 120/120 + frontend 30/30 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
+**Current status: backend 135/135 + frontend 58/58 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
 
 | Coverage Area | What's Verified |
 |---|---|
@@ -835,17 +848,22 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 | ⚙️ **Settings** | Profile update, weak-password → 400, password change invalidates old token, account delete cascade (Chat/Push/AiUsage), **AI settings persist + invalid → 400** |
 | 🤖 **AI** | Usage tracking, quota check, no-prompt → 400, graceful 5xx without API key |
 | ⚡ **DB & Reliability** | Pagination (`?limit&page` + `X-Total-Count`), 413 body limit, atomic reminder claims (no duplicate notifications), TTL cleanup |
+| 🗂️ **Error Shape** | All API errors return a consistent `{ message, code }`; malformed JSON → 400 `INVALID_JSON`, oversized payloads → 413, duplicate keys → 409 `DUPLICATE_FIELD`, bad ObjectId → 400 `INVALID_ID`, AI quota/unavailable → 429/503, rate-limited → 429 `RATE_LIMITED` — all with stable codes |
+| 📤 **Export (client)** | Unit tests cover CSV quote-escaping, JSON round-trip, XML well-formedness + escaping, TXT layout, and download-triggering for every text format |
+| 🧭 **Navigation (client)** | Unit tests cover keyboard shortcuts (1-9/0, ←/→, ?), swipe navigation, and typing-target detection |
+| 🧩 **Error Handler (unit)** | `normalizeError` maps validation/duplicate/cast/JSON/payload/statusCode errors to the correct `{ statusCode, code, message }` |
+| 🤖 **AI Tiers (unit)** | Model-tier resolution (`resolveModels`) pins Fast/Balanced/Smart chains and always leads with the env-override model |
 
 ### Running the tests
 
 ```bash
 cd flowsync-backend
 npm install
-node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 120 checks
+node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 135 checks
 
 cd ../client
 npm install
-npm test                   # 30 Vitest unit tests
+npm test                   # 58 Vitest unit tests
 npm run lint && npm run build
 ```
 
@@ -858,14 +876,12 @@ The full audit — findings, fixes, and remaining recommendations — lives in [
 | Focus | Improvements |
 |-------|-------------|
 | **TypeScript** | Migrate frontend to TypeScript (strict mode) + backend type definitions |
-| **Testing** | Expand to E2E (Playwright); grow frontend unit coverage beyond 30 tests |
+| **Testing** | Expand to E2E (Playwright); grow frontend unit coverage beyond 58 tests |
 | **Backend Validation** | Input validation middleware (zod) on top of existing type/sanitize guards |
 | **Auth Upgrade** | API versioning, social login (Google/GitHub OAuth) |
 | **Performance** | React Query/SWR for caching, AI streaming via SSE, DB read-tier |
-| **UX Pro** | Keyboard shortcuts, drag-and-drop tasks, file attachments, PWA offline |
+| **UX Pro** | Drag-and-drop tasks, file attachments, PWA offline |
 | **Platform** | Docker setup, i18n multi-language, Storybook |
-
----
 
 ---
 
@@ -920,7 +936,7 @@ Or simply push to `main` (the project auto-deploys from GitHub).
 | `XAI_API_KEY` | 🔶 | Fallback AI key if OpenRouter is unset |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | ⭐ | Web Push; if invalid, push auto-disables instead of crashing |
 | `VAPID_SUBJECT` | 🔶 | Email/mailto used by web-push |
-| `AI_DAILY_LIMIT` | 🔶 | Max AI calls per user/day (default 200) |
+| `AI_DAILY_LIMIT` | 🔶 | Max AI calls per user/day (default 400) |
 | `MAX_CHAT_SESSIONS` | 🔶 | Max chat sessions kept per user (default 6) |
 | `REMINDER_CHECK_INTERVAL` | 🔶 | Reminder sweep interval in ms (default 30 min) |
 | `RATE_LIMIT_AUTH` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_AI` / `RATE_LIMIT_GENERAL` | 🔶 | Per-endpoint rate limits (req/min) |
@@ -1003,7 +1019,7 @@ I'm happy to discuss collaboration, licensing, or any other use — just ask.
 
 ## 🙏 Acknowledgements
 
-- **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (GPT-4o-mini, Gemini 2.0 Flash, Claude 3 Haiku, Llama 3.3 70B, and 7 more models in failover chain)
+- **[OpenRouter](https://openrouter.ai)** — For the AI API gateway powering our engine (quality-tiered Fast/Balanced/Smart model failover)
 - **[Vercel](https://vercel.com)** — For frontend and backend hosting with auto-deploys
 - **[MongoDB Atlas](https://mongodb.com/atlas)** — For the generous free tier and global database infrastructure
 - **[Tailwind CSS](https://tailwindcss.com)** — For the most productive CSS framework ever built

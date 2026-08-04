@@ -1,27 +1,57 @@
 const { getAI } = require('../config/aiConfig')
 
+const MODEL_TIERS = {
+  low: [
+    'google/gemini-2.5-flash-lite',
+    'openai/gpt-5-nano',
+    'z-ai/glm-4.7-flash',
+    'openai/gpt-oss-120b',
+    'google/gemma-4-31b-it:free',
+    'openai/gpt-oss-20b:free',
+  ],
+  medium: [
+    'openai/gpt-4o-mini',
+    'google/gemini-2.5-flash',
+    'google/gemini-2.5-flash-lite',
+    'openai/gpt-5-nano',
+    'meta-llama/llama-3.3-70b-instruct',
+    'qwen/qwen3-30b-a3b-instruct-2507',
+    'deepseek/deepseek-chat',
+    'z-ai/glm-4.7-flash',
+    'openai/gpt-oss-120b',
+  ],
+  high: [
+    'openai/gpt-4o',
+    'google/gemini-2.5-flash',
+    'deepseek/deepseek-r1',
+    'openai/gpt-4o-mini',
+    'google/gemini-2.5-flash-lite',
+  ],
+}
+
 const AI_MODELS = [
   process.env.AI_MODEL,
-  'openai/gpt-4o-mini',
-  'google/gemini-2.0-flash-001',
-  'anthropic/claude-3-haiku-20240307',
-  'meta-llama/llama-3.3-70b-instruct',
-  'mistralai/mistral-small-24b-instruct-2501',
-  'cohere/command-r-plus',
-  'qwen/qwen-2.5-72b-instruct',
-  'deepseek/deepseek-chat',
+  ...MODEL_TIERS.medium,
   'openai/gpt-4o',
-  'anthropic/claude-3.5-haiku-20241022',
+  'deepseek/deepseek-r1',
+  'openrouter/auto',
+  'google/gemma-4-31b-it:free',
+  'openai/gpt-oss-20b:free',
 ].filter(Boolean)
 
-async function callAI(systemMsg, userMsg, temperature = 0.7) {
+function resolveModels(quality) {
+  const base = quality && MODEL_TIERS[quality] ? MODEL_TIERS[quality] : AI_MODELS.filter(m => m !== process.env.AI_MODEL)
+  return [process.env.AI_MODEL, ...base].filter(Boolean)
+}
+
+async function callAI(systemMsg, userMsg, temperature = 0.7, maxTokens = 1024, quality) {
   let ai
   try {
     ai = getAI()
   } catch {
     throw new Error('AI_SERVICE_UNAVAILABLE')
   }
-  for (const model of AI_MODELS) {
+  for (const model of resolveModels(quality)) {
     try {
       const res = await ai.chat.completions.create({
         model,
@@ -30,7 +60,7 @@ async function callAI(systemMsg, userMsg, temperature = 0.7) {
           { role: 'user', content: userMsg },
         ],
         temperature,
-        max_tokens: 1024,
+        max_tokens: maxTokens,
       })
       const content = res.choices[0]?.message?.content || ''
       if (content) {
@@ -61,7 +91,7 @@ function parseJSON(text) {
   return null
 }
 
-async function generatePlan(prompt, tasks = []) {
+async function generatePlan(prompt, tasks = [], opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity engine. Generate a daily plan in JSON. Always respond with valid JSON only. Support ALL world languages in responses.`
   const userMsg = `USER: "${prompt}"
 
@@ -75,11 +105,11 @@ Respond EXACTLY with this JSON:
   "confidence": 0-100
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   return parseJSON(raw) || { priority: [], schedule: [], suggestions: ['Could not generate plan'], confidence: 0 }
 }
 
-async function prioritizeTasks(tasks) {
+async function prioritizeTasks(tasks, opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity engine. Rank tasks by urgency and importance in JSON. Always respond with valid JSON only. Write reason/summary text in the user's language if detectable from task titles.`
   const userMsg = `Rank these tasks:
 
@@ -92,7 +122,7 @@ Respond EXACTLY with this JSON:
   "summary": ""
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.rankings)) return parsed
   return {
@@ -102,7 +132,7 @@ Respond EXACTLY with this JSON:
   }
 }
 
-async function rescueMode(tasks) {
+async function rescueMode(tasks, opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity engine. EMERGENCY: User is overloaded with only a 48h window. Respond with JSON only. Write strategy/reason text in the user's language if detectable.`
   const userMsg = `Tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
 
@@ -115,13 +145,19 @@ Respond EXACTLY with this JSON:
   "estimatedRecoveryHours": 0
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.criticalTasks)) return parsed
   return { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 }
 }
 
-async function chatWithContext(message, tasks = [], goals = [], habits = []) {
+function dedupeHistory(history = [], message = '') {
+  return history.filter((m, i, arr) => !(i === arr.length - 1 && m.role === 'user' && m.text === message))
+}
+
+async function chatWithContext(message, tasks = [], goals = [], habits = [], opts = {}) {
+  const quality = opts.quality
+  const history = dedupeHistory(opts.history || [], message)
   const sysMsg = `You are FlowSync AI, a friendly multilingual productivity assistant. Your tone is warm and helpful.
 
 YOUR KEY BEHAVIOR:
@@ -134,6 +170,9 @@ YOUR KEY BEHAVIOR:
 - Example Spanish response: "Tienes 3 tareas atrasadas. Primero completa 'Q3 Financial Report', luego te sugeriré la siguiente tarea."
 - Example French response: "Vous avez 3 tâches en retard. Commencez par 'Q3 Financial Report', puis je vous suggérerai la prochaine tâche."
 - Keep responses concise and conversational.
+- GROUND your answers in the user's REAL data: reference actual task titles, priorities, deadlines, goals and habits shown in the context. Never invent tasks that are not in the context (only create tasks if the user explicitly asks).
+- Give concrete, actionable step-by-step advice instead of generic motivation. If the user asks "what should I do?", recommend the top 1-3 specific tasks and why.
+- Use the "Recent conversation" section below for context and continuity — refer back to earlier topics naturally without repeating yourself.
 - If the user asks to create a task, extract it into the "tasks" JSON array.
 
 OUTPUT FORMAT (ONLY valid JSON, no other text):
@@ -145,22 +184,26 @@ OUTPUT FORMAT (ONLY valid JSON, no other text):
 
 If no tasks to create, set "tasks" to [].`
 
+  const historyText = history.length > 0
+    ? `\nRecent conversation (for context only, respond to the LAST user message):\n${history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n')}`
+    : ''
+
   const userMsg = `User Context:
 Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
 Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
-Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}
+Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}${historyText}
 
 User message: "${message}"
 
-CRITICAL: Respond in the EXACT SAME LANGUAGE as the user's message above. Also match their TONE and STYLE — if casual be casual, if formal be formal, if brief be brief, if slang use slang. Support ALL world languages — Hindi, Hinglish, English, Spanish, French, German, Chinese, Japanese, Arabic, Korean, Portuguese, Russian, Italian, Turkish, Vietnamese, Thai, Indonesian, Bengali, Marathi, Tamil, Telugu, Gujarati, Urdu, Punjabi, and any other language the user writes in. If they mix languages, respond in the same mix.`
+CRITICAL: Follow the language, tone, and style rules from the system instructions — respond in the EXACT SAME language (and mix) the user wrote in, mirroring their tone and style.`
 
-  const raw = await callAI(sysMsg, userMsg, 0.7)
+  const raw = await callAI(sysMsg, userMsg, 0.7, 2048, quality)
   const parsed = parseJSON(raw)
   if (parsed && parsed.reply) return parsed
   return { reply: "I understand. Could you be more specific about what you'd like help with?", tasks: [], suggestions: [] }
 }
 
-async function suggestTask(title, description = '', existingTasks = []) {
+async function suggestTask(title, description = '', existingTasks = [], opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity assistant. Analyze a task and suggest optimal priority, estimated time, and relevant tags. Respond with valid JSON only. Write reason text in the user's language if detectable from the task title.`
   const userMsg = `Task: "${title}" ${description ? `Description: "${description}"` : ''}
 ${existingTasks.length > 0 ? `Existing tasks context: ${JSON.stringify(existingTasks.map(t => ({ title: t.title, priority: t.priority, tags: t.tags })))}` : ''}
@@ -173,13 +216,13 @@ Respond EXACTLY with this JSON:
   "reason": "Brief reason for these suggestions"
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && parsed.suggestedPriority) return parsed
   return { suggestedPriority: 'medium', suggestedEstimatedTime: 30, suggestedTags: [], reason: '' }
 }
 
-async function generateAnalyticsInsights(tasks, habits, goals) {
+async function generateAnalyticsInsights(tasks, habits, goals, opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity analyst. Analyze user data and provide insights. Respond with valid JSON only.`
   const userMsg = `User data:
 Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, status: t.status, deadline: t.deadline })))}
@@ -196,7 +239,7 @@ Respond EXACTLY with this JSON:
   "productivityScore": 0-100
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.recommendations)) return parsed
   return {
@@ -209,7 +252,7 @@ Respond EXACTLY with this JSON:
   }
 }
 
-async function generateHabitInsights(habits, tasks = [], goals = []) {
+async function generateHabitInsights(habits, tasks = [], goals = [], opts = {}) {
   const sysMsg = `You are FlowSync AI, a habit coach. Analyze habits and provide insights. Respond with valid JSON only. Write text in the user's language if detectable from habit/task titles.`
   const userMsg = `Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, frequency: h.frequency, streak: h.streak, logs: (h.logs || []).slice(-30) })))}
 Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, status: t.status, priority: t.priority })))}
@@ -225,7 +268,7 @@ Respond EXACTLY with this JSON:
   "tip": "actionable tip to improve consistency"
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && parsed.focusHabit) return parsed
   return {
@@ -238,7 +281,7 @@ Respond EXACTLY with this JSON:
   }
 }
 
-async function generateFocusSuggestion(tasks, focusTaskId) {
+async function generateFocusSuggestion(tasks, focusTaskId, opts = {}) {
   const focusTask = tasks.find(t => t._id.toString() === focusTaskId) || tasks[0]
   const sysMsg = `You are FlowSync AI, a focus and productivity coach. Provide a personalized focus suggestion for the user's current task. Respond with valid JSON only.`
   const userMsg = `Current focus task: ${JSON.stringify({ title: focusTask?.title, priority: focusTask?.priority, deadline: focusTask?.deadline, status: focusTask?.status })}
@@ -254,7 +297,7 @@ Respond EXACTLY with this JSON:
   "reason": "Why this approach works for this specific task"
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && parsed.title) return parsed
   const p = focusTask?.priority || 'medium'
@@ -268,7 +311,7 @@ Respond EXACTLY with this JSON:
   }
 }
 
-async function generateProfileInsights(tasks, habits, goals) {
+async function generateProfileInsights(tasks, habits, goals, opts = {}) {
   const sysMsg = `You are FlowSync AI, a personal productivity analyst. Generate a personalized productivity summary for the user's profile. Respond with valid JSON only.`
   const userMsg = `Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, status: t.status, deadline: t.deadline })))}
 Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}
@@ -290,7 +333,7 @@ Respond EXACTLY with this JSON:
   "motivationalMessage": "short personalized motivational message"
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && parsed.productivityScore !== undefined) return parsed
   const completed = tasks.filter(t => t.status === 'done').length
@@ -312,7 +355,7 @@ Respond EXACTLY with this JSON:
   }
 }
 
-async function organizeNotifications(notifications) {
+async function organizeNotifications(notifications, opts = {}) {
   const sysMsg = `You are FlowSync AI, a smart notification organizer. Group and prioritize notifications intelligently. Respond with valid JSON only.`
   const userMsg = `Notifications: ${JSON.stringify(notifications.map(n => ({ title: n.title, message: n.message, type: n.type, createdAt: n.createdAt })))}
 
@@ -323,7 +366,7 @@ Analyze these notifications and organize them. Respond EXACTLY with this JSON:
   "summary": "Brief summary of what needs attention"
 }`
 
-  const raw = await callAI(sysMsg, userMsg, 0.3)
+  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   if (parsed && Array.isArray(parsed.groups)) return parsed
   return {
@@ -333,4 +376,18 @@ Analyze these notifications and organize them. Respond EXACTLY with this JSON:
   }
 }
 
-module.exports = { generatePlan, prioritizeTasks, rescueMode, chatWithContext, suggestTask, generateAnalyticsInsights, generateHabitInsights, generateFocusSuggestion, generateProfileInsights, organizeNotifications }
+module.exports = {
+  generatePlan,
+  prioritizeTasks,
+  rescueMode,
+  chatWithContext,
+  suggestTask,
+  generateAnalyticsInsights,
+  generateHabitInsights,
+  generateFocusSuggestion,
+  generateProfileInsights,
+  organizeNotifications,
+  resolveModels,
+  MODEL_TIERS,
+  dedupeHistory,
+}

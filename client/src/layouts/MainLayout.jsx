@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import NotificationPopup from '../components/NotificationPopup'
 import PermissionMonitor from '../components/PermissionMonitor'
+import ShortcutsHelp from '../components/ShortcutsHelp'
+import DeviceOnboarding from '../components/DeviceOnboarding'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { usePushNotifications } from '../hooks/usePushNotifications'
-import { Sun, Moon, Menu, X } from 'lucide-react'
+import { useKeyboardNavigation, useSwipeNavigation } from '../hooks/useNavigation'
+import { Sun, Moon, Menu, X, Keyboard, HelpCircle } from 'lucide-react'
 import api from '../services/api'
 
 // Authenticated app shell with sidebar, header, and page transitions
@@ -31,7 +34,16 @@ function MainLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('flowsync_onboard_shown_v1'))
+  useKeyboardNavigation(() => setShowShortcuts(true))
+  const swipe = useSwipeNavigation(() => setSidebarOpen(true))
   const pageTitle = pageTitles[location.pathname] || 'FlowSync AI'
+
+  const closeOnboarding = () => {
+    localStorage.setItem('flowsync_onboard_shown_v1', '1')
+    setShowOnboarding(false)
+  }
 
   useEffect(() => {
     if (!user) return
@@ -82,6 +94,12 @@ function MainLayout() {
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <PermissionMonitor />
             <NotificationPopup />
+            <button onClick={() => setShowOnboarding(true)} title="Device guide & tips" className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
+              <HelpCircle size={18} />
+            </button>
+            <button onClick={() => setShowShortcuts(true)} title="Keyboard shortcuts (?)" className="hidden sm:flex p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
+              <Keyboard size={18} />
+            </button>
             <button onClick={toggle} className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
@@ -93,7 +111,7 @@ function MainLayout() {
             </button>
           </div>
         </header>
-        <main id="main-content" className={`flex-1 overflow-y-auto ${location.pathname === '/ai-planner' ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
+        <main id="main-content" onTouchStart={swipe.onTouchStart} onTouchEnd={swipe.onTouchEnd} className={`flex-1 overflow-y-auto ${location.pathname === '/ai-planner' ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.12 }}>
               <Outlet />
@@ -101,6 +119,8 @@ function MainLayout() {
           </AnimatePresence>
         </main>
       </div>
+      <ShortcutsHelp open={showShortcuts} onClose={() => setShowShortcuts(false)} />
+      <DeviceOnboarding open={showOnboarding} onClose={closeOnboarding} />
     </div>
   )
 }
