@@ -328,6 +328,12 @@ flowchart TD
 ```
 flowsync-ai/
 │
+├── api/                                     # ☁️ Vercel serverless entrypoint (delegates to flowsync-backend)
+│   └── index.js                             # Catch-all handler -> flowsync-backend/api/index.js
+│
+├── vercel.json                              # Monorepo deploy: build client/dist + expose /api/* (single project)
+├── package.json                             # Root workspace metadata (Node 24)
+│
 ├── client/                                # 🎨 React Frontend
 │   ├── public/
 │   │   ├── favicon.svg                    # Site favicon (also used for push icon/badge)
@@ -395,12 +401,12 @@ flowsync-ai/
 │   │       ├── useAuth.js
 │   │       └── useMediaQuery.js
 │   │
-│   ├── vercel.json                        # SPA routing for Vercel
+│   ├── vercel.json                        # Vite SPA settings (used only for standalone client deploys)
 │   └── package.json
 │
 ├── flowsync-backend/                      # ⚙️ Express API Server
-│   ├── server.js                          # Entry point, middleware, route mounting
-│   ├── api/index.js                       # Serverless entrypoint (Vercel Functions)
+│   ├── server.js                          # Local dev entry point (node server.js)
+│   ├── api/index.js                       # Serverless handler used by root api/index.js (Vercel Functions)
 │   │
 │   ├── config/
 │   │   ├── db.js                          # Mongoose connection with retry logic
@@ -810,6 +816,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 | **v3.1.1** | `Cleanup` | Dead code removed — unused seed scripts (`seed.js`, `qa-seed.js`), unused client assets (`hero.png`, `react.svg`, `vite.svg`), stock Vite template README replaced. Broken push icon refs (`/favicon.ico`) fixed to `/favicon.svg`. `VAPID_SUBJECT` env wired into push config. ~599 lines of dead code deleted; harness still 110/110. |
 | **v3.2** | `Hardened` | Auth: **7-day access tokens + 30-day refresh tokens** with rotation, server-side logout revocation (token versioning), and auto-refresh on the client. Reliability: **CI pipeline** (GitHub Actions — backend tests + frontend lint/build), **always-on pagination** (bounded default 500–1000), **API-side XSS sanitization** (strips `<script>`/`<iframe>`), **structured JSON error logs** with request IDs, and a **`/api/health` endpoint** (DB state + uptime). Performance: **Settings page code-split** (428 kB → 3.4 kB main chunk; `jspdf`/`html2canvas` load only on demand). AI: no-key failures now map to graceful 503 instead of 500. **Harness: 119/119 tests passing.** |
 | **v3.3** | `Tested + Optimized` | **Frontend unit tests** — Vitest + Testing Library (30 tests: email validation, browser detection, Pomodoro timer logic incl. fake timers, auth context flows), full coverage of auth/pagination/security paths. **Backend lint** added (ESLint) + wired into CI alongside frontend **tests**. **DB indexes** added on goals/habits (`user+createdAt`, `user+status+targetDate`, `user+status`). **API performance** — gzip compression, strict CORS allowlist, network-error **retry with exponential backoff** on the client. **Notifications** — batch "mark all read" endpoint (`PUT /api/notifications/read-all`) + UI button. A11y: Timer settings inputs got `htmlFor`/`id` + button `aria-label` (found via new tests). **CI now runs on Node 24** (jsdom 30 requires ≥22) — **backend harness 120/120 + frontend 30/30, all jobs green.** |
+| **v3.4** | `Live Fix` | **Frontend + backend now deploy as ONE Vercel project** (root `vercel.json` → `client/dist` + `/api/*` via root `api/index.js`). Previously the API lived on a separate domain (`flowsync-backend.vercel.app`) that 500'd in production because the backend was never actually deployed to the `flowsyncai` project and its env vars were missing. Now: MongoDB Atlas, JWT secret, and CLIENT_URL are set in the project, the client calls **same-origin `/api/*`** (no separate URL, no CORS), `/api/health` returns `200 {"status":"ok","database":"connected"}`, and signup/login work end-to-end. Docs, CSP, `.env.example`, and README updated to the single-domain layout. |
 
 ---
 
@@ -817,7 +824,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 120/120 + frontend 30/30 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green.**
+**Current status: backend 120/120 + frontend 30/30 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
 
 | Coverage Area | What's Verified |
 |---|---|
@@ -888,6 +895,18 @@ npm run dev                 # app on http://localhost:5173
 ```
 
 Point the client at the API via the Vite proxy or `.env` (see `client/.env.example` — `VITE_API_URL`).
+
+### 3. Production (Vercel — single project)
+
+Frontend + backend deploy together from the repo root. From a local clone:
+
+```bash
+vercel link --project flowsyncai --yes   # or your project name
+vercel pull --yes                         # fetches env + project settings
+vercel deploy --prod                      # build client + deploy /api/* + alias
+```
+
+Or simply push to `main` (the project auto-deploys from GitHub).
 
 ### Environment variables (backend `.env`)
 
