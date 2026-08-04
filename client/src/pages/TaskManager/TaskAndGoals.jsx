@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { suggestTask } from '../../services/aiService'
 import { getGoals, createGoal, updateGoal as updateGoalApi, deleteGoal as deleteGoalApi } from '../../services/goalService'
 import { getTasks, createTask, updateTask, deleteTask } from '../../services/taskService'
+import { getTodayKey, toDateKey } from '../../utils/date'
 // Task and goal management with CRUD, search, filter, and AI suggestions
 const priorityConfig = {
   high: { color: 'text-red-600 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30', label: 'High' },
@@ -105,9 +106,13 @@ function GoalForm({ goal, onSave, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) return toast.error('Goal title is required')
-    await onSave({ title: title.trim(), description: description.trim(), status, targetDate, progress: goal?.progress || 0 })
-    toast.success(goal ? 'Goal updated' : 'Goal created')
-    onClose()
+    try {
+      await onSave({ title: title.trim(), description: description.trim(), status, targetDate, progress: goal?.progress || 0 })
+      toast.success(goal ? 'Goal updated' : 'Goal created')
+      onClose()
+    } catch {
+      toast.error('Failed to save goal')
+    }
   }
 
   return (
@@ -231,21 +236,13 @@ function TaskAndGoals() {
   }
 
   const addGoal = async (data) => {
-    try {
-      await createGoal(data)
-      await fetchGoals()
-    } catch {
-      toast.error('Failed to create goal')
-    }
+    await createGoal(data)
+    await fetchGoals()
   }
 
   const updateGoal = async (id, data) => {
-    try {
-      await updateGoalApi(id, data)
-      await fetchGoals()
-    } catch {
-      toast.error('Failed to update goal')
-    }
+    await updateGoalApi(id, data)
+    await fetchGoals()
   }
 
   const deleteGoal = async (id) => {
@@ -291,9 +288,9 @@ function TaskAndGoals() {
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
     })
 
-  const todayStr = new Date().toISOString().split('T')[0]
-  const todayCount = tasks.filter(t => { if (!t.deadline) return false; const d = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return d === todayStr && t.status !== 'done' }).length
-  const overdueCount = tasks.filter(t => { if (!t.deadline || t.status === 'done') return false; const d = typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]; return d < todayStr }).length
+  const todayStr = getTodayKey()
+  const todayCount = tasks.filter(t => { if (!t.deadline) return false; return toDateKey(t.deadline) === todayStr && t.status !== 'done' }).length
+  const overdueCount = tasks.filter(t => { if (!t.deadline || t.status === 'done') return false; const d = toDateKey(t.deadline); return d !== null && d < todayStr }).length
 
   const getStatusStyle = (status) => {
     if (status === 'completed') return { color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' }
@@ -383,7 +380,7 @@ function TaskAndGoals() {
                 const cfg = priorityConfig[task.priority]
                 let dl = task.deadline
                 if (dl && typeof dl === 'string') dl = dl.split('T')[0]
-                else if (dl) dl = new Date(dl).toISOString().split('T')[0]
+                else if (dl) dl = toDateKey(dl)
                 const isOverdue = dl && task.status !== 'done' && dl < todayStr
                 return (
                   <motion.div key={task._id} variants={itemVariants} className={`group bg-white dark:bg-zinc-900 rounded-xl px-5 py-4 border transition hover:shadow-sm ${task.status === 'done' ? 'border-slate-100 dark:border-zinc-700 opacity-70' : isOverdue ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200 dark:border-zinc-800'}`}>

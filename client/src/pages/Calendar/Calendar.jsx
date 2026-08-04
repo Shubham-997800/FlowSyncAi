@@ -97,6 +97,8 @@ function Calendar() {
       } else {
         toast.success('AI optimization complete')
       }
+      const data = await getTasks()
+      setTasks((Array.isArray(data) ? data : []).map(t => ({ ...t, dueDate: t.deadline ? t.deadline.split('T')[0] : '' })))
     } catch {
       toast.error('AI scheduling failed')
     } finally { setAiLoading(false) }

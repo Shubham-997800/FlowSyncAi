@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema({
   loginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date, default: null },
   tokenVersion: { type: Number, default: 0 },
+  refreshVersion: { type: Number, default: 0 },
 }, { timestamps: true })
 
 userSchema.pre('save', async function () {

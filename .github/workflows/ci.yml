@@ -43,3 +43,25 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    env:
+      JWT_SECRET: ci-only-secret-that-is-long-enough-for-jwt-signing-0123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Seed backend deps
+        run: npm ci
+        working-directory: flowsync-backend
+      - run: npm run e2e

@@ -1,15 +1,13 @@
 import { TrendingUp } from 'lucide-react'
+import { formatDateKey, toDateKey } from '../../utils/date'
 
 // Bar chart showing daily productivity trend for the current week
 function ProductivityChart({ tasks }) {
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const weekData = weekDays.map((_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
-    const dateStr = d.toISOString().split('T')[0]
-    const dayTasks = tasks.filter(t => {
-      const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : ''
-      return d === dateStr
-    })
+    const dateStr = formatDateKey(d)
+    const dayTasks = tasks.filter(t => toDateKey(t.deadline) === dateStr)
     const completed = dayTasks.filter(t => t.status === 'done').length
     return dayTasks.length > 0 ? Math.round((completed / dayTasks.length) * 100) : 0
   })

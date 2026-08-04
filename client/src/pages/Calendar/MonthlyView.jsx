@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { getTodayKey, toDateKey } from '../../utils/date'
 
 // Monthly calendar grid with task indicators per day
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -12,15 +13,12 @@ function MonthlyView({ tasks, onDateClick }) {
   const month = currentDate.getMonth()
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayKey()
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
 
-  const getTasksForDate = (dateStr) => tasks.filter(t => {
-    const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : ''
-    return d === dateStr
-  })
+  const getTasksForDate = (dateStr) => tasks.filter(t => toDateKey(t.deadline) === dateStr)
 
   const cells = []
   for (let i = 0; i < firstDay; i++) cells.push(null)

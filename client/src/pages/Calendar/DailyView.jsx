@@ -1,10 +1,11 @@
 import { ArrowLeft, Clock } from 'lucide-react'
 import EventCard from './EventCard'
+import { getTodayKey } from '../../utils/date'
 
 // Daily time-slot view for a selected date
 function DailyView({ tasks, date, onBack, onEdit, onDelete }) {
   const dayTasks = tasks.filter(t => t.dueDate === date)
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayKey()
   const currentHour = new Date().getHours()
 
   const timeSlots = []
@@ -12,16 +13,17 @@ function DailyView({ tasks, date, onBack, onEdit, onDelete }) {
     timeSlots.push(`${String(h).padStart(2, '0')}:00`)
   }
 
+  // Assign each task to exactly one hour slot (deterministic)
+  const getTaskHour = (t) => {
+    if (t.title.toLowerCase().includes('focus') || t.title.toLowerCase().includes('meeting')) return 9
+    if (t.priority === 'high') return 9
+    if (t.priority === 'medium') return 12
+    return 15
+  }
+
   const getTasksForHour = (hour) => {
     const hourNum = parseInt(hour.split(':')[0])
-    return dayTasks.filter(t => {
-      if (t.title.toLowerCase().includes('focus') || t.title.toLowerCase().includes('meeting')) {
-        return hourNum >= 9 && hourNum <= 10
-      }
-      if (t.priority === 'high') return hourNum >= 8 && hourNum <= 11
-      if (t.priority === 'medium') return hourNum >= 12 && hourNum <= 15
-      return hourNum >= 14 && hourNum <= 18
-    })
+    return dayTasks.filter(t => getTaskHour(t) === hourNum)
   }
 
   const displayDate = new Date(date + 'T12:00:00')

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar } from 'lucide-react'
+import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, PartyPopper, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { chatAI, getAiUsage } from '../../services/aiService'
@@ -16,6 +16,20 @@ const suggestions = [
   { icon: Calendar, text: 'I have a math exam next week, help me plan', color: 'bg-blue-500/10' },
   { icon: Zap, text: 'Add a high priority task for team meeting tomorrow', color: 'bg-amber-500/10' },
   { icon: Clock, text: 'What tasks are overdue?', color: 'bg-rose-500/10' },
+]
+
+const funSuggestions = [
+  { icon: PartyPopper, text: 'Tell me a joke', color: 'bg-fuchsia-500/10' },
+  { icon: PartyPopper, text: 'Roast me', color: 'bg-purple-500/10' },
+  { icon: PartyPopper, text: '20 questions game', color: 'bg-pink-500/10' },
+  { icon: PartyPopper, text: 'Would you rather...', color: 'bg-orange-500/10' },
+]
+
+const gfSuggestions = [
+  { icon: Heart, text: 'How was your day?', color: 'bg-rose-500/10' },
+  { icon: Heart, text: 'I had a tough day', color: 'bg-pink-500/10' },
+  { icon: Heart, text: 'Tell me something sweet', color: 'bg-fuchsia-500/10' },
+  { icon: Heart, text: 'Chit chat with me', color: 'bg-red-500/10' },
 ]
 
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8) }
@@ -41,6 +55,7 @@ function AIPlanner() {
   const [showSessions, setShowSessions] = useState(false)
   const [listening, setListening] = useState(false)
   const [quality, setQuality] = useState('medium')
+  const [mode, setMode] = useState('normal')
   const [aiUsage, setAiUsage] = useState(null)
   const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
@@ -173,7 +188,7 @@ function AIPlanner() {
     try {
       const savedUser = await saveChatMessage(userMsg)
       setMessages(prev => [...prev, savedUser])
-      const res = await chatAI(msgText, sessionId)
+      const res = await chatAI(msgText, sessionId, mode)
       const savedAI = await saveChatMessage({
         sessionId, role: 'ai', text: res.reply, tasks: res.tasks || [], createdTasks: res.createdTasks || [],
       })
@@ -309,14 +324,38 @@ function AIPlanner() {
               <p className="text-xs text-slate-400 dark:text-slate-500">Plan, organize, and create tasks</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             {aiUsage && (
               <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/60 text-[10px] font-medium text-slate-500 dark:text-slate-400" title="AI calls used today">
                 <Sparkles size={11} className="text-indigo-500" />
                 {aiUsage.used}/{aiUsage.limit} today
               </div>
             )}
-            <div className="hidden sm:flex items-center gap-0.5 p-1 rounded-xl bg-white/60 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/60 shadow-sm" title="AI model quality">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setMode(mode === 'fun' ? 'normal' : 'fun')}
+              title={mode === 'fun' ? 'Fun Mode ON — jokes, games & entertainment' : 'Fun Mode OFF — productivity assistant'}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${mode === 'fun'
+                ? 'bg-fuchsia-500 text-white border-fuchsia-400 shadow-md shadow-fuchsia-500/20'
+                : 'bg-white/60 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700/60 text-slate-500 dark:text-slate-400 hover:border-fuchsia-300 dark:hover:border-fuchsia-700/60 hover:text-fuchsia-600 dark:hover:text-fuchsia-400'}`}
+            >
+              <PartyPopper size={12} className={mode === 'fun' ? 'text-white' : ''} />
+              {mode === 'fun' ? 'Fun ON' : 'Fun Mode'}
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setMode(mode === 'gf' ? 'normal' : 'gf')}
+              title={mode === 'gf' ? 'Companion Mode ON — warm, caring girlfriend chat' : 'Companion Mode OFF'}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${mode === 'gf'
+                ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/20'
+                : 'bg-white/60 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700/60 text-slate-500 dark:text-slate-400 hover:border-rose-300 dark:hover:border-rose-700/60 hover:text-rose-600 dark:hover:text-rose-400'}`}
+            >
+              <Heart size={12} className={mode === 'gf' ? 'text-white' : ''} />
+              {mode === 'gf' ? 'Companion ON' : 'Companion'}
+            </motion.button>
+            <div className="flex items-center gap-0.5 p-1 rounded-xl bg-white/60 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/60 shadow-sm" title="AI model quality — choose response speed vs intelligence">
               {[['low', 'Fast'], ['medium', 'Balanced'], ['high', 'Smart']].map(([key, label]) => (
                 <button
                   key={key}
@@ -460,10 +499,10 @@ function AIPlanner() {
             {messages.length === 1 && (
               <div className="px-4 sm:px-6 lg:px-8 py-3 flex-shrink-0">
                 <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mb-2.5 flex items-center gap-1.5">
-                  <Sparkles size={11} /> Try asking
+                  <Sparkles size={11} /> {mode === 'fun' ? 'Fun Mode — try asking' : mode === 'gf' ? 'Companion Mode — try asking' : 'Try asking'}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {suggestions.map((s, i) => (
+                  {(mode === 'fun' ? funSuggestions : mode === 'gf' ? gfSuggestions : suggestions).map((s, i) => (
                     <motion.button
                       key={i}
                       initial={{ opacity: 0, y: 5 }}
@@ -507,7 +546,7 @@ function AIPlanner() {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-                    placeholder={listening ? 'Speak now...' : 'Ask me anything...'}
+                    placeholder={listening ? 'Speak now...' : mode === 'fun' ? 'Ask me for jokes, games, memes...' : mode === 'gf' ? 'Talk to me...' : 'Ask me anything...'}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/80 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-400/30 focus:border-indigo-400 dark:focus:border-indigo-500 text-sm transition-all shadow-sm"
                   />
                 </div>

@@ -1,4 +1,4 @@
-const { handleError, handleValidationError } = require('../utils/errorHandler')
+﻿const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { sanitizeText } = require('../utils/sanitize')
 const User = require('../models/User')
 
@@ -50,7 +50,7 @@ const updateProfile = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.user._id,
       updates,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
     res.json(user)
   } catch (error) {
@@ -68,7 +68,7 @@ const uploadAvatar = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { profilePicture: profilePicture || '' },
-      { new: true }
+      { returnDocument: 'after' }
     )
     res.json(user)
   } catch (error) {
@@ -156,7 +156,7 @@ const updateAiSettings = async (req, res) => {
       }
       updates['aiSettings.quality'] = quality
     }
-    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true })
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { returnDocument: 'after' })
     const current = user.aiSettings ? user.aiSettings.toObject() : {}
     res.json({ ...AI_SETTINGS_DEFAULTS, ...current })
   } catch (error) {
@@ -174,7 +174,7 @@ const updateAchievements = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { achievements },
-      { new: true }
+      { returnDocument: 'after' }
     )
     res.json({ achievements: user.achievements })
   } catch (error) {

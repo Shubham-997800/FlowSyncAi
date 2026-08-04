@@ -9,12 +9,12 @@ const REFRESH_TOKEN_TTL = '30d'
 const generateAccessToken = (id, tokenVersion) =>
   jwt.sign({ id, tokenVersion }, process.env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL })
 
-const generateRefreshToken = (id, tokenVersion) =>
-  jwt.sign({ id, tokenVersion, type: 'refresh' }, process.env.JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL })
+const generateRefreshToken = (id, tokenVersion, refreshVersion) =>
+  jwt.sign({ id, tokenVersion, refreshVersion, type: 'refresh' }, process.env.JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL })
 
 const buildAuthPayload = (user) => ({
   token: generateAccessToken(user._id, user.tokenVersion),
-  refreshToken: generateRefreshToken(user._id, user.tokenVersion),
+  refreshToken: generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion),
   user,
 })
 
@@ -88,7 +88,15 @@ const refresh = async (req, res) => {
     if (user.tokenVersion !== decoded.tokenVersion) {
       return res.status(401).json({ message: 'Session revoked. Please sign in again.' })
     }
-    res.json({ token: generateAccessToken(user._id, user.tokenVersion), refreshToken: generateRefreshToken(user._id, user.tokenVersion), user })
+    if (user.refreshVersion !== decoded.refreshVersion) {
+      user.tokenVersion = (user.tokenVersion || 0) + 1
+      user.refreshVersion = (user.refreshVersion || 0) + 1
+      await user.save()
+      return res.status(401).json({ message: 'Refresh token reuse detected. Please sign in again.' })
+    }
+    user.refreshVersion = (user.refreshVersion || 0) + 1
+    await user.save()
+    res.json({ token: generateAccessToken(user._id, user.tokenVersion), refreshToken: generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion), user })
   } catch (error) {
     handleError(res, error)
   }

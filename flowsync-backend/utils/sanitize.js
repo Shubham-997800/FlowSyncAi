@@ -6,12 +6,4 @@ function sanitizeText(value) {
     .trim()
 }
 
-function sanitizeObject(obj, fields) {
-  const safe = {}
-  for (const key of Object.keys(obj)) {
-    safe[key] = fields.includes(key) ? sanitizeText(obj[key]) : obj[key]
-  }
-  return safe
-}
-
-module.exports = { sanitizeText, sanitizeObject }
+module.exports = { sanitizeText }

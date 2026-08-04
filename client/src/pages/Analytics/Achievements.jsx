@@ -16,6 +16,7 @@ const milestones = [
 function Achievements({ tasks, goals, habits }) {
   const [saved, setSaved] = useState([])
   const [saving, setSaving] = useState(false)
+  const [loaded, setLoaded] = useState(false)
   const savingRef = useRef(false)
 
   const data = { tasks: Array.isArray(tasks) ? tasks : [], goals: Array.isArray(goals) ? goals : [], habits: Array.isArray(habits) ? habits : [] }
@@ -28,13 +29,15 @@ function Achievements({ tasks, goals, habits }) {
         setSaved((data?.achievements || []).map(a => a.name))
       } catch {
         toast.error('Failed to load achievements')
+      } finally {
+        setLoaded(true)
       }
     })()
   }, [])
 
   const unlockedKey = unlockedIds.join(',')
   useEffect(() => {
-    if (savingRef.current) return
+    if (savingRef.current || !loaded) return
     const newUnlocks = unlockedIds.filter(id => !saved.includes(id))
     if (newUnlocks.length === 0) return
     savingRef.current = true
@@ -45,7 +48,7 @@ function Achievements({ tasks, goals, habits }) {
       .then(() => { setSaved(updated); if (newUnlocks.length > 0) toast.success(`Achievement${newUnlocks.length > 1 ? 's' : ''} unlocked!`) })
       .catch(() => {})
       .finally(() => { setSaving(false); savingRef.current = false })
-  }, [unlockedKey, saved, unlockedIds])
+  }, [unlockedKey, saved, unlockedIds, loaded])
 
   const progress = Math.round((unlockedIds.length / milestones.length) * 100)
 

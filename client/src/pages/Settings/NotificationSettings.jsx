@@ -35,10 +35,11 @@ function NotificationSettings() {
   const toggle = (key) => {
     setSettings(s => {
       const updated = { ...s, [key]: !s[key] }
-      saveSettings(updated)
-      toast.success(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} ${updated[key] ? 'enabled' : 'disabled'}`)
       return updated
     })
+    const next = { ...settings, [key]: !settings[key] }
+    saveSettings(next)
+    toast.success(`${key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} ${next[key] ? 'enabled' : 'disabled'}`)
   }
 
   const handleReRequest = async () => {

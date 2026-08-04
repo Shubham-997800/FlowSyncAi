@@ -27,7 +27,10 @@ const RecentActivity = memo(function RecentActivity({ tasks }) {
   const navigate = useNavigate()
 
   const activities = tasks
-    .filter(t => t.status === 'done' || new Date(t.createdAt) > new Date(Date.now() - 7 * 86400000))
+    .filter(t => {
+      const ts = new Date(t.status === 'done' ? (t.updatedAt || t.createdAt) : t.createdAt)
+      return !Number.isNaN(ts.getTime()) && ts >= new Date(Date.now() - 7 * 86400000)
+    })
     .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
     .slice(0, 10)
     .map(t => ({

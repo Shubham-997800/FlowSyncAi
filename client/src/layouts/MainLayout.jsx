@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
@@ -36,7 +36,8 @@ function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('flowsync_onboard_shown_v1'))
-  useKeyboardNavigation(() => setShowShortcuts(true))
+  const openShortcuts = useCallback(() => setShowShortcuts(true), [])
+  useKeyboardNavigation(openShortcuts)
   const swipe = useSwipeNavigation(() => setSidebarOpen(true))
   const pageTitle = pageTitles[location.pathname] || 'FlowSync AI'
 
@@ -51,26 +52,31 @@ function MainLayout() {
     const checkDeadlines = async () => {
       try {
         const { data: tasks } = await api.get('/api/tasks')
-        const today = new Date().toISOString().split('T')[0]
-        const notified = JSON.parse(localStorage.getItem('flowsync_notified_tasks') || '[]')
+        const now = new Date()
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+        const notified = new Set(JSON.parse(localStorage.getItem('flowsync_notified_tasks') || '[]'))
 
         tasks.forEach(task => {
-          if (task.status === 'done' || notified.includes(task._id)) return
-          const due = task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : null
-          if (!due) return
+          if (task.status === 'done' || notified.has(task._id)) return
+          if (!task.deadline) return
+          const d = new Date(task.deadline)
+          if (Number.isNaN(d.getTime())) return
+          const due = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
           if (due < today) {
             sendNotification('Overdue Task', {
               body: `"${task.title}" is overdue. Check your tasks.`,
             })
-            localStorage.setItem('flowsync_notified_tasks', JSON.stringify([...notified, task._id]))
+            notified.add(task._id)
           } else if (due === today) {
             sendNotification('Task Due Today', {
               body: `"${task.title}" is due today!`,
             })
-            localStorage.setItem('flowsync_notified_tasks', JSON.stringify([...notified, task._id]))
+            notified.add(task._id)
           }
         })
+
+        localStorage.setItem('flowsync_notified_tasks', JSON.stringify([...notified]))
       } catch {}
     }
 
@@ -86,7 +92,7 @@ function MainLayout() {
       <div className="flex flex-col flex-1 min-w-0">
         <header className="h-14 flex-shrink-0 bg-white dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between px-3 sm:px-6 lg:px-8 sticky top-0 z-10">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <button className="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0" onClick={() => setSidebarOpen(prev => !prev)}>
+            <button aria-label={sidebarOpen ? 'Close menu' : 'Open menu'} className="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0" onClick={() => setSidebarOpen(prev => !prev)}>
               {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
             <h1 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100 truncate">{pageTitle}</h1>
@@ -94,16 +100,16 @@ function MainLayout() {
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <PermissionMonitor />
             <NotificationPopup />
-            <button onClick={() => setShowOnboarding(true)} title="Device guide & tips" className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
+            <button onClick={() => setShowOnboarding(true)} aria-label="Device guide and tips" title="Device guide & tips" className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
               <HelpCircle size={18} />
             </button>
-            <button onClick={() => setShowShortcuts(true)} title="Keyboard shortcuts (?)" className="hidden sm:flex p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
+            <button onClick={() => setShowShortcuts(true)} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)" className="hidden sm:flex p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
               <Keyboard size={18} />
             </button>
-            <button onClick={toggle} className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
+            <button onClick={toggle} aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex-shrink-0">
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button onClick={() => navigate('/profile')} className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-3 border-l border-slate-200 dark:border-zinc-800 hover:opacity-80 transition-opacity">
+            <button onClick={() => navigate('/profile')} aria-label="Open profile" className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-3 border-l border-slate-200 dark:border-zinc-800 hover:opacity-80 transition-opacity">
               <span className="text-sm text-slate-700 dark:text-slate-300 hidden sm:inline truncate max-w-[80px]">{user?.name || 'User'}</span>
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold overflow-hidden flex-shrink-0">
                 {user?.profilePicture ? <img src={user.profilePicture} alt="" className="w-full h-full object-cover" /> : (user?.name?.charAt(0) || 'U')}

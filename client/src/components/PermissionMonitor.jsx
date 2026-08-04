@@ -7,6 +7,7 @@ function usePermission(name) {
 
   useEffect(() => {
     let status = null
+    const onChange = () => { if (status) setState(status.state) }
     const check = async () => {
       try {
         if (name === 'notifications') {
@@ -16,7 +17,7 @@ function usePermission(name) {
         if (navigator.permissions && navigator.permissions.query) {
           status = await navigator.permissions.query({ name })
           setState(status.state)
-          status.addEventListener('change', () => setState(status.state))
+          status.addEventListener('change', onChange)
         } else {
           setState('prompt')
         }
@@ -25,7 +26,7 @@ function usePermission(name) {
       }
     }
     check()
-    return () => status?.removeEventListener('change', () => {})
+    return () => { status?.removeEventListener('change', onChange) }
   }, [name])
 
   return state

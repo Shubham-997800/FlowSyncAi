@@ -3,14 +3,9 @@ import { CheckSquare, Square, Trash2, ListTodo, Clock, Play } from 'lucide-react
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import PriorityBadge from '../../components/ui/PriorityBadge'
+import { getTodayKey, toDateKey } from '../../utils/date'
 
 // Displays today's incomplete tasks sorted by priority/deadline
-function getDateStr(d) {
-  if (!d) return null
-  if (typeof d === 'string') return d.split('T')[0]
-  return new Date(d).toISOString().split('T')[0]
-}
-
 const taskVariant = {
   hidden: { opacity: 0, x: -12 },
   show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.05 } }),
@@ -18,8 +13,8 @@ const taskVariant = {
 
 const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete, onEdit }) {
   const navigate = useNavigate()
-  const today = new Date().toISOString().split('T')[0]
-  const todayTasks = tasks.filter(t => { if (!t.deadline) return false; return getDateStr(t.deadline) === today })
+  const today = getTodayKey()
+  const todayTasks = tasks.filter(t => { if (!t.deadline) return false; return toDateKey(t.deadline) === today })
   const remaining = todayTasks.filter(t => t.status !== 'done')
   const completed = todayTasks.filter(t => t.status === 'done')
   const [showCompleted, setShowCompleted] = useState(false)
@@ -112,7 +107,7 @@ const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete, onEdit 
                 : <Square size={18} className="text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition" />
               }
             </button>
-            <button onClick={() => onToggle(task._id)} className="mt-0.5 flex-shrink-0">
+            <button onClick={() => onToggle(task._id)} aria-label={`Toggle ${task.title}`} className="mt-0.5 flex-shrink-0">
               <Square size={18} className="text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition" />
             </button>
             <div className="flex-1 min-w-0">
@@ -149,12 +144,13 @@ const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete, onEdit 
             <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition">
               <button
                 onClick={() => navigate('/focus')}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
+                aria-label={`Focus on ${task.title}`}
                 title="Focus on this"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
               >
                 <Play size={14} />
               </button>
-              <button onClick={() => onDelete(task._id)} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
+              <button onClick={() => onDelete(task._id)} aria-label={`Delete ${task.title}`} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                 <Trash2 size={14} />
               </button>
             </div>

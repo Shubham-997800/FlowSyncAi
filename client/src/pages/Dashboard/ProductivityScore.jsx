@@ -2,14 +2,9 @@ import { useEffect, useState, memo } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Plus, TrendingUp, TrendingDown, Award } from 'lucide-react'
+import { formatDateKey, toDateKey } from '../../utils/date'
 
 // Shows productivity score with animated ring chart and weekly trend
-function getDateStr(d) {
-  if (!d) return null
-  if (typeof d === 'string') return d.split('T')[0]
-  return new Date(d).toISOString().split('T')[0]
-}
-
 const ProductivityScore = memo(function ProductivityScore({ tasks }) {
   const [animateScore, setAnimateScore] = useState(0)
   const [barTooltip, setBarTooltip] = useState(null)
@@ -23,9 +18,9 @@ const ProductivityScore = memo(function ProductivityScore({ tasks }) {
   const weeklyData = dayNames.map((_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - (6 - i))
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = formatDateKey(d)
     const dayTasks = tasks.filter(t => {
-      const ts = t.status === 'done' ? getDateStr(t.updatedAt) : getDateStr(t.createdAt)
+      const ts = t.status === 'done' ? toDateKey(t.updatedAt) : toDateKey(t.createdAt)
       return ts === dateStr
     })
     return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.status === 'done').length / dayTasks.length) * 100) : 0
@@ -34,9 +29,9 @@ const ProductivityScore = memo(function ProductivityScore({ tasks }) {
   const prevWeekData = dayNames.map((_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - (6 - i) - 7)
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = formatDateKey(d)
     const dayTasks = tasks.filter(t => {
-      const ts = t.status === 'done' ? getDateStr(t.updatedAt) : getDateStr(t.createdAt)
+      const ts = t.status === 'done' ? toDateKey(t.updatedAt) : toDateKey(t.createdAt)
       return ts === dateStr
     })
     return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.status === 'done').length / dayTasks.length) * 100) : 0

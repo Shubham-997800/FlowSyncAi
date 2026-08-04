@@ -84,7 +84,7 @@ const rescue = async (req, res) => {
 const chatAI = async (req, res) => {
   try {
     if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
-    const { message, sessionId } = req.body
+    const { message, sessionId, mode } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
     const [tasks, goals, habits] = await Promise.all([
       Task.find({ user: req.user._id, status: { $ne: 'done' } }),
@@ -97,7 +97,7 @@ const chatAI = async (req, res) => {
         .sort({ createdAt: -1 })
         .limit(8)).reverse()
     }
-    const result = await aiService.chatWithContext(message, tasks, goals, habits, { quality: userQuality(req), history })
+    const result = await aiService.chatWithContext(message, tasks, goals, habits, { quality: userQuality(req), history, mode })
     if (result.tasks && result.tasks.length > 0) {
       const created = await Task.insertMany(
         result.tasks.map(t => ({ ...t, user: req.user._id }))

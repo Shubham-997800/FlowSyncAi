@@ -1,17 +1,15 @@
 import { BarChart3 } from 'lucide-react'
+import { formatDateKey, toDateKey } from '../../utils/date'
 
 // Stacked bar chart of completed vs pending tasks per day
 function WeeklyChart({ tasks }) {
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   const weekData = weekDays.map((_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (6 - i))
-    const dateStr = d.toISOString().split('T')[0]
-    const dayTasks = tasks.filter(t => {
-      const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : ''
-      return d === dateStr
-    })
+    const dateStr = formatDateKey(d)
+    const dayTasks = tasks.filter(t => toDateKey(t.deadline) === dateStr)
     const completed = dayTasks.filter(t => t.status === 'done').length
-    return { total: dayTasks.length, completed, pending: dayTasks.length - completed }
+    return { total: dayTasks.length, completed, pending: dayTasks.length - completed, label: weekDays[i].charAt(0) }
   })
   const maxTasks = Math.max(...weekData.map(d => d.total), 1)
 
@@ -39,7 +37,7 @@ function WeeklyChart({ tasks }) {
                 <span className="text-slate-400 dark:text-slate-500">/</span>
                 <span className="text-slate-400 dark:text-slate-500">{d.total}</span>
               </div>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">{weekDays[i].charAt(0)}</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">{d.label}</span>
             </div>
           )
         })}

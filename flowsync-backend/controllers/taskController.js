@@ -1,4 +1,4 @@
-const Task = require('../models/Task')
+﻿const Task = require('../models/Task')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { sanitizeText } = require('../utils/sanitize')
@@ -57,7 +57,7 @@ const updateTask = async (req, res) => {
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       sanitize(req.body),
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
     if (!task) return res.status(404).json({ message: 'Task not found' })
     res.json(task)

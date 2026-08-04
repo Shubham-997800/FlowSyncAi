@@ -1,15 +1,15 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { getTodayKey, formatDateKey } from '../../utils/date'
 
 // Weekly view showing 7-day task load overview
 function getWeekDates(refDate) {
-  const start = new Date(refDate)
-  start.setDate(start.getDate() - start.getDay())
+  const start = new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate() - refDate.getDay())
   const dates = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(start)
     d.setDate(start.getDate() + i)
-    dates.push(d.toISOString().split('T')[0])
+    dates.push(formatDateKey(d))
   }
   return dates
 }
@@ -20,7 +20,7 @@ function WeeklyView({ tasks, onDateClick }) {
   const [weekStart, setWeekStart] = useState(new Date())
 
   const dates = getWeekDates(weekStart)
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayKey()
 
   const prevWeek = () => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d) }
   const nextWeek = () => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d) }

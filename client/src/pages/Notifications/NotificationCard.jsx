@@ -72,7 +72,7 @@ function NotificationCard({ notification, onMarkRead }) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-[10px] text-slate-400 dark:text-slate-500">{timeAgo < 1 ? 'now' : timeAgo < 60 ? `${timeAgo}m ago` : `${Math.floor(timeAgo / 60)}h ago`}</span>
             {!read && (
-              <button onClick={(e) => { e.stopPropagation(); onMarkRead(id) }} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors">
+              <button onClick={(e) => { e.stopPropagation(); onMarkRead(id) }} aria-label={`Mark ${title} as read`} className="p-0.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition-colors">
                 <CheckCircle size={14} className="text-indigo-500" />
               </button>
             )}

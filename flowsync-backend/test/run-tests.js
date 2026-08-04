@@ -97,6 +97,8 @@ async function main() {
   const PushSubscription = require('../models/PushSubscription')
   const ChatMessage = require('../models/ChatMessage')
   const AiUsage = require('../models/AiUsage')
+  const { AI_DAILY_LIMIT } = require('../config/constants')
+  const { localDateKey } = require('../utils/dateKey')
 
   let userA, tokenA, refreshTokenA, userB, tokenB
 
@@ -516,6 +518,22 @@ async function main() {
     const r = await request('/api/notifications', { token: tokenB })
     return r.status === 200 && r.data.length === 0
   })
+  await t('Create notification via POST -> 201', async () => {
+    const r = await request('/api/notifications', { method: 'POST', token: tokenA, body: { type: 'reminder', title: 'Meeting', message: 'Standup at 10' } })
+    return r.status === 201 && r.data.title === 'Meeting'
+  })
+  await t('Notification title XSS stripped on create', async () => {
+    const r = await request('/api/notifications', { method: 'POST', token: tokenA, body: { type: 'reminder', title: '<script>alert(9)</script>', message: 'x' } })
+    return r.status === 201 && !String(r.data.title).includes('<script>')
+  })
+  await t('Mark read nonexistent notification -> 404', async () => {
+    const r = await request('/api/notifications/66c0a00000000000000000bb/read', { method: 'PUT', token: tokenA })
+    return r.status === 404
+  })
+  await t('Delete nonexistent notification -> 404', async () => {
+    const r = await request('/api/notifications/66c0a00000000000000000bb', { method: 'DELETE', token: tokenA })
+    return r.status === 404
+  })
 
   // ============ 11. PUSH ============
   console.log('\n===== 11. PUSH SUBSCRIPTIONS =====')
@@ -539,6 +557,14 @@ async function main() {
     const r = await request('/api/push/unsubscribe', { method: 'POST', token: tokenA, body: { endpoint: 'https://fcm.googleapis.com/send/qa-endpoint-1' } })
     const left = await PushSubscription.countDocuments()
     return r.status === 200 && left === 0
+  })
+  await t('Push status reports enabled', async () => {
+    const r = await request('/api/push/status', { token: tokenA })
+    return r.status === 200 && r.data.enabled === true
+  })
+  await t('VAPID key validation rejects junk', async () => {
+    const { isValidVapidKey } = require('../utils/pushConfig')
+    return isValidVapidKey('short') === false && isValidVapidKey(process.env.VAPID_PUBLIC_KEY) === true
   })
 
   // ============ 12. CHAT ============
@@ -642,6 +668,29 @@ async function main() {
     const use = await request('/api/settings/profile', { token: r.data.refreshToken })
     return use.status === 401
   })
+  await t('Refresh token rotates: old token invalid after refresh', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    const first = await request('/api/auth/refresh', { method: 'POST', body: { refreshToken: r.data.refreshToken } })
+    if (first.status !== 200 || !first.data.refreshToken) return `first status=${first.status}`
+    const second = await request('/api/auth/refresh', { method: 'POST', body: { refreshToken: first.data.refreshToken } })
+    if (second.status !== 200 || !second.data.token) return `second status=${second.status}`
+    const reuse = await request('/api/auth/refresh', { method: 'POST', body: { refreshToken: first.data.refreshToken } })
+    if (reuse.status !== 401) return `reuse status=${reuse.status}`
+    const relog = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    tokenA = relog.data.token
+    return true
+  })
+  await t('Refresh token reuse revokes session', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    const refresh = await request('/api/auth/refresh', { method: 'POST', body: { refreshToken: r.data.refreshToken } })
+    if (refresh.status !== 200) return `refresh status=${refresh.status}`
+    await request('/api/auth/refresh', { method: 'POST', body: { refreshToken: r.data.refreshToken } })
+    const after = await request('/api/settings/profile', { token: r.data.token })
+    if (after.status !== 401) return `after status=${after.status}`
+    const relog = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    tokenA = relog.data.token
+    return true
+  })
   await t('AI settings default -> 200', async () => {
     const r = await request('/api/settings/ai', { token: tokenA })
     return r.status === 200 && r.data.aggressiveness === 'medium' && r.data.autoScheduling === true
@@ -665,6 +714,45 @@ async function main() {
     if (r.status !== 200) return `status=${r.status}`
     const g = await request('/api/settings/ai', { token: tokenA })
     return g.data.quality === 'high'
+  })
+  await t('Email change without currentPassword -> 400', async () => {
+    const r = await request('/api/settings/profile', { method: 'PUT', token: tokenA, body: { email: 'new@test.com' } })
+    return r.status === 400
+  })
+  await t('Email change with wrong currentPassword -> 400', async () => {
+    const r = await request('/api/settings/profile', { method: 'PUT', token: tokenA, body: { email: 'new@test.com', currentPassword: 'WrongPass1!' } })
+    return r.status === 400
+  })
+  await t('Email change with correct currentPassword -> 200 + isVerified false', async () => {
+    const r = await request('/api/settings/profile', { method: 'PUT', token: tokenA, body: { email: 'newemail@test.com', currentPassword: 'NewPassword1!' } })
+    if (r.status !== 200) return `status=${r.status} ${JSON.stringify(r.data)}`
+    return r.data.email === 'newemail@test.com' && r.data.isVerified === false
+  })
+  await t('Duplicate email change -> 400', async () => {
+    const r = await request('/api/settings/profile', { method: 'PUT', token: tokenA, body: { email: 'userb@test.com', currentPassword: 'NewPassword1!' } })
+    return r.status === 400
+  })
+  await t('Profile update with updated email persists', async () => {
+    const r = await request('/api/settings/profile', { token: tokenA })
+    return r.status === 200 && r.data.email === 'newemail@test.com'
+  })
+  await t('Avatar update with valid URL -> 200', async () => {
+    const r = await request('/api/settings/avatar', { method: 'PUT', token: tokenA, body: { profilePicture: 'https://example.com/avatar.png' } })
+    return r.status === 200 && r.data.profilePicture === 'https://example.com/avatar.png'
+  })
+  await t('Avatar update with invalid URL -> 400', async () => {
+    const r = await request('/api/settings/avatar', { method: 'PUT', token: tokenA, body: { profilePicture: 'javascript:alert(1)' } })
+    return r.status === 400
+  })
+  await t('Achievements update -> 200 + persists', async () => {
+    const r = await request('/api/settings/achievements', { method: 'PUT', token: tokenA, body: { achievements: [{ name: 'First Task', unlockedAt: new Date().toISOString() }] } })
+    if (r.status !== 200) return `status=${r.status}`
+    const p = await request('/api/settings/profile', { token: tokenA })
+    return Array.isArray(p.data.achievements) && p.data.achievements.length === 1 && p.data.achievements[0].name === 'First Task'
+  })
+  await t('Achievements non-array body -> 400', async () => {
+    const r = await request('/api/settings/achievements', { method: 'PUT', token: tokenA, body: { achievements: 'nope' } })
+    return r.status === 400
   })
 
   // ============ 14. ACCOUNT DELETE CASCADE ============
@@ -747,6 +835,23 @@ async function main() {
     const r = await request('/api/ai/plan', { method: 'POST', body: { prompt: 'x' } })
     return r.status === 401
   })
+  await t('AI usage reports { used, limit } shape', async () => {
+    const r = await request('/api/ai/usage', { token: tokenA })
+    return r.status === 200 && typeof r.data.used === 'number' && typeof r.data.limit === 'number' && r.data.limit === AI_DAILY_LIMIT
+  })
+  await t('AI daily limit exhaustion -> 429 AI_DAILY_LIMIT', async () => {
+    await AiUsage.findOneAndUpdate(
+      { user: userB._id, date: localDateKey() },
+      { $set: { count: AI_DAILY_LIMIT } },
+      { upsert: true }
+    )
+    const r = await request('/api/ai/plan', { method: 'POST', token: tokenB, body: { prompt: 'plan my week' } })
+    return r.status === 429 && r.data.code === 'AI_DAILY_LIMIT'
+  })
+  await t('AI prioritize also honors daily limit (429)', async () => {
+    const r = await request('/api/ai/prioritize', { method: 'POST', token: tokenB, body: {} })
+    return r.status === 429 && r.data.code === 'AI_DAILY_LIMIT'
+  })
 
   // ============ 17. REMINDER SWEEP ============
   console.log('\n===== 17. REMINDER SERVICE (lazy sweep) =====')
@@ -772,7 +877,8 @@ async function main() {
     return idx.some((i) => Object.keys(i.key).join(',').includes('user,createdAt'))
   })
   await t('Email unique index enforced at DB level', async () => {
-    const dup = await User.create({ name: 'dupe', email: 'usera@test.com', password: 'Password123!' }).catch((e) => e)
+    await User.create({ name: 'dbfirst', email: 'dbdup@test.com', password: 'Password123!' })
+    const dup = await User.create({ name: 'dbsecond', email: 'dbdup@test.com', password: 'Password123!' }).catch((e) => e)
     return dup && dup.name === 'MongoServerError'
   })
   await t('Task without deadline stores null (no crash)', async () => {
@@ -908,6 +1014,16 @@ async function main() {
     const { dedupeHistory } = require('../services/aiService')
     const history = [{ role: 'user', text: 'different message' }]
     return dedupeHistory(history, 'current message').length === 1
+  })
+  await t('localDateKey: zero-pads month/day', async () => {
+    const { localDateKey } = require('../utils/dateKey')
+    const d = new Date(2026, 0, 5)
+    return localDateKey(d) === '2026-01-05'
+  })
+  await t('localDateKey: today matches Date.now', async () => {
+    const { localDateKey } = require('../utils/dateKey')
+    const n = new Date()
+    return localDateKey() === `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
   })
 
   // ============ SUMMARY ============

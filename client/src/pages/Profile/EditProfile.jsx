@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import { Save, User, Mail, Phone, Briefcase, MapPin, MessageSquare, Loader2 } from 'lucide-react'
+import { Save, User, Mail, Phone, Briefcase, MapPin, MessageSquare, Loader2, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { updateProfile } from '../../services/settingsService'
 // Editable profile form with name, email, phone, bio fields
@@ -16,7 +16,7 @@ function EditProfile() {
   const { user, setUser } = useAuth()
   const [form, setForm] = useState({
     name: user?.name || '', email: user?.email || '', phone: user?.phone || '',
-    bio: user?.bio || '', jobTitle: user?.jobTitle || '', location: user?.location || '',
+    bio: user?.bio || '', jobTitle: user?.jobTitle || '', location: user?.location || '', currentPassword: '',
   })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
@@ -28,6 +28,7 @@ function EditProfile() {
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email format'
     if (form.phone && !/^[\d\s\-+()]{7,20}$/.test(form.phone)) e.phone = 'Invalid phone number'
     if (form.bio && form.bio.length > 200) e.bio = 'Max 200 characters'
+    if (form.email !== user?.email && !form.currentPassword) e.currentPassword = 'Enter your current password to change email'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -37,11 +38,14 @@ function EditProfile() {
     if (!validate()) return
     setLoading(true)
     try {
-      const updated = await updateProfile({ name: form.name, email: form.email, bio: form.bio, phone: form.phone, location: form.location, jobTitle: form.jobTitle })
+      const payload = { name: form.name, email: form.email, bio: form.bio, phone: form.phone, location: form.location, jobTitle: form.jobTitle }
+      if (form.email !== user?.email) payload.currentPassword = form.currentPassword
+      const updated = await updateProfile(payload)
       setUser(updated)
+      setForm(f => ({ ...f, currentPassword: '' }))
       toast.success('Profile updated successfully')
     } catch {
-      toast.error('Failed to update profile')
+      toast.error('Failed to update profile — check your current password')
     } finally { setLoading(false) }
   }
 
@@ -67,6 +71,23 @@ function EditProfile() {
             </div>
           ))}
         </div>
+
+        {form.email !== user?.email && (
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              Current Password <span className="text-red-500 ml-0.5">*</span>
+            </label>
+            <div className="relative">
+              <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="password" value={form.currentPassword} placeholder="Required to change email"
+                onChange={e => { setForm({ ...form, currentPassword: e.target.value }); if (errors.currentPassword) setErrors({ ...errors, currentPassword: '' }) }}
+                className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-sm bg-white dark:bg-zinc-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${errors.currentPassword ? 'border-red-400 dark:border-red-500 focus:ring-red-500' : 'border-slate-300 dark:border-zinc-700 focus:ring-indigo-500'}`}
+              />
+            </div>
+            {errors.currentPassword && <p className="text-xs text-red-500 mt-1">{errors.currentPassword}</p>}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bio</label>

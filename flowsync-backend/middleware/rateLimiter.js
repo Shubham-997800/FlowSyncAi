@@ -32,4 +32,12 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-module.exports = { authLimiter, aiLimiter, generalLimiter, loginLimiter }
+const refreshLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: Number(process.env.RATE_LIMIT_REFRESH) || 30,
+  message: { message: 'Too many refresh attempts. Try again in a minute.', code: 'RATE_LIMITED' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
+module.exports = { authLimiter, aiLimiter, generalLimiter, loginLimiter, refreshLimiter }

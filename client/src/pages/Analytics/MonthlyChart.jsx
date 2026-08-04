@@ -1,4 +1,5 @@
 import { Calendar } from 'lucide-react'
+import { toDateKey } from '../../utils/date'
 
 // Calendar-style heatmap showing task activity across the month
 function getDayColor(count, max) {
@@ -20,10 +21,7 @@ function MonthlyChart({ tasks }) {
   let maxCount = 0
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    const count = tasks.filter(t => {
-      const d = t.deadline ? (typeof t.deadline === 'string' ? t.deadline.split('T')[0] : new Date(t.deadline).toISOString().split('T')[0]) : ''
-      return d === dateStr
-    }).length
+    const count = tasks.filter(t => toDateKey(t.deadline) === dateStr).length
     maxCount = Math.max(maxCount, count)
     dayData.push({ day: d, count, dateStr })
   }

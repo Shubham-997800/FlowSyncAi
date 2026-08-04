@@ -5,7 +5,7 @@ import { getTasks } from '../../services/taskService'
 import { getFocusSuggestion } from '../../services/aiService'
 import { motion } from 'framer-motion'
 import { Brain, ListTodo, Loader2, Sparkles } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 
@@ -52,38 +52,46 @@ function FocusMode() {
   const [sessions, setSessions] = useState(() => parseInt(localStorage.getItem('flowsync_focus_sessions') || '0'))
   const [totalFocusMinutes, setTotalFocusMinutes] = useState(() => parseInt(localStorage.getItem('flowsync_focus_minutes') || '0'))
   const [sessionComplete, setSessionComplete] = useState(false)
+  const completeTimerRef = useRef(null)
+  useEffect(() => () => { if (completeTimerRef.current) clearTimeout(completeTimerRef.current) }, [])
 
   useEffect(() => {
+    let mounted = true
     Promise.resolve().then(async () => {
-      if (!selectedTask) { setAiSuggestion(null); return }
-      setAiLoading(true)
+      if (!selectedTask) { if (mounted) setAiSuggestion(null); return }
+      if (mounted) setAiLoading(true)
       try {
         const data = await getFocusSuggestion(selectedTask._id)
-        setAiSuggestion(data)
+        if (mounted) setAiSuggestion(data)
       } catch {
-        if (!selectedTask) return
-        setAiSuggestion({
-          title: selectedTask.priority === 'high' ? 'High Priority Focus' : 'Steady Focus',
-          desc: `Focus on "${selectedTask.title}".`,
-          breakSuggestion: 'Standard 5-min breaks recommended',
-          focusTime: loadTimerSettings().focus,
-        })
+        if (mounted && selectedTask) {
+          setAiSuggestion({
+            title: selectedTask.priority === 'high' ? 'High Priority Focus' : 'Steady Focus',
+            desc: `Focus on "${selectedTask.title}".`,
+            breakSuggestion: 'Standard 5-min breaks recommended',
+            focusTime: loadTimerSettings().focus,
+          })
+        }
       } finally {
-        setAiLoading(false)
+        if (mounted) setAiLoading(false)
       }
     })
+    return () => { mounted = false }
   }, [selectedTask, suggestionKey])
 
   const handleSessionComplete = () => {
     const timer = loadTimerSettings()
-    const newSessions = sessions + 1
-    const newMinutes = totalFocusMinutes + (mode === 'focus' ? timer.focus : timer.break)
-    setSessions(newSessions)
-    setTotalFocusMinutes(newMinutes)
-    localStorage.setItem('flowsync_focus_sessions', newSessions.toString())
-    localStorage.setItem('flowsync_focus_minutes', newMinutes.toString())
+    if (mode === 'focus') {
+      const newSessions = sessions + 1
+      const newMinutes = totalFocusMinutes + timer.focus
+      setSessions(newSessions)
+      setTotalFocusMinutes(newMinutes)
+      localStorage.setItem('flowsync_focus_sessions', newSessions.toString())
+      localStorage.setItem('flowsync_focus_minutes', newMinutes.toString())
+    }
     setSessionComplete(true)
-    setTimeout(() => setSessionComplete(false), 3000)
+    if (completeTimerRef.current) clearTimeout(completeTimerRef.current)
+    completeTimerRef.current = setTimeout(() => setSessionComplete(false), 3000)
 
     if (mode === 'focus') {
       toast.success('Focus session complete! Take a break.')

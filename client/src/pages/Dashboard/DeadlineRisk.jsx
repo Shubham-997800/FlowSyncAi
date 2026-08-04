@@ -1,34 +1,32 @@
 import { useState, memo } from 'react'
 import { AlertTriangle, CheckSquare, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getTodayKey, toDateKey } from '../../utils/date'
 
 // Highlights overdue and at-risk tasks with deadline warnings
-function getDateStr(d) {
-  if (!d) return null
-  if (typeof d === 'string') return d.split('T')[0]
-  return new Date(d).toISOString().split('T')[0]
-}
-
 const riskVariant = {
   hidden: { opacity: 0, x: -12 },
   show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08 } }),
 }
 
 const DeadlineRisk = memo(function DeadlineRisk({ tasks, onToggle }) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayKey()
   const [showAll, setShowAll] = useState(false)
 
-  const overdue = tasks.filter(t => { const d = getDateStr(t.deadline); return d && t.status !== 'done' && d < today })
-  const dueToday = tasks.filter(t => { const d = getDateStr(t.deadline); return d === today && t.status !== 'done' })
+  const overdue = tasks.filter(t => { const d = toDateKey(t.deadline); return d && t.status !== 'done' && d < today })
+  const dueToday = tasks.filter(t => { const d = toDateKey(t.deadline); return d === today && t.status !== 'done' })
 
-  const atRisk = [...overdue, ...dueToday].map(t => ({
-    id: t._id,
-    name: t.title,
-    remaining: getDateStr(t.deadline) < today ? 'Overdue' : 'Due today',
-    progress: getDateStr(t.deadline) < today ? 100 : 65,
-    action: getDateStr(t.deadline) < today ? 'Complete ASAP' : 'Focus now',
-    isOverdue: getDateStr(t.deadline) < today,
-  }))
+  const atRisk = [...overdue, ...dueToday].map(t => {
+    const isOverdue = toDateKey(t.deadline) < today
+    return {
+      id: t._id,
+      name: t.title,
+      remaining: isOverdue ? 'Overdue' : 'Due today',
+      progress: isOverdue ? 100 : 65,
+      action: isOverdue ? 'Complete ASAP' : 'Focus now',
+      isOverdue,
+    }
+  })
 
   const displayRisk = showAll ? atRisk : atRisk.slice(0, 3)
   const hasMore = atRisk.length > 3

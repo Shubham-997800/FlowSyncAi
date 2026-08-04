@@ -1,4 +1,4 @@
-const Task = require('../models/Task')
+﻿const Task = require('../models/Task')
 const Notification = require('../models/Notification')
 const ReminderState = require('../models/ReminderState')
 const { sendPushToUser } = require('../controllers/pushController')
@@ -54,7 +54,7 @@ async function runReminderCheckIfDue() {
     const claim = await ReminderState.findOneAndUpdate(
       { key: SWEEP_KEY, $or: [{ lastRun: null }, { lastRun: { $lte: cutoff } }] },
       { $set: { lastRun: now } },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     )
     if (!claim) return false
   } catch (err) {

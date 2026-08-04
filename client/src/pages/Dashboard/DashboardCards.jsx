@@ -2,13 +2,9 @@ import { useState, useEffect, useMemo, memo } from 'react'
 import { ListTodo, CheckCircle, CalendarClock, Timer } from 'lucide-react'
 import { motion } from 'framer-motion'
 import StatCard from '../../components/ui/StatCard'
+import { getTodayKey, toDateKey, formatDateKey } from '../../utils/date'
 
 // Stat cards with today's tasks, completions, upcoming deadlines, and focus time
-function getDateStr(d) {
-  if (!d) return null
-  if (typeof d === 'string') return d.split('T')[0]
-  return new Date(d).toISOString().split('T')[0]
-}
 
 function AnimatedNumber({ value, duration = 600 }) {
   const [display, setDisplay] = useState(0)
@@ -47,24 +43,24 @@ const cardVariant = {
 }
 
 const DashboardCards = memo(function DashboardCards({ tasks }) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayKey()
   const dailyCounts = useMemo(() => {
     const counts = []
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
       d.setDate(d.getDate() - i)
-      const ds = d.toISOString().split('T')[0]
-      const done = tasks.filter(t => t.status === 'done' && getDateStr(t.updatedAt) === ds).length
+      const ds = formatDateKey(d)
+      const done = tasks.filter(t => t.status === 'done' && toDateKey(t.updatedAt) === ds).length
       counts.push(done)
     }
     return counts
   }, [tasks])
 
-  const todayTaskCount = tasks.filter(t => { const d = getDateStr(t.deadline); return d === today && t.status !== 'done' }).length
-  const completedTodayCount = tasks.filter(t => t.status === 'done' && getDateStr(t.updatedAt) === today).length
-  const upcomingCount = tasks.filter(t => { if (!t.deadline || t.status === 'done') return false; return getDateStr(t.deadline) >= today }).length
-  const totalToday = tasks.filter(t => getDateStr(t.deadline) === today).length
-  const doneToday = tasks.filter(t => getDateStr(t.deadline) === today && t.status === 'done').length
+  const todayTaskCount = tasks.filter(t => { const d = toDateKey(t.deadline); return d === today && t.status !== 'done' }).length
+  const completedTodayCount = tasks.filter(t => t.status === 'done' && toDateKey(t.updatedAt) === today).length
+  const upcomingCount = tasks.filter(t => { if (!t.deadline || t.status === 'done') return false; const d = toDateKey(t.deadline); return d !== null && d >= today }).length
+  const totalToday = tasks.filter(t => toDateKey(t.deadline) === today).length
+  const doneToday = tasks.filter(t => toDateKey(t.deadline) === today && t.status === 'done').length
   const pct = totalToday > 0 ? Math.round((doneToday / totalToday) * 100) : 0
 
   const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')

@@ -58,9 +58,9 @@ function AIReport({ tasks, completionRate, overdue, focusSessions, habitStreaks 
     return h >= 12 && h < 18
   }).length
 
-  const strengths = aiData?.strengths || []
-  const weaknesses = aiData?.weaknesses || []
-  const recommendations = aiData?.recommendations || []
+  const strengths = [...(aiData?.strengths || [])]
+  const weaknesses = [...(aiData?.weaknesses || [])]
+  const recommendations = [...(aiData?.recommendations || [])]
 
   if (!loading && !error && (!aiData || strengths.length === 0)) {
     if (completionRate >= 70) strengths.push('High task completion rate — you consistently finish what you start')

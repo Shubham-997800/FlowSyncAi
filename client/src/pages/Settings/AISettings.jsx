@@ -14,22 +14,23 @@ const DEFAULT_SETTINGS = {
 function AISettings() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [loaded, setLoaded] = useState(false)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [rescueResult, setRescueResult] = useState(null)
   const [rescueLoading, setRescueLoading] = useState(false)
 
   useEffect(() => {
     api.get('/api/settings/ai')
       .then(({ data }) => setSettings({ ...DEFAULT_SETTINGS, ...(data || {}) }))
-      .catch(() => toast.error('Failed to load AI settings'))
+      .catch(() => { setLoadFailed(true); toast.error('Failed to load AI settings') })
       .finally(() => setLoaded(true))
   }, [])
 
   useEffect(() => {
-    if (!loaded) return
+    if (!loaded || loadFailed) return
     const { aggressiveness, autoScheduling, smartPrioritization, rescueMode, quality } = settings
     api.put('/api/settings/ai', { aggressiveness, autoScheduling, smartPrioritization, rescueMode, quality })
       .catch(() => toast.error('Failed to save AI settings'))
-  }, [settings, loaded])
+  }, [settings, loaded, loadFailed])
 
   const toggle = (key) => {
     const updated = { ...settings, [key]: !settings[key] }

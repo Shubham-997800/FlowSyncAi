@@ -12,7 +12,7 @@ import AIRecommendation from './AIRecommendation'
 import DeadlineRisk from './DeadlineRisk'
 import TodayTasks from './TodayTasks'
 import RecentActivity from './RecentActivity'
-import { getTasks, updateTask, deleteTask } from '../../services/taskService'
+import { getTasks, updateTask, deleteTask, createTask } from '../../services/taskService'
 import toast from 'react-hot-toast'
 
 // Main dashboard page with cards, widgets, AI recommendations, and activity feed
@@ -111,6 +111,7 @@ function Dashboard() {
   const [showWidgetMenu, setShowWidgetMenu] = useState(false)
   const intervalRef = useRef(null)
   const tasksRef = useRef(tasks)
+  const refreshingRef = useRef(false)
   useEffect(() => { tasksRef.current = tasks }, [tasks])
 
   const fetchTasks = useCallback(async () => {
@@ -124,13 +125,19 @@ function Dashboard() {
   }, [])
 
   const handleRefresh = useCallback(async () => {
+    if (refreshingRef.current) return
+    refreshingRef.current = true
     setRefreshing(true)
     try {
-      const data = await fetchTasks()
+      const data = await Promise.race([
+        fetchTasks(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('refresh_timeout')), 10000)),
+      ])
       applyTasks(data)
     } catch {
       toast.error('Failed to load tasks')
     }
+    refreshingRef.current = false
     setRefreshing(false)
   }, [fetchTasks, applyTasks])
 
@@ -176,9 +183,16 @@ function Dashboard() {
     const current = tasksRef.current
     const deleted = current.find(t => t._id === id)
     setTasks(prev => prev.filter(t => t._id !== id))
-    const undo = () => {
-      if (deleted) setTasks(prev => [...prev, deleted])
+    const undo = async () => {
       toast.dismiss()
+      if (!deleted) return
+      try {
+        const restored = await createTask(deleted)
+        setTasks(prev => [...prev, restored])
+      } catch {
+        setTasks(prev => [...prev, deleted])
+        toast.error('Could not restore task')
+      }
     }
     toast(
       <div className="flex items-center gap-3">

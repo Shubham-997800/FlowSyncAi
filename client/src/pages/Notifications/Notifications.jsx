@@ -40,6 +40,7 @@ function Notifications() {
   const [notifications, setNotifications] = useState([])
   const [activeTab, setActiveTab] = useState('all')
   const [aiGroups, setAiGroups] = useState(null)
+  const [aiSnapshot, setAiSnapshot] = useState([])
   const [aiLoading, setAiLoading] = useState(false)
 
   useEffect(() => {
@@ -58,9 +59,11 @@ function Notifications() {
   const organizeWithAI = () => {
     if (notifications.length === 0) return
     setAiLoading(true)
+    const snapshot = notifications
     Promise.resolve().then(async () => {
       try {
-        const data = await organizeNotifications(notifications.map((n, i) => ({ ...n, _index: i })))
+        const data = await organizeNotifications(snapshot.map((n, i) => ({ ...n, _index: i })))
+        setAiSnapshot(snapshot)
         setAiGroups(data)
         setActiveTab('ai')
       } catch {
@@ -195,7 +198,7 @@ function Notifications() {
                   </div>
                   <div className="space-y-2">
                     {group.notificationIds.map(idx => {
-                      const n = notifications[idx]
+                      const n = aiSnapshot[idx]
                       if (!n) return null
                       return <motion.div key={n.id} variants={itemVariants}>
                         {(n.type === 'alert' || n.type === 'deadline_alert') ? <AlertCard notification={n} onMarkRead={markRead} /> :

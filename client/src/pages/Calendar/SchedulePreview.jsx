@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Brain, Clock, AlertTriangle, CheckCircle, Lightbulb, Loader2, Zap } from 'lucide-react'
 import { prioritizeTasks } from '../../services/aiService'
+import { getTodayKey } from '../../utils/date'
 
 // Sidebar panel showing AI task rankings and schedule suggestions
 function SchedulePreview({ tasks, selectedDate }) {
   const [aiRankings, setAiRankings] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayKey()
   const dateStr = selectedDate || today
   const dayTasks = tasks.filter(t => t.dueDate === dateStr)
   const completed = dayTasks.filter(t => t.status === 'done').length
@@ -21,21 +22,19 @@ function SchedulePreview({ tasks, selectedDate }) {
     let mounted = true
     Promise.resolve().then(() => {
       if (!mounted) return
+      setAiRankings([])
+      setLoading(true)
       if (dayTasks.length === 0) {
-        setAiRankings([])
         setLoading(false)
-      } else {
-        setLoading(true)
+        return
       }
-    })
-    if (dayTasks.length > 0) {
       prioritizeTasks()
         .then(res => {
           if (mounted && res?.rankings) setAiRankings(res.rankings)
         })
         .catch(() => {})
         .finally(() => { if (mounted) setLoading(false) })
-    }
+    })
     return () => { mounted = false }
   }, [dateStr, dayTasks.length])
 

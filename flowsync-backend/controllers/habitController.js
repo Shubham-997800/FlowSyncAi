@@ -1,4 +1,4 @@
-const Habit = require('../models/Habit')
+﻿const Habit = require('../models/Habit')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { localDateKey } = require('../utils/dateKey')
@@ -48,7 +48,7 @@ const updateHabit = async (req, res) => {
     const habit = await Habit.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       sanitize(req.body),
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
     if (!habit) return res.status(404).json({ message: 'Habit not found' })
     res.json(habit)

@@ -18,9 +18,15 @@ export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, { user: null, loading: true })
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    const token = localStorage.getItem('token')
-    dispatch({ type: 'INIT', user: storedUser && token ? JSON.parse(storedUser) : null })
+    let user = null
+    try {
+      const storedUser = localStorage.getItem('user')
+      const token = localStorage.getItem('token')
+      user = storedUser && token ? JSON.parse(storedUser) : null
+    } catch {
+      localStorage.removeItem('user')
+    }
+    dispatch({ type: 'INIT', user })
   }, [])
 
   const persistSession = (data) => {

@@ -14,6 +14,7 @@ import { getGoals } from '../../services/goalService'
 import { getHabits } from '../../services/habitService'
 import ReportExportMenu from '../../components/ReportExportMenu'
 import { buildReportData, exportReport } from '../../utils/exportReport'
+import { getTodayKey, toDateKey } from '../../utils/date'
 
 // Analytics dashboard with charts, AI insights, achievements, and export
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
@@ -44,7 +45,12 @@ function Analytics() {
   const total = tasks.length
   const completed = tasks.filter(t => t.status === 'done').length
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0
-  const overdue = tasks.filter(t => t.deadline && t.status !== 'done' && new Date(t.deadline).toISOString().split('T')[0] < new Date().toISOString().split('T')[0]).length
+  const todayKey = getTodayKey()
+  const overdue = tasks.filter(t => {
+    if (!t.deadline || t.status === 'done') return false
+    const d = toDateKey(t.deadline)
+    return d !== null && d < todayKey
+  }).length
   const focusSessions = parseInt(localStorage.getItem('flowsync_focus_sessions') || '0')
   const focusMinutes = parseInt(localStorage.getItem('flowsync_focus_minutes') || '0')
   const habitStreaks = habits.filter(h => (h.streak || 0) >= 3).length

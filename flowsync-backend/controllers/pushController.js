@@ -1,25 +1,20 @@
-const PushSubscription = require('../models/PushSubscription')
+﻿const PushSubscription = require('../models/PushSubscription')
 const webpush = require('web-push')
+const { initPush } = require('../utils/pushConfig')
 
 const { handleError } = require('../utils/errorHandler')
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || ''
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
-const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:support@flowsync-ai.com'
 
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  try {
-    webpush.setVapidDetails(
-      VAPID_SUBJECT,
-      VAPID_PUBLIC_KEY,
-      VAPID_PRIVATE_KEY
-    )
-  } catch (err) {
-    console.error('Push notifications disabled — invalid VAPID keys:', err.message)
-  }
+const pushStatus = initPush()
+
+const status = async (req, res) => {
+  res.json({ enabled: pushStatus.enabled })
 }
 
 const subscribe = async (req, res) => {
   try {
+    if (!pushStatus.enabled) {
+      return res.status(400).json({ message: 'Push notifications are not configured on the server' })
+    }
     const { endpoint, keys } = req.body
     if (!endpoint || !keys?.p256dh || !keys?.auth) {
       return res.status(400).json({ message: 'Invalid subscription' })
@@ -29,7 +24,7 @@ const subscribe = async (req, res) => {
       await PushSubscription.findOneAndUpdate(
         { endpoint, user: req.user._id },
         { user: req.user._id, endpoint, keys },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       )
     } catch (err) {
       if (err.code === 11000) {
@@ -80,4 +75,4 @@ async function sendPushToUser(userId, payload) {
   }
 }
 
-module.exports = { subscribe, unsubscribe, sendPushToUser }
+module.exports = { status, subscribe, unsubscribe, sendPushToUser }

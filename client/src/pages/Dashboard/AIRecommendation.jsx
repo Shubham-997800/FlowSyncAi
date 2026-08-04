@@ -28,12 +28,15 @@ const AIRecommendation = memo(function AIRecommendation() {
   const [error, setError] = useState(null)
   const mountedRef = useRef(true)
 
-  useEffect(() => { return () => { mountedRef.current = false } }, [])
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
-  const fetchRecommendations = useCallback(async () => {
+  const fetchRecommendations = useCallback(async (force = false) => {
     try {
       const cached = sessionStorage.getItem('flowsync_ai_cache')
-      if (cached) {
+      if (cached && !force) {
         const parsed = JSON.parse(cached)
         if (Date.now() - parsed.timestamp < 300000) {
           return { data: parsed.data }
@@ -80,20 +83,36 @@ const AIRecommendation = memo(function AIRecommendation() {
     }
   }, [])
 
+  const applyResult = useCallback((result) => {
+    if (result.error) {
+      setError(result.error)
+      setRecommendations(result.fallback)
+    } else {
+      setError(null)
+      setRecommendations(result.data)
+    }
+  }, [])
+
+  const runLoad = useCallback(async (force = false) => {
+    try {
+      const result = await fetchRecommendations(force)
+      if (mountedRef.current) applyResult(result)
+    } catch {
+      if (mountedRef.current) setError('Failed to fetch')
+    } finally {
+      if (mountedRef.current) setLoading(false)
+    }
+  }, [fetchRecommendations, applyResult])
+
   useEffect(() => {
+    let mounted = true
+    mountedRef.current = true
     fetchRecommendations()
-      .then(result => {
-        if (!mountedRef.current) return
-        if (result.error) {
-          setError(result.error)
-          setRecommendations(result.fallback)
-        } else {
-          setRecommendations(result.data)
-        }
-      })
-      .catch(() => { if (mountedRef.current) setError('Failed to fetch') })
-      .finally(() => { if (mountedRef.current) setLoading(false) })
-  }, [fetchRecommendations])
+      .then(result => { if (mounted) applyResult(result) })
+      .catch(() => { if (mounted) setError('Failed to fetch') })
+      .finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false; mountedRef.current = false }
+  }, [fetchRecommendations, applyResult])
 
   return (
     <section className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-slate-200 dark:border-zinc-800">
@@ -105,7 +124,7 @@ const AIRecommendation = memo(function AIRecommendation() {
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">AI Productivity Coach</h2>
         </div>
         <button
-          onClick={() => fetchRecommendations(false)}
+          onClick={() => { setLoading(true); setError(null); runLoad(true) }}
           disabled={loading}
           className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition disabled:opacity-50"
           title="Refresh recommendations"
@@ -124,7 +143,7 @@ const AIRecommendation = memo(function AIRecommendation() {
         <div className="text-center py-6">
           <AlertCircle size={32} className="mx-auto mb-3 text-red-400" />
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{error}</p>
-          <button onClick={() => fetchRecommendations(false)} className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">
+          <button onClick={() => { setLoading(true); setError(null); runLoad(true) }} className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">
             Retry
           </button>
         </div>

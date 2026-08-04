@@ -81,7 +81,7 @@ export function useSwipeNavigation(onEdgeOpen) {
     edgeRef.current = false
     if (dt > 600 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.2) return
 
-    if (dx > 70 && wasEdge) {
+    if (dx > 0 && wasEdge) {
       onEdgeOpen?.()
       return
     }

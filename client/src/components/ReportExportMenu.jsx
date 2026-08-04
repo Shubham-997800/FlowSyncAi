@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Download, Loader2, Check, FileText, FileCode2, FileJson, FileType, FileSpreadsheet, FileDown } from 'lucide-react'
+import { EXPORT_FORMATS } from '../utils/exportReport'
 
 const ICONS = { pdf: FileText, docx: FileText, txt: FileType, json: FileJson, xml: FileCode2, csv: FileSpreadsheet }
 
@@ -15,14 +16,7 @@ export default function ReportExportMenu({ onExport, disabled }) {
     return () => document.removeEventListener('mousedown', close)
   }, [])
 
-  const options = [
-    { value: 'pdf', label: 'PDF' },
-    { value: 'docx', label: 'DOCX' },
-    { value: 'txt', label: 'Text' },
-    { value: 'json', label: 'JSON' },
-    { value: 'xml', label: 'XML' },
-    { value: 'csv', label: 'CSV' },
-  ]
+  const options = EXPORT_FORMATS
 
   const handle = async (value) => {
     setOpen(false)

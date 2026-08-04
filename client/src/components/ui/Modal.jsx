@@ -9,11 +9,10 @@ function Modal({ isOpen, onClose, title, children }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-      setTimeout(() => closeRef.current?.focus(), 50)
-    } else {
-      document.body.style.overflow = ''
+      const timer = setTimeout(() => closeRef.current?.focus(), 50)
+      return () => { document.body.style.overflow = ''; clearTimeout(timer) }
     }
-    return () => { document.body.style.overflow = '' }
+    document.body.style.overflow = ''
   }, [isOpen])
 
   useEffect(() => {
@@ -39,11 +38,15 @@ function Modal({ isOpen, onClose, title, children }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            aria-hidden="true"
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
             ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
             initial={{ opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -51,8 +54,8 @@ function Modal({ isOpen, onClose, title, children }) {
             className="relative z-10 w-full max-w-2xl max-h-[80vh] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 flex flex-col overflow-hidden"
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-zinc-800">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
-              <button ref={closeRef} onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
+              <h2 id="modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+              <button ref={closeRef} onClick={onClose} aria-label="Close dialog" className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
                 <X size={20} />
               </button>
             </div>

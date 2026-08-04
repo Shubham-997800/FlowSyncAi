@@ -1,4 +1,4 @@
-const Notification = require('../models/Notification')
+﻿const Notification = require('../models/Notification')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { sanitizeText } = require('../utils/sanitize')
@@ -36,7 +36,7 @@ const markRead = async (req, res) => {
     const n = await Notification.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       { status: 'read' },
-      { new: true }
+      { returnDocument: 'after' }
     )
     if (!n) return res.status(404).json({ message: 'Not found' })
     res.json(n)

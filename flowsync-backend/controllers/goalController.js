@@ -1,4 +1,4 @@
-const Goal = require('../models/Goal')
+﻿const Goal = require('../models/Goal')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { sanitizeText } = require('../utils/sanitize')
@@ -47,7 +47,7 @@ const updateGoal = async (req, res) => {
     const goal = await Goal.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       sanitize(req.body),
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     )
     if (!goal) return res.status(404).json({ message: 'Goal not found' })
     res.json(goal)

@@ -38,7 +38,10 @@ app.use(helmet({
 app.use(helmet.hsts({ maxAge: 31536000, includeSubDomains: true, preload: true }))
 app.use(helmet.referrerPolicy({ policy: 'strict-origin-when-cross-origin' }))
 morgan.token('req-id', (req) => req.id)
-app.use(morgan(process.env.NODE_ENV === 'production' ? ':req-id :remote-addr :method :url :status :res[content-length] - :response-time ms' : ':req-id :method :url :status :response-time ms'))
+const morganFormat = process.env.LOG_JSON === 'true'
+  ? JSON.stringify({ ts: ':date[iso]', id: ':req-id', method: ':method', url: ':url', status: ':status', durationMs: ':response-time' })
+  : (process.env.NODE_ENV === 'production' ? ':req-id :remote-addr :method :url :status :res[content-length] - :response-time ms' : ':req-id :method :url :status :response-time ms')
+app.use(morgan(morganFormat, { skip: (req) => req.path === '/api/health' }))
 const allowedOrigins = [
   process.env.CLIENT_URL,
   process.env.CLIENT_URL_2,

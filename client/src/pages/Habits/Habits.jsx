@@ -5,32 +5,25 @@ import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { getHabits, createHabit, updateHabit as updateHabitApi, deleteHabit as deleteHabitApi } from '../../services/habitService'
 import { getHabitInsights } from '../../services/aiService'
-
-function getWeekDates() {
-  const dates = []
-  const now = new Date()
-  const start = new Date(now)
-  start.setDate(now.getDate() - now.getDay())
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(start)
-    d.setDate(start.getDate() + i)
-    dates.push(d.toISOString().split('T')[0])
-  }
-  return dates
-}
-
-function getToday() { return new Date().toISOString().split('T')[0] }
+import { getTodayKey, getWeekDateKeys, toDateKey } from '../../utils/date'
 
 function HabitForm({ habit, onSave, onClose }) {
   const [title, setTitle] = useState(habit?.title || '')
   const [frequency, setFrequency] = useState(habit?.frequency || 'daily')
+  const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim()) return toast.error('Habit title is required')
-    await onSave({ title: title.trim(), frequency })
-    toast.success(habit ? 'Habit updated' : 'Habit created')
-    onClose()
+    if (saving) return
+    setSaving(true)
+    try {
+      await onSave({ title: title.trim(), frequency })
+      toast.success(habit ? 'Habit updated' : 'Habit created')
+      onClose()
+    } catch {
+      toast.error('Failed to save habit')
+    } finally { setSaving(false) }
   }
 
   return (
@@ -55,7 +48,7 @@ function HabitForm({ habit, onSave, onClose }) {
               ))}
             </div>
           </div>
-          <button type="submit" className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition">{habit ? 'Update Habit' : 'Create Habit'}</button>
+          <button type="submit" disabled={saving} className="w-full bg-indigo-600 dark:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 dark:hover:bg-indigo-600 transition disabled:opacity-60">{habit ? 'Update Habit' : 'Create Habit'}</button>
         </form>
       </div>
     </div>
@@ -122,13 +115,17 @@ function Habits() {
   }
 
   const deleteHabit = async (id) => {
-    await deleteHabitApi(id)
-    await reload()
-    toast.success('Habit deleted')
+    try {
+      await deleteHabitApi(id)
+      await reload()
+      toast.success('Habit deleted')
+    } catch {
+      toast.error('Failed to delete habit')
+    }
   }
 
   const toggleLog = async (id) => {
-    const today = getToday()
+    const today = getTodayKey()
     const h = habits.find(x => x._id === id)
     if (!h) return
     const hasLogged = h.logs?.includes(today)
@@ -137,7 +134,7 @@ function Habits() {
     let streak = 0
     const checkDate = new Date()
     while (true) {
-      const d = checkDate.toISOString().split('T')[0]
+      const d = toDateKey(checkDate)
       if (sortedLogs.includes(d)) { streak++; checkDate.setDate(checkDate.getDate() - 1) }
       else break
     }
@@ -145,8 +142,8 @@ function Habits() {
     try { await updateHabitApi(id, { logs: sortedLogs, streak }) } catch { toast.error('Failed to update habit') }
   }
 
-  const today = getToday()
-  const weekDates = getWeekDates()
+  const today = getTodayKey()
+  const weekDates = getWeekDateKeys()
   const doneCount = habits.filter(h => h.logs?.includes(today)).length
 
   return (
@@ -282,7 +279,7 @@ function Habits() {
                 <motion.div key={habit._id} variants={itemVariants} className={`bg-white dark:bg-zinc-900 rounded-2xl p-5 border transition ${isDone ? 'border-indigo-200 dark:border-indigo-800' : 'border-slate-200 dark:border-zinc-800'} hover:shadow-sm`}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <button onClick={() => toggleLog(habit._id)} className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${isDone ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'}`}>
+                      <button onClick={() => toggleLog(habit._id)} aria-label={isDone ? `Mark ${habit.title} as not done` : `Mark ${habit.title} as done`} className={`w-10 h-10 rounded-xl flex items-center justify-center transition ${isDone ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'}`}>
                         <CheckCircle2 size={20} />
                       </button>
                       <div>
