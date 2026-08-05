@@ -178,6 +178,7 @@ function Dashboard() {
   }, [fetchTasks, applyTasks])
 
   useEffect(() => {
+    mountedRef.current = true
     fetchTasks()
       .then(data => { if (mountedRef.current) { applyTasks(data); sessionStorage.setItem('flowsync_tasks_cache', JSON.stringify(data)) } })
       .catch(() => {
