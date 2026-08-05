@@ -27,7 +27,7 @@
   <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tests-200%2F200-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/Tests-226%2F226-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/actions/workflow/status/Shubham-997800/FlowSync-Ai/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.6_Current-22c55e?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.7_Current-22c55e?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -469,7 +469,7 @@ flowsync-ai/
 │   │   └── validateId.js                  # ObjectId validation
 │   │
 │   ├── test/
-│   │   └── run-tests.js                   # 135-test integration harness (real Mongo, same handler Vercel runs)
+│   │   └── run-tests.js                   # 147-test integration harness (real Mongo, same handler Vercel runs)
 │   │
 │   └── package.json
 │
@@ -823,6 +823,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 | **v3.4** | `Live Fix` | Frontend + backend deploy as **one Vercel project** (same-origin `/api/*`, no CORS), live `/api/health` 200. Report export (PDF/DOCX/TXT/JSON/XML/CSV) + unified `{ message, code }` error handling. |
 | **v3.5** | `Polish + Coverage` | **AI quality tiers** (Fast/Balanced/Smart), **AI chat context** (last 8 messages), **AI usage meter**, keyboard shortcuts + swipe nav, device onboarding. Rate-limit `code`, `headersSent` guard, daily AI limit 400. **Backend 135/135 + frontend 58/58 tests, lint clean, build green.** |
 | **v3.6** | `Auto Tone + Mobile` | Removed the AI mode/quality chooser from the chat and Settings — the assistant now **auto-detects tone** (fun / companion / normal) from the message. Mobile AI chat overhaul: header fits 320–360px, `break-words`/`overflow-wrap` on bubbles (long URLs & code), `100dvh` shell + safe-area input, touch-visible delete buttons, full-height mobile history drawer, `viewport-fit=cover` + `interactive-widget=resizes-content`. Reliability: stop retrying HTTP 429, throttle redundant deadline checks, drop CSP-blocked Google Fonts preload. **Backend 135/135 + frontend 65/65 tests, lint clean, build green.** |
+| **v3.7** | `Reliability + Sec + Mobile` | **Dashboard can never blank on refresh**: tasks cached in `sessionStorage` (instant paint), per-widget error boundaries, identical in-flight GET dedupe (halves API chatter), and hard-logout only on genuinely invalid tokens (transient 429/5xx no longer logs you out). **Every popup/modal verified fully on-screen at 320–390px** (notification/permission dropdowns became full-width panels, task/goal/onboarding got max-h + scroll, no 2-line button labels). **Security**: refresh token moved out of localStorage into an **httpOnly SameSite=Lax cookie** (30d, Secure in prod) with rotation + reuse-revocation + cookie clear on logout — XSS can't steal the long-lived credential. **DB**: `{ deadline: 1 }` index so the reminder sweep avoids a collection scan. AI task-create + push subscribe now map validation errors to 400. a11y labels on the AI-chat drawer toggle + notification bell. Test harness split into integration + pure-unit suites. **Backend 161/161 (147 integration + 14 unit) + frontend 65/65 tests, lint clean, build green, all live-audited.** |
 
 ---
 
@@ -830,7 +831,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 135/135 + frontend 65/65 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
+**Current status: backend 161/161 (147 integration + 14 unit) + frontend 65/65 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
 
 | Coverage Area | What's Verified |
 |---|---|
@@ -853,7 +854,8 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 ```bash
 cd flowsync-backend
 npm install
-node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 135 checks
+node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 147 integration checks
+node test/unit-tests.js    # 14 pure unit tests (error handler + AI model tiers) — no server needed
 
 cd ../client
 npm install
