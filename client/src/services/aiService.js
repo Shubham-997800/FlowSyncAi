@@ -6,8 +6,8 @@ export const prioritizeTasks = async () => {
   return data
 }
 
-export const chatAI = async (message, sessionId, mode = 'normal') => {
-  const { data } = await api.post('/api/ai/chat', { message, sessionId, mode })
+export const chatAI = async (message, sessionId) => {
+  const { data } = await api.post('/api/ai/chat', { message, sessionId })
   return data
 }
 

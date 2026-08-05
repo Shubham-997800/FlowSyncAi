@@ -5,3 +5,15 @@
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  main,
+  article,
+  [class*="max-w-md"],
+  [class*="max-w-lg"] {
+    overflow-wrap: anywhere;
+  }
+}

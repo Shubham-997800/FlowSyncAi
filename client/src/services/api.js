@@ -16,7 +16,7 @@ const api = axios.create({
 })
 
 const MAX_RETRIES = 2
-const RETRYABLE_STATUS = [408, 429, 500, 502, 503, 504]
+const RETRYABLE_STATUS = [408, 500, 502, 503, 504]
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 

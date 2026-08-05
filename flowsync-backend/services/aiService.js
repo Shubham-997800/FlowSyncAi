@@ -162,6 +162,15 @@ function dedupeHistory(history = [], message = '') {
   return history.filter((m, i, arr) => !(i === arr.length - 1 && m.role === 'user' && m.text === message))
 }
 
+function detectToneMode(message = '') {
+  const text = message.toLowerCase()
+  const funPatterns = /\b(joke|jokes|roast|funny|fun|laugh|meme|memes|game|games|riddle|trivia|would you rather|20 questions|entertain|bored|masti|hasao|hansao|comedy)\b/
+  const companionPatterns = /\b(i love you|love you|i miss you|miss you|heartbroken|broken heart|girlfriend|boyfriend|romantic|feeling low|comfort me|hug me|be my gf|be my boyfriend|something sweet|chit chat with me)\b/
+  if (funPatterns.test(text)) return 'fun'
+  if (companionPatterns.test(text)) return 'gf'
+  return 'normal'
+}
+
 function chatSystemPrompt(mode) {
   const emojiRules = `- UNDERSTAND EMOJIS: Read emojis the user sends as real feelings/expressions (😂 = laughing, 😡 = angry, 🥺 = emotional, ❤️ = love/affection, 😭 = crying/sad, 😅 = awkward, 🙏 = please/thankful). Acknowledge the emotion they convey and respond accordingly — if the user is sad, be comforting; if laughing, keep the fun going; if angry, match with understanding first.
 - USE EMOJIS NATURALLY: Sprinkle a few emojis in your replies whenever an emotion or expression needs to be shown (reassurance ❤️, excitement 🎉, warning ⚠️, frustration 😤, approval ✅, motivation 💪). Match the user's emoji style — if they use none, use few; if they use lots, match that energy. Never overdo it.`
@@ -254,7 +263,7 @@ If no tasks to create, set "tasks" to [].`
 async function chatWithContext(message, tasks = [], goals = [], habits = [], opts = {}) {
   const quality = opts.quality
   const history = dedupeHistory(opts.history || [], message)
-  const mode = opts.mode === 'fun' || opts.mode === 'gf' ? opts.mode : 'normal'
+  const mode = opts.mode || detectToneMode(message)
   const sysMsg = chatSystemPrompt(mode)
 
   const historyText = history.length > 0

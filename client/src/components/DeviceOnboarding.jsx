@@ -6,7 +6,7 @@ const desktopFeatures = [
   { icon: Keyboard, title: 'Keyboard shortcuts', desc: 'Press 1-9 to jump to any page, ← → to switch pages, and ? for the full shortcut list.' },
   { icon: MonitorSmartphone, title: 'Always-visible sidebar', desc: 'Navigate instantly from the sidebar. Hover items for quick context and badge previews.' },
   { icon: BellRing, title: 'Multi-tasking', desc: 'Switch between Dashboard, Calendar, Tasks and AI Chat without losing your work.' },
-  { icon: Check, title: 'AI quality control', desc: 'Pick Fast, Balanced or Smart AI from the AI Chat header or Settings to match your needs.' },
+  { icon: Check, title: 'Smart AI chat', desc: 'The AI understands your tone and language automatically — chat naturally in Hindi, Hinglish or English.' },
 ]
 
 const mobileFeatures = [

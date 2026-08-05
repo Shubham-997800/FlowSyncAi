@@ -49,6 +49,12 @@ function MainLayout() {
   useEffect(() => {
     if (!user) return
 
+    const DEADLINE_CHECK_COOLDOWN = 120000
+    const LAST_CHECK_KEY = 'flowsync_deadline_check_at'
+    const lastCheck = Number(sessionStorage.getItem(LAST_CHECK_KEY) || 0)
+    if (Date.now() - lastCheck < DEADLINE_CHECK_COOLDOWN) return
+    sessionStorage.setItem(LAST_CHECK_KEY, String(Date.now()))
+
     const checkDeadlines = async () => {
       try {
         const { data: tasks } = await api.get('/api/tasks')
