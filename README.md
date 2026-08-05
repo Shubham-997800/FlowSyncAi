@@ -27,7 +27,7 @@
   <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tests-193%2F193-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/Tests-200%2F200-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/actions/workflow/status/Shubham-997800/FlowSync-Ai/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.5_Current-22c55e?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.6_Current-22c55e?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -147,7 +147,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | **AI Chat Assistant** | Conversational interface — say "Schedule a standup at 10am tomorrow" and the task is created, prioritized, and slotted into your calendar. Chat history is persisted to the database across sessions. |
 | **AI Chat History** | Every conversation is saved to MongoDB — browse past chats, delete individual messages, or clear entire history with "New Chat" button. |
 | **AI Chat Context** | The assistant remembers the last 8 messages of the current session and grounds every reply in your real tasks, goals, and habits — no invented tasks. |
-| **AI Response Quality** | Pick **Fast / Balanced / Smart** model tiers from the AI Chat header or Settings — low/medium/high quality maps to cheaper-faster or smarter-slower model chains. |
+| **AI Chat Auto Tone** | No mode chooser needed — the assistant auto-detects the tone of your message (fun / companion / normal) and matches it. Ask "make it fun" or roast-style prompts and the tone shifts naturally; otherwise it stays helpful and task-focused. Model tier is controlled by AI settings, not the chat UI. |
 | **AI Usage Meter** | Live "used/limit today" counter in the AI Chat header so you always know your remaining daily AI quota. |
 | **Multilingual AI Chat** | Auto-detects user language (Hindi, Hinglish, English, Spanish, etc.) and responds in the same language — including Hinglish (Devanagari + English mix). |
 | **Smart Daily Planning** | AI analyzes all pending tasks, deadlines, and priorities to generate an optimal day schedule with focused work blocks, breaks, and buffers. |
@@ -160,7 +160,7 @@ We believe productivity tools should work **for** you, not the other way around.
 | **AI Profile Summary** | Personalized productivity score, completion rate, best streak, top strength/weakness, actionable tip, daily goal recommendation, peak productivity time, and motivational message — all AI-generated via the profile-insights API. |
 | **AI Notification Organizer** | Smart "AI Sort" button that groups notifications by urgency/priority with AI-generated summaries and contextual reasons via the organize-notifications API. |
 | **AI Rescue Mode (Wired)** | Fully integrated Rescue Mode toggle in Settings — activates AI to identify critical tasks, compressed schedule, and drop recommendations when overloaded. |
-| **AI Preferences** | Aggressiveness (low/medium/high), **response quality (Fast/Balanced/Smart)**, auto-scheduling, smart prioritization and rescue-mode toggles — persisted to MongoDB and autosaved on every change. |
+| **AI Preferences** | Aggressiveness (low/medium/high), auto-scheduling, smart prioritization and rescue-mode toggles — persisted to MongoDB and autosaved on every change. |
 | **Productivity Coach** | AI-generated reports that highlight patterns, strengths, weaknesses, and actionable recommendations via the analytics-insights API. |
 
 | **Voice Input** | Speech-to-text via Web Speech API in the AI chat interface for hands-free task creation. |
@@ -201,12 +201,12 @@ Every core screen is covered below; for a visual walkthrough, open the live demo
 | 🏠 **Landing Page** | Animated hero, feature cards, how-it-works section, CTA with framer-motion scroll animations |
 | 📊 **Dashboard** | AI-powered priority cards, animated stat counters, sparkline charts, deadline risk pulse, recent activity, widget toggles |
 | 📝 **Tasks & Goals** | Full CRUD with inline edit, bulk select, sorting (priority/deadline/title), goal progress slider |
-| 🤖 **AI Planner** | Chat interface with voice input, session history, Fast/Balanced/Smart quality selector, live usage meter, task creation via natural language, rescue mode, daily planning |
+| 🤖 **AI Planner** | Chat interface with voice input, session history, auto tone detection, live usage meter, task creation via natural language, rescue mode, daily planning |
 | 📅 **Calendar** | Multi-view (monthly/weekly/daily) with AI-priority-ranked tasks, load indicators |
 | ⏱️ **Focus Mode** | Pomodoro timer with task integration, AI-suggested break timing, configurable intervals |
 | 📈 **Analytics** | Productivity score ring chart, completion trends, focus stats, AI-generated insights report |
 | 🔔 **Notifications** | Real-time drawer with grouped filters (Today/This Week/Earlier), deadline alerts |
-| ⚙️ **Settings** | Theme toggle (light/dark/system), AI preferences (aggressiveness, response quality, toggles), notification channels, account management |
+| ⚙️ **Settings** | Theme toggle (light/dark/system), AI preferences (aggressiveness, toggles), notification channels, account management |
 | 👤 **Profile** | Avatar upload, bio, stats overview, recent activity timeline |
 
 ---
@@ -724,7 +724,7 @@ flowchart TB
 | **Chat** | User message + current tasks context | `{ reply, tasks[], suggestions[] }` | Default polite response |
 | **Multilingual Chat** | Language detection + tone/style matching — supports Hindi, Hinglish, English, Spanish, French, German, Chinese, Japanese, Arabic, Korean, Portuguese, Russian, Italian, Turkish, Vietnamese, Thai, Indonesian, Bengali, Marathi, Tamil, Telugu, Gujarati, Urdu, Punjabi, and more | Same as Chat | Default English |
 | **Chat Context** | Last 8 messages of the current session fed as conversation history (current message de-duplicated) + grounded in real task/goal/habit data | Same as Chat | Default English |
-| **Response Quality** | Fast/Balanced/Smart tiers select which model chain to use (`quality` in AI settings) | `{ reply, tasks[], suggestions[] }` | Medium chain |
+| **Auto Tone Detection** | Message keyword/style analysis chooses a fun / companion / normal chat persona (temperature + prompt branch) | Same as Chat | Default English |
 | **Daily Plan** | User prompt + task list with deadlines | `{ priority[], schedule[], suggestions[], confidence }` | Empty plan |
 | **Prioritize** | Task list with IDs, titles, priorities | `{ rankings[], suggestedOrder[], summary }` | Equal scores |
 | **Rescue Mode** | Overloaded task list, 48h window | `{ criticalTasks[], compressedSchedule[], dropRecommendations[] }` | Empty arrays |
@@ -822,6 +822,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 | **v3.1–v3.3** | `Hardening` | NoSQL/regex injection closed, cross-user writes blocked, crash-proof VAPID, cascade account delete, AI quota on success only, token refresh rotation, CI pipeline, pagination, XSS sanitization, DB indexes, gzip + retry/backoff, frontend unit tests. |
 | **v3.4** | `Live Fix` | Frontend + backend deploy as **one Vercel project** (same-origin `/api/*`, no CORS), live `/api/health` 200. Report export (PDF/DOCX/TXT/JSON/XML/CSV) + unified `{ message, code }` error handling. |
 | **v3.5** | `Polish + Coverage` | **AI quality tiers** (Fast/Balanced/Smart), **AI chat context** (last 8 messages), **AI usage meter**, keyboard shortcuts + swipe nav, device onboarding. Rate-limit `code`, `headersSent` guard, daily AI limit 400. **Backend 135/135 + frontend 58/58 tests, lint clean, build green.** |
+| **v3.6** | `Auto Tone + Mobile` | Removed the AI mode/quality chooser from the chat and Settings — the assistant now **auto-detects tone** (fun / companion / normal) from the message. Mobile AI chat overhaul: header fits 320–360px, `break-words`/`overflow-wrap` on bubbles (long URLs & code), `100dvh` shell + safe-area input, touch-visible delete buttons, full-height mobile history drawer, `viewport-fit=cover` + `interactive-widget=resizes-content`. Reliability: stop retrying HTTP 429, throttle redundant deadline checks, drop CSP-blocked Google Fonts preload. **Backend 135/135 + frontend 65/65 tests, lint clean, build green.** |
 
 ---
 
@@ -829,7 +830,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 135/135 + frontend 58/58 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
+**Current status: backend 135/135 + frontend 65/65 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
 
 | Coverage Area | What's Verified |
 |---|---|
@@ -845,6 +846,7 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 | 🧭 **Navigation (client)** | Unit tests cover keyboard shortcuts (1-9/0, ←/→, ?), swipe navigation, and typing-target detection |
 | 🧩 **Error Handler (unit)** | `normalizeError` maps validation/duplicate/cast/JSON/payload/statusCode errors to the correct `{ statusCode, code, message }` |
 | 🤖 **AI Tiers (unit)** | Model-tier resolution (`resolveModels`) pins Fast/Balanced/Smart chains and always leads with the env-override model |
+| 🎭 **AI Auto Tone (unit)** | `detectToneMode` maps fun / companion / normal keywords to the correct chat persona, defaulting to normal |
 
 ### Running the tests
 
@@ -855,7 +857,7 @@ node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, 
 
 cd ../client
 npm install
-npm test                   # 58 Vitest unit tests
+npm test                   # 65 Vitest unit tests
 npm run lint && npm run build
 ```
 
