@@ -288,6 +288,8 @@ function AIPlanner() {
               whileTap={{ scale: 0.95 }}
               className="md:hidden p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-zinc-800/60 transition-colors flex-shrink-0"
               onClick={() => setShowSessions(!showSessions)}
+              aria-label={showSessions ? 'Close chat history' : 'Open chat history'}
+              title={showSessions ? 'Close chat history' : 'Open chat history'}
             >
               {showSessions ? <X size={18} /> : <MessageSquare size={18} />}
             </motion.button>

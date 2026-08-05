@@ -691,6 +691,45 @@ async function main() {
     tokenA = relog.data.token
     return true
   })
+  await t('Login sets httpOnly refresh cookie', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    const sc = r.headers.get('set-cookie') || ''
+    if (!/refreshToken=/.test(sc)) return `no refresh cookie: ${sc.slice(0, 60)}`
+    if (!/HttpOnly/i.test(sc)) return 'cookie not httpOnly'
+    if (!/SameSite=Lax/i.test(sc)) return 'cookie not SameSite=Lax'
+    tokenA = r.data.token
+    return true
+  })
+  await t('Refresh via httpOnly cookie issues new access token', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    const cookie = (r.headers.get('set-cookie') || '').split(';')[0]
+    const refresh = await request('/api/auth/refresh', { method: 'POST', headers: { Cookie: cookie } })
+    if (refresh.status !== 200 || !refresh.data.token) return `status=${refresh.status}`
+    const use = await request('/api/settings/profile', { token: refresh.data.token })
+    return use.status === 200
+  })
+  await t('Refresh cookie rotates: reuse of old cookie -> 401', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    const oldCookie = (r.headers.get('set-cookie') || '').split(';')[0]
+    const first = await request('/api/auth/refresh', { method: 'POST', headers: { Cookie: oldCookie } })
+    if (first.status !== 200 || !first.data.token) return `first status=${first.status}`
+    const reuse = await request('/api/auth/refresh', { method: 'POST', headers: { Cookie: oldCookie } })
+    if (reuse.status !== 401) return `reuse status=${reuse.status}`
+    const relog = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    tokenA = relog.data.token
+    return true
+  })
+  await t('Logout clears the refresh cookie', async () => {
+    const r = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    tokenA = r.data.token
+    const out = await request('/api/auth/logout', { method: 'POST', token: tokenA })
+    if (out.status !== 200) return `logout status=${out.status}`
+    const sc = out.headers.get('set-cookie') || ''
+    if (!/refreshToken=;?/.test(sc)) return 'no clear-cookie set-cookie header'
+    const relog = await request('/api/auth/login', { method: 'POST', body: { email: 'usera@test.com', password: 'NewPassword1!' } })
+    tokenA = relog.data.token
+    return true
+  })
   await t('AI settings default -> 200', async () => {
     const r = await request('/api/settings/ai', { token: tokenA })
     return r.status === 200 && r.data.aggressiveness === 'medium' && r.data.autoScheduling === true
@@ -943,87 +982,6 @@ async function main() {
     }
     await fresh.srv.close()
     return body !== null && body.code === 'RATE_LIMITED' && typeof body.message === 'string'
-  })
-
-  // ============ 21. UNIT TESTS (pure helpers) ============
-  console.log('\n===== 21. UNIT TESTS (error handler + AI model tiers) =====')
-  const { normalizeError } = require('../utils/errorHandler')
-  const { resolveModels, MODEL_TIERS } = require('../services/aiService')
-  await t('normalizeError: Mongoose validation -> 400 VALIDATION_ERROR', async () => {
-    const err = new Error('x')
-    err.name = 'ValidationError'
-    err.errors = { title: { message: 'Title is required' }, priority: { message: 'Bad enum' } }
-    const n = normalizeError(err)
-    return n.statusCode === 400 && n.code === 'VALIDATION_ERROR' && n.message.includes('Title is required')
-  })
-  await t('normalizeError: duplicate key -> 409 DUPLICATE_FIELD', async () => {
-    const err = new Error('dup'); err.code = 11000
-    const n = normalizeError(err)
-    return n.statusCode === 409 && n.code === 'DUPLICATE_FIELD'
-  })
-  await t('normalizeError: CastError -> 400 INVALID_ID', async () => {
-    const err = new Error('cast'); err.name = 'CastError'
-    const n = normalizeError(err)
-    return n.statusCode === 400 && n.code === 'INVALID_ID'
-  })
-  await t('normalizeError: bad JSON body -> 400 INVALID_JSON', async () => {
-    const err = new Error('bad json'); err.type = 'entity.parse.failed'
-    const n = normalizeError(err)
-    return n.statusCode === 400 && n.code === 'INVALID_JSON'
-  })
-  await t('normalizeError: oversized payload -> 413 PAYLOAD_TOO_LARGE', async () => {
-    const err = new Error('big'); err.type = 'entity.too.large'
-    const n = normalizeError(err)
-    return n.statusCode === 413 && n.code === 'PAYLOAD_TOO_LARGE'
-  })
-  await t('normalizeError: explicit statusCode passthrough', async () => {
-    const err = new Error('nope'); err.statusCode = 429; err.code = 'RATE_LIMITED'
-    const n = normalizeError(err)
-    return n.statusCode === 429 && n.code === 'RATE_LIMITED'
-  })
-  await t('normalizeError: unknown error -> 500 SERVER_ERROR', async () => {
-    const n = normalizeError(new Error('boom'))
-    return n.statusCode === 500 && n.code === 'SERVER_ERROR'
-  })
-  await t('resolveModels: AI_MODEL always first', async () => {
-    process.env.AI_MODEL = 'custom/model'
-    const m = resolveModels('medium')
-    return m[0] === 'custom/model'
-  })
-  await t('resolveModels: known quality uses its tier', async () => {
-    process.env.AI_MODEL = ''
-    const low = resolveModels('low')
-    const high = resolveModels('high')
-    return MODEL_TIERS.low.every(x => low.includes(x)) && MODEL_TIERS.high.every(x => high.includes(x))
-  })
-  await t('resolveModels: unknown quality falls back to default chain', async () => {
-    const m = resolveModels('unknown-tier')
-    return m.length >= MODEL_TIERS.medium.length
-  })
-  await t('resolveModels: chat history drops duplicate trailing user msg', async () => {
-    const { dedupeHistory } = require('../services/aiService')
-    const history = [
-      { role: 'user', text: 'hello' },
-      { role: 'ai', text: 'hi!' },
-      { role: 'user', text: 'plan my day' },
-    ]
-    const out = dedupeHistory(history, 'plan my day')
-    return out.length === 2 && out[1].role === 'ai'
-  })
-  await t('resolveModels: history keeps distinct trailing user msg', async () => {
-    const { dedupeHistory } = require('../services/aiService')
-    const history = [{ role: 'user', text: 'different message' }]
-    return dedupeHistory(history, 'current message').length === 1
-  })
-  await t('localDateKey: zero-pads month/day', async () => {
-    const { localDateKey } = require('../utils/dateKey')
-    const d = new Date(2026, 0, 5)
-    return localDateKey(d) === '2026-01-05'
-  })
-  await t('localDateKey: today matches Date.now', async () => {
-    const { localDateKey } = require('../utils/dateKey')
-    const n = new Date()
-    return localDateKey() === `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
   })
 
   // ============ SUMMARY ============

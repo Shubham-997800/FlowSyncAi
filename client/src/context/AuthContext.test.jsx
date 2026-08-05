@@ -28,7 +28,6 @@ function Consumer() {
 describe('AuthContext', () => {
   it('restores a session from localStorage on init', async () => {
     localStorage.setItem('token', 'abc')
-    localStorage.setItem('refreshToken', 'xyz')
     localStorage.setItem('user', JSON.stringify({ email: 'stored@b.com' }))
     render(
       <AuthProvider>
@@ -42,7 +41,6 @@ describe('AuthContext', () => {
     const user = userEvent.setup()
     authService.login.mockResolvedValue({
       token: 't',
-      refreshToken: 'r',
       user: { email: 'a@b.com' },
     })
     render(
@@ -53,14 +51,13 @@ describe('AuthContext', () => {
     await user.click(screen.getByText('login'))
     await waitFor(() => expect(screen.getByTestId('user')).toHaveTextContent('a@b.com'))
     expect(localStorage.getItem('token')).toBe('t')
-    expect(localStorage.getItem('refreshToken')).toBe('r')
     expect(localStorage.getItem('user')).toContain('a@b.com')
+    expect(localStorage.getItem('refreshToken')).toBeNull()
   })
 
   it('logs out and clears the session', async () => {
     const user = userEvent.setup()
     localStorage.setItem('token', 'abc')
-    localStorage.setItem('refreshToken', 'xyz')
     localStorage.setItem('user', JSON.stringify({ email: 'a@b.com' }))
     render(
       <AuthProvider>

@@ -5,7 +5,7 @@ const AiUsage = require('../models/AiUsage')
 const ChatMessage = require('../models/ChatMessage')
 const mongoose = require('mongoose')
 const aiService = require('../services/aiService')
-const { handleError } = require('../utils/errorHandler')
+const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { localDateKey } = require('../utils/dateKey')
 const { AI_DAILY_LIMIT } = require('../config/constants')
 
@@ -108,6 +108,7 @@ const chatAI = async (req, res) => {
     res.json(result)
   } catch (error) {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', reply: "AI service is currently unavailable due to quota limits. Please try again later or upgrade your API plan.", tasks: [], suggestions: [] })
+    if (error.name === 'ValidationError') return handleValidationError(res, error)
     handleError(res, error)
   }
 }

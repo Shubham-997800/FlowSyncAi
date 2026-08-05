@@ -15,5 +15,6 @@ const taskSchema = new mongoose.Schema({
 
 taskSchema.index({ user: 1, createdAt: -1 })
 taskSchema.index({ user: 1, status: 1, deadline: 1 })
+taskSchema.index({ deadline: 1 })
 
 module.exports = mongoose.model('Task', taskSchema)

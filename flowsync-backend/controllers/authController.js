@@ -5,12 +5,29 @@ const { sanitizeText } = require('../utils/sanitize')
 
 const ACCESS_TOKEN_TTL = '7d'
 const REFRESH_TOKEN_TTL = '30d'
+const REFRESH_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000
 
 const generateAccessToken = (id, tokenVersion) =>
   jwt.sign({ id, tokenVersion }, process.env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL })
 
 const generateRefreshToken = (id, tokenVersion, refreshVersion) =>
   jwt.sign({ id, tokenVersion, refreshVersion, type: 'refresh' }, process.env.JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL })
+
+const refreshCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+  maxAge: REFRESH_COOKIE_MAX_AGE,
+})
+
+const setRefreshCookie = (res, refreshToken) => {
+  res.cookie('refreshToken', refreshToken, refreshCookieOptions())
+}
+
+const clearRefreshCookie = (res) => {
+  res.clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' })
+}
 
 const buildAuthPayload = (user) => ({
   token: generateAccessToken(user._id, user.tokenVersion),
@@ -31,6 +48,7 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: 'An account with this email already exists. Try signing in.' })
     }
     const newUser = await User.create({ name: sanitizeText(name), email, password })
+    setRefreshCookie(res, generateRefreshToken(newUser._id, newUser.tokenVersion, newUser.refreshVersion))
     res.status(201).json({ message: 'Account created successfully.', ...buildAuthPayload(newUser) })
   } catch (error) {
     console.error('Signup error:', error.message, error.name)
@@ -62,6 +80,7 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
     await user.resetLoginAttempts()
+    setRefreshCookie(res, generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion))
     res.json(buildAuthPayload(user))
   } catch (error) {
     handleError(res, error)
@@ -70,7 +89,7 @@ const login = async (req, res) => {
 
 const refresh = async (req, res) => {
   try {
-    const { refreshToken } = req.body
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken
     if (!isNonEmptyString(refreshToken)) {
       return res.status(401).json({ message: 'Refresh token required' })
     }
@@ -86,16 +105,19 @@ const refresh = async (req, res) => {
     const user = await User.findById(decoded.id)
     if (!user) return res.status(401).json({ message: 'User not found' })
     if (user.tokenVersion !== decoded.tokenVersion) {
+      clearRefreshCookie(res)
       return res.status(401).json({ message: 'Session revoked. Please sign in again.' })
     }
     if (user.refreshVersion !== decoded.refreshVersion) {
       user.tokenVersion = (user.tokenVersion || 0) + 1
       user.refreshVersion = (user.refreshVersion || 0) + 1
       await user.save()
+      clearRefreshCookie(res)
       return res.status(401).json({ message: 'Refresh token reuse detected. Please sign in again.' })
     }
     user.refreshVersion = (user.refreshVersion || 0) + 1
     await user.save()
+    setRefreshCookie(res, generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion))
     res.json({ token: generateAccessToken(user._id, user.tokenVersion), refreshToken: generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion), user })
   } catch (error) {
     handleError(res, error)
@@ -106,6 +128,7 @@ const logout = async (req, res) => {
   try {
     req.user.tokenVersion = (req.user.tokenVersion || 0) + 1
     await req.user.save()
+    clearRefreshCookie(res)
     res.json({ message: 'Logged out' })
   } catch (error) {
     handleError(res, error)

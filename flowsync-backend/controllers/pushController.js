@@ -2,7 +2,7 @@
 const webpush = require('web-push')
 const { initPush } = require('../utils/pushConfig')
 
-const { handleError } = require('../utils/errorHandler')
+const { handleError, handleValidationError } = require('../utils/errorHandler')
 
 const pushStatus = initPush()
 
@@ -35,6 +35,7 @@ const subscribe = async (req, res) => {
 
     res.json({ message: 'Subscribed' })
   } catch (error) {
+    if (error.name === 'ValidationError') return handleValidationError(res, error)
     handleError(res, error)
   }
 }

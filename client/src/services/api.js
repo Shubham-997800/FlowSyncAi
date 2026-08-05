@@ -13,6 +13,9 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 15000,
+  // Send the httpOnly refresh-token cookie on cross-origin requests (local
+  // dev: 5173 -> 5000). Same-origin requests include cookies regardless.
+  withCredentials: true,
 })
 
 const MAX_RETRIES = 2
@@ -38,13 +41,12 @@ const clearSession = () => {
 }
 
 const attemptRefresh = async () => {
-  const refreshToken = localStorage.getItem('refreshToken')
-  if (!refreshToken) return null
+  // Refresh token lives in an httpOnly cookie — the client never sees it, so
+  // it can't be exfiltrated by an XSS payload from localStorage.
   lastRefreshError = null
   try {
-    const { data } = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken })
+    const { data } = await axios.post(`${API_URL}/api/auth/refresh`, {}, { withCredentials: true })
     localStorage.setItem('token', data.token)
-    localStorage.setItem('refreshToken', data.refreshToken)
     localStorage.setItem('user', JSON.stringify(data.user))
     return data.token
   } catch (err) {

@@ -31,7 +31,6 @@ export function AuthProvider({ children }) {
 
   const persistSession = (data) => {
     localStorage.setItem('token', data.token)
-    localStorage.setItem('refreshToken', data.refreshToken)
     localStorage.setItem('user', JSON.stringify(data.user))
   }
 
@@ -63,7 +62,6 @@ export function AuthProvider({ children }) {
       // best-effort: revoke server-side even if network fails silently
     }
     localStorage.removeItem('token')
-    localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     dispatch({ type: 'LOGOUT' })
   }
