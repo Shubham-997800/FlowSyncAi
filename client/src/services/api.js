@@ -26,6 +26,7 @@ const isRetryable = (error) =>
   (error.response ? RETRYABLE_STATUS.includes(error.response.status) : true)
 
 let refreshPromise = null
+let lastRefreshError = null
 
 const clearSession = () => {
   localStorage.removeItem('token')
@@ -39,13 +40,15 @@ const clearSession = () => {
 const attemptRefresh = async () => {
   const refreshToken = localStorage.getItem('refreshToken')
   if (!refreshToken) return null
+  lastRefreshError = null
   try {
     const { data } = await axios.post(`${API_URL}/api/auth/refresh`, { refreshToken })
     localStorage.setItem('token', data.token)
     localStorage.setItem('refreshToken', data.refreshToken)
     localStorage.setItem('user', JSON.stringify(data.user))
     return data.token
-  } catch {
+  } catch (err) {
+    lastRefreshError = err
     return null
   }
 }
@@ -72,6 +75,14 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${newToken}`
         return api(original)
       }
+      // Refresh failed. Only hard-logout when the token is genuinely invalid
+      // (401/403). Transient failures (429 / 5xx / network) must NOT kick the
+      // user out mid-refresh — the request fails silently and retries later.
+      const rs = lastRefreshError?.response?.status
+      if (rs === 401 || rs === 403) {
+        clearSession()
+      }
+      return Promise.reject(error)
     }
     if (error.response?.status === 401) {
       clearSession()
@@ -88,5 +99,20 @@ api.interceptors.response.use(
     return Promise.reject(error)
   },
 )
+
+// Deduplicate identical in-flight GET requests (e.g. Dashboard + AIRecommendation
+// both fetching /api/tasks, Sidebar + NotificationPopup both fetching
+// /api/notifications). This halves API chatter on every page load and reduces
+// pressure on rate limits during rapid refreshes.
+const inflightGets = new Map()
+const _get = api.get.bind(api)
+api.get = (url, config = {}) => {
+  const key = `${url}|${config.params ? JSON.stringify(config.params) : ''}`
+  const existing = inflightGets.get(key)
+  if (existing) return existing
+  const promise = _get(url, config).finally(() => { inflightGets.delete(key) })
+  inflightGets.set(key, promise)
+  return promise
+}
 
 export default api

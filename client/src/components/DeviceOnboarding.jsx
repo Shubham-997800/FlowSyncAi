@@ -39,7 +39,7 @@ function DeviceOnboarding({ open, onClose }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 16 }}
             transition={{ duration: 0.2 }}
-            className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
+            className="relative w-full max-w-lg rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
           >
             <div className="relative bg-gradient-to-br from-indigo-500 to-violet-600 px-6 py-5 text-white">
               <div className="flex items-center justify-between">
@@ -63,7 +63,7 @@ function DeviceOnboarding({ open, onClose }) {
               </div>
             </div>
 
-            <div className="px-6 py-5">
+            <div className="px-6 py-5 flex-1 overflow-y-auto">
               <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
                 Here's how to get the most out of FlowSync AI on your {deviceName.toLowerCase()}:
               </p>

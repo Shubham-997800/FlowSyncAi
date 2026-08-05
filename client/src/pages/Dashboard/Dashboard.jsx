@@ -41,6 +41,30 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Per-widget boundary: one failing widget renders a compact retry card instead of
+// crashing the whole dashboard.
+class WidgetBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() { return { hasError: true } }
+  componentDidCatch() {}
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-red-200 dark:border-red-900/50 text-center">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">This section failed to load.</p>
+          <button onClick={() => this.setState({ hasError: false })} className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition">
+            Retry section
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -67,6 +91,15 @@ function loadWidgets() {
     const saved = JSON.parse(localStorage.getItem(WIDGET_KEY))
     return saved ? { ...defaultWidgets, ...saved } : defaultWidgets
   } catch { return defaultWidgets }
+}
+
+function readCachedTasks() {
+  try {
+    const raw = sessionStorage.getItem('flowsync_tasks_cache')
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch { return [] }
 }
 
 function DashboardSkeleton() {
@@ -103,15 +136,17 @@ function DashboardSkeleton() {
 }
 
 function Dashboard() {
-  const [tasks, setTasks] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [tasks, setTasks] = useState(readCachedTasks)
+  const [loading, setLoading] = useState(() => readCachedTasks().length === 0)
   const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState(null)
   const [widgets, setWidgets] = useState(loadWidgets)
   const [showWidgetMenu, setShowWidgetMenu] = useState(false)
   const intervalRef = useRef(null)
   const tasksRef = useRef(tasks)
   const refreshingRef = useRef(false)
+  const mountedRef = useRef(true)
   useEffect(() => { tasksRef.current = tasks }, [tasks])
 
   const fetchTasks = useCallback(async () => {
@@ -122,6 +157,7 @@ function Dashboard() {
   const applyTasks = useCallback((data) => {
     setTasks(data)
     setLastSyncTime(Date.now())
+    setLoadError(false)
   }, [])
 
   const handleRefresh = useCallback(async () => {
@@ -143,19 +179,28 @@ function Dashboard() {
 
   useEffect(() => {
     fetchTasks()
-      .then(data => { applyTasks(data) })
-      .catch(() => toast.error('Failed to load tasks'))
-      .finally(() => setLoading(false))
+      .then(data => { if (mountedRef.current) { applyTasks(data); sessionStorage.setItem('flowsync_tasks_cache', JSON.stringify(data)) } })
+      .catch(() => {
+        if (!mountedRef.current) return
+        if (readCachedTasks().length === 0) setLoadError(true)
+      })
+      .finally(() => { if (mountedRef.current) setLoading(false) })
+
     intervalRef.current = setInterval(() => {
-      fetchTasks().then(data => applyTasks(data)).catch(() => {})
+      fetchTasks()
+        .then(data => { if (mountedRef.current) { applyTasks(data); sessionStorage.setItem('flowsync_tasks_cache', JSON.stringify(data)) } })
+        .catch(() => {})
     }, 60000)
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        fetchTasks().then(data => applyTasks(data)).catch(() => {})
+        fetchTasks()
+          .then(data => { if (mountedRef.current) { applyTasks(data); sessionStorage.setItem('flowsync_tasks_cache', JSON.stringify(data)) } })
+          .catch(() => {})
       }
     }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => {
+      mountedRef.current = false
       clearInterval(intervalRef.current)
       document.removeEventListener('visibilitychange', handleVisibility)
     }
@@ -237,6 +282,26 @@ function Dashboard() {
       >
         {loading ? (
           <DashboardSkeleton />
+        ) : loadError ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center text-center py-20"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+              <ListTodo size={28} className="text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Couldn't load your data</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-6">
+              We couldn't reach the server. Check your connection and try again.
+            </p>
+            <button
+              onClick={() => { setLoadError(false); setLoading(true); handleRefresh() }}
+              className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-sm"
+            >
+              Try Again
+            </button>
+          </motion.div>
         ) : isEmpty ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -246,15 +311,15 @@ function Dashboard() {
             <div className="w-20 h-20 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-6">
               <ListTodo size={36} className="text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Welcome to FlowSync AI!</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Welcome to FlowSync AI!</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-8">
               Your productivity journey starts here. Create your first task or let AI help you plan your day.
             </p>
-            <div className="flex gap-3">
-              <Link to="/tasks" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-sm">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto px-4 sm:px-0">
+              <Link to="/tasks" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition shadow-sm">
                 <Plus size={18} /> Create Task
               </Link>
-              <Link to="/ai-planner" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-zinc-800 transition">
+              <Link to="/ai-planner" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-zinc-800 transition">
                 <Brain size={18} /> Talk to AI
               </Link>
             </div>
@@ -297,47 +362,61 @@ function Dashboard() {
             </div>
 
             {widgets.dashboardCards && (
-              <motion.div variants={section}>
-                <DashboardCards tasks={tasks} />
-              </motion.div>
+              <WidgetBoundary>
+                <motion.div variants={section}>
+                  <DashboardCards tasks={tasks} />
+                </motion.div>
+              </WidgetBoundary>
             )}
 
             {widgets.quickActions && (
-              <motion.div variants={section}>
-                <QuickActions />
-              </motion.div>
+              <WidgetBoundary>
+                <motion.div variants={section}>
+                  <QuickActions />
+                </motion.div>
+              </WidgetBoundary>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {widgets.todayTasks && (
-                <motion.div variants={section}>
-                  <TodayTasks tasks={tasks} onToggle={handleToggle} onDelete={handleDelete} onEdit={handleEdit} />
-                </motion.div>
+                <WidgetBoundary>
+                  <motion.div variants={section}>
+                    <TodayTasks tasks={tasks} onToggle={handleToggle} onDelete={handleDelete} onEdit={handleEdit} />
+                  </motion.div>
+                </WidgetBoundary>
               )}
               {widgets.productivityScore && (
-                <motion.div variants={section}>
-                  <ProductivityScore tasks={tasks} />
-                </motion.div>
+                <WidgetBoundary>
+                  <motion.div variants={section}>
+                    <ProductivityScore tasks={tasks} />
+                  </motion.div>
+                </WidgetBoundary>
               )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {widgets.aiRecommendation && (
-                <motion.div variants={section}>
-                  <AIRecommendation />
-                </motion.div>
+                <WidgetBoundary>
+                  <motion.div variants={section}>
+                    <AIRecommendation />
+                  </motion.div>
+                </WidgetBoundary>
               )}
               {widgets.deadlineRisk && (
-                <motion.div variants={section}>
-                  <DeadlineRisk tasks={tasks} onToggle={handleToggle} />
-                </motion.div>
+                <WidgetBoundary>
+                  <motion.div variants={section}>
+                    <DeadlineRisk tasks={tasks} onToggle={handleToggle} />
+                  </motion.div>
+                </WidgetBoundary>
               )}
             </div>
 
             {widgets.recentActivity && (
-              <motion.div variants={section}>
-                <RecentActivity tasks={tasks} />
-              </motion.div>
+              <WidgetBoundary>
+                <motion.div variants={section}>
+                  <RecentActivity tasks={tasks} />
+                </motion.div>
+              </WidgetBoundary>
             )}
           </>
         )}
