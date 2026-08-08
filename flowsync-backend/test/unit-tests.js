@@ -23,7 +23,7 @@ async function t(name, fn) {
 
 async function main() {
   const { normalizeError } = require('../utils/errorHandler')
-  const { resolveModels, MODEL_TIERS, dedupeHistory, detectLanguageSwitch } = require('../services/aiService')
+  const { resolveModels, MODEL_TIERS, dedupeHistory, detectLanguageSwitch, parseChatStreamOutput, createReplyTokenizer } = require('../services/aiService')
   const { localDateKey } = require('../utils/dateKey')
 
   console.log('===== UNIT TESTS (error handler + AI helpers) =====')
@@ -130,6 +130,35 @@ async function main() {
   })
   await t('detectLanguageSwitch: homework mention ignored', async () => {
     return detectLanguageSwitch('help me with my spanish homework please') === null
+  })
+
+  await t('parseChatStreamOutput: splits reply from JSON', async () => {
+    const out = parseChatStreamOutput('**Plan:**\n\n- do x\n\n===TASKS_JSON===\n{"tasks":[{"title":"do x"}],"actions":[],"suggestions":["next?"]}')
+    return out.reply === '**Plan:**\n\n- do x' && out.tasks[0].title === 'do x' && out.suggestions[0] === 'next?'
+  })
+  await t('parseChatStreamOutput: extracts actions', async () => {
+    const out = parseChatStreamOutput('done\n\n===TASKS_JSON===\n{"tasks":[],"actions":[{"taskId":"abc","action":"complete"}],"suggestions":[]}')
+    return out.reply === 'done' && out.actions[0].action === 'complete'
+  })
+  await t('parseChatStreamOutput: legacy JSON fallback', async () => {
+    const out = parseChatStreamOutput('{"reply":"hi there","tasks":[],"suggestions":["s1"]}')
+    return out.reply === 'hi there' && out.suggestions[0] === 's1'
+  })
+  await t('parseChatStreamOutput: no delimiter falls back to raw text', async () => {
+    const out = parseChatStreamOutput('just a plain reply with no json')
+    return out.reply === 'just a plain reply with no json' && out.tasks.length === 0
+  })
+  await t('createReplyTokenizer: streams only reply, stops at delimiter', async () => {
+    let text = ''
+    const tok = createReplyTokenizer((t) => { text += t })
+    ;['Sure! ', '**plan**', '\n- a\n\n===TASKS_JSON===\n', '{"tasks":[]}'].forEach(tok)
+    return text === 'Sure! **plan**\n- a\n\n'
+  })
+  await t('createReplyTokenizer: JSON-only output streams nothing', async () => {
+    let text = ''
+    const tok = createReplyTokenizer((t) => { text += t })
+    ;['{"re', 'ply":"hi"}'].forEach(tok)
+    return text === ''
   })
 
   const passed = results.filter((r) => r.ok).length

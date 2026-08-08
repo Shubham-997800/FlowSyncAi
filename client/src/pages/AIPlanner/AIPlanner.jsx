@@ -1,14 +1,33 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar } from 'lucide-react'
+import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, CornerDownRight, CheckCircle2, Trash, PencilLine } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
-import { chatAI, getAiUsage } from '../../services/aiService'
+import { streamChatAI, getAiUsage } from '../../services/aiService'
 import { createTask } from '../../services/taskService'
 import { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory } from '../../services/chatService'
+import Markdown from '../../components/ui/Markdown'
 import toast from 'react-hot-toast'
 import { openBrowserSettings } from '../../utils/permissions'
 
 const defaultMessage = { role: 'ai', text: "Hi! I'm your AI assistant. Tell me what you're working on, or ask me to create tasks for you." }
+
+const qualityOptions = [
+  { value: 'low', label: 'Fast', desc: 'Quick replies' },
+  { value: 'medium', label: 'Balanced', desc: 'Recommended' },
+  { value: 'high', label: 'Smart', desc: 'Deep thinking' },
+]
+
+const voiceLangs = [
+  { label: 'English', value: 'en-US' },
+  { label: 'हिंदी Hindi', value: 'hi-IN' },
+  { label: 'Español', value: 'es-ES' },
+  { label: 'Français', value: 'fr-FR' },
+  { label: 'Deutsch', value: 'de-DE' },
+  { label: 'العربية', value: 'ar-SA' },
+  { label: 'தமிழ் Tamil', value: 'ta-IN' },
+  { label: 'తెలుగు Telugu', value: 'te-IN' },
+  { label: 'বাংলা Bengali', value: 'bn-IN' },
+]
 
 const suggestions = [
   { icon: Sparkles, text: 'Create a task to finish my project report', color: 'bg-violet-500/10' },
@@ -29,22 +48,41 @@ function formatDate(d) {
   return date.toLocaleDateString()
 }
 
+const actionMeta = {
+  complete: { label: 'Completed', Icon: CheckCircle2, cls: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' },
+  in_progress: { label: 'Started', Icon: PencilLine, cls: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' },
+  pending: { label: 'Reopened', Icon: CornerDownRight, cls: 'bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-slate-400' },
+  update: { label: 'Updated', Icon: PencilLine, cls: 'bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400' },
+  delete: { label: 'Deleted', Icon: Trash, cls: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' },
+}
+
 function AIPlanner() {
   const [sessionId, setSessionId] = useState(genId)
   const [sessions, setSessions] = useState([])
   const [messages, setMessages] = useState([defaultMessage])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [streaming, setStreaming] = useState(false)
   const [creating, setCreating] = useState(null)
   const [initialLoading, setInitialLoading] = useState(true)
   const [showSessions, setShowSessions] = useState(false)
   const [listening, setListening] = useState(false)
   const [aiUsage, setAiUsage] = useState(null)
+  const [quality, setQuality] = useState(() => localStorage.getItem('flowsync_ai_quality') || 'medium')
+  const [voiceLang, setVoiceLang] = useState(() => localStorage.getItem('flowsync_ai_voice_lang') || 'en-US')
   const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
   const listeningRef = useRef(listening)
+  const autoRestartRef = useRef(false)
+  const silenceTimerRef = useRef(null)
+  const lastSpeechRef = useRef(0)
+  const finalTranscriptRef = useRef('')
+  const voiceLangRef = useRef(voiceLang)
+  const handleSendRef = useRef(null)
 
   useEffect(() => { listeningRef.current = listening }, [listening])
+  useEffect(() => { voiceLangRef.current = voiceLang; localStorage.setItem('flowsync_ai_voice_lang', voiceLang) }, [voiceLang])
+
+  const setQualityAndStore = (q) => { setQuality(q); localStorage.setItem('flowsync_ai_quality', q) }
 
   useEffect(() => {
     getAiUsage()
@@ -64,10 +102,21 @@ function AIPlanner() {
     }
   }, [])
 
-  const stopVoice = useCallback(() => {
-    recognitionRef.current?.stop()
+  const stopVoice = useCallback(({ send = false } = {}) => {
+    autoRestartRef.current = false
+    clearTimeout(silenceTimerRef.current)
+    const rec = recognitionRef.current
+    if (rec) {
+      rec.onend = null
+      try { rec.stop() } catch {}
+    }
     recognitionRef.current = null
     setListening(false)
+    const text = finalTranscriptRef.current
+    finalTranscriptRef.current = ''
+    if (send && text.trim() && handleSendRef.current) {
+      handleSendRef.current(text.trim())
+    }
   }, [])
 
   const toggleVoice = useCallback(async () => {
@@ -93,17 +142,36 @@ function AIPlanner() {
     const recognition = new SpeechRecognition()
     recognition.continuous = true
     recognition.interimResults = true
-    recognition.lang = 'en-US'
+    recognition.lang = voiceLangRef.current
+    finalTranscriptRef.current = ''
+    autoRestartRef.current = true
+
+    const scheduleSilenceCheck = () => {
+      clearTimeout(silenceTimerRef.current)
+      lastSpeechRef.current = Date.now()
+      silenceTimerRef.current = setTimeout(() => {
+        if (autoRestartRef.current && Date.now() - lastSpeechRef.current >= 1800 && finalTranscriptRef.current.trim()) {
+          stopVoice({ send: true })
+        }
+      }, 1900)
+    }
+
     recognition.onresult = (event) => {
-      let transcript = ''
-      for (let i = event.resultIndex; i < event.results.length; i++) transcript += event.results[i][0].transcript
-      setInput(transcript)
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const r = event.results[i]
+        if (r.isFinal) finalTranscriptRef.current += (finalTranscriptRef.current ? ' ' : '') + r[0].transcript
+        else interim += r[0].transcript
+      }
+      setInput(finalTranscriptRef.current + interim)
+      scheduleSilenceCheck()
     }
     recognition.onerror = (event) => {
+      autoRestartRef.current = false
       stopVoice()
       switch (event.error) {
         case 'not-allowed': toast.error('Microphone permission was denied. Allow access in your browser settings, then reload the page.'); break
-        case 'no-speech': toast.error('No speech detected. Try speaking closer to the microphone.'); break
+        case 'no-speech': if (!finalTranscriptRef.current) toast.error('No speech detected. Try speaking closer to the microphone.'); break
         case 'audio-capture': toast.error('No microphone found. Check your microphone connection.'); break
         case 'network': toast.error('Network error. Check your internet connection.'); break
         case 'aborted': break
@@ -111,9 +179,17 @@ function AIPlanner() {
         default: toast.error('Microphone error. Check permissions.')
       }
     }
-    recognition.onend = () => setListening(false)
+    recognition.onend = () => {
+      clearTimeout(silenceTimerRef.current)
+      if (autoRestartRef.current && listeningRef.current) {
+        try { recognition.start() } catch {}
+        return
+      }
+      recognitionRef.current = null
+      setListening(false)
+    }
     recognitionRef.current = recognition
-    recognition.start()
+    try { recognition.start() } catch { toast.error('Could not start microphone. Check permissions.'); setListening(false) }
     setListening(true)
   }, [listening, checkMicPermission, stopVoice])
 
@@ -156,25 +232,56 @@ function AIPlanner() {
 
   const handleSend = async (text) => {
     const msgText = text || input
-    if (!msgText.trim() || loading) return
+    if (!msgText.trim() || streaming) return
     setInput('')
-    setLoading(true)
-    const userMsg = { sessionId, role: 'user', text: msgText }
+    setStreaming(true)
+    const aiId = genId()
+    const placeholder = { id: aiId, role: 'ai', text: '', tasks: [], createdTasks: [], actions: [], suggestions: [], streaming: true }
+    const appendToken = (token) => {
+      setMessages(prev => prev.map(m => m.id === aiId ? { ...m, text: m.text + token } : m))
+    }
     try {
-      const savedUser = await saveChatMessage(userMsg)
-      setMessages(prev => [...prev, savedUser])
-      const res = await chatAI(msgText, sessionId)
-      const savedAI = await saveChatMessage({
-        sessionId, role: 'ai', text: res.reply, tasks: res.tasks || [], createdTasks: res.createdTasks || [],
+      const savedUser = await saveChatMessage({ sessionId, role: 'user', text: msgText })
+      setMessages(prev => [...prev, savedUser, placeholder])
+      const done = await streamChatAI({
+        message: msgText,
+        sessionId,
+        quality,
+        onToken: appendToken,
+        onError: () => { appendToken('') },
       })
-      setMessages(prev => [...prev, savedAI])
+      if (done && done.error) {
+        const errText = done.message || 'Sorry, something went wrong. Try again.'
+        const savedAI = await saveChatMessage({ sessionId, role: 'ai', text: errText }).catch(() => null)
+        setMessages(prev => prev.map(m => m.id === aiId ? (savedAI || { ...m, text: errText, streaming: false }) : m))
+        toast.error(errText)
+      } else if (done) {
+        const savedAI = await saveChatMessage({
+          sessionId,
+          role: 'ai',
+          text: done.reply || '',
+          tasks: done.tasks || [],
+          createdTasks: done.createdTasks || [],
+          actions: done.actions || [],
+          suggestions: done.suggestions || [],
+        })
+        setMessages(prev => prev.map(m => m.id === aiId ? (savedAI || {
+          ...m,
+          text: done.reply || '',
+          createdTasks: done.createdTasks || [],
+          actions: done.actions || [],
+          suggestions: done.suggestions || [],
+          streaming: false,
+        }) : m))
+      }
       getChatSessions().then(s => setSessions(s)).catch(() => {})
     } catch (err) {
-      const errMsg = err?.response?.status === 503 ? "AI service quota exceeded. Please try again later." : 'Sorry, something went wrong. Try again.'
-      const savedErr = await saveChatMessage({ sessionId, role: 'ai', text: errMsg }).catch(() => null)
-      setMessages(prev => [...prev, savedErr || { role: 'ai', text: errMsg }])
-    } finally { setLoading(false) }
+      const errText = err?.response?.status === 503 ? "AI service quota exceeded. Please try again later." : 'Sorry, something went wrong. Try again.'
+      const savedErr = await saveChatMessage({ sessionId, role: 'ai', text: errText }).catch(() => null)
+      setMessages(prev => prev.map(m => m.id === aiId ? (savedErr || { ...m, text: errText, streaming: false }) : m))
+    } finally { setStreaming(false) }
   }
+  useEffect(() => { handleSendRef.current = handleSend })
 
   const handleDeleteMessage = async (id) => {
     try { await deleteChatMessage(id); setMessages(prev => prev.filter(m => m._id !== id)); toast.success('Message deleted') }
@@ -302,6 +409,25 @@ function AIPlanner() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 justify-end flex-shrink-0">
+            <div className="hidden sm:flex items-center rounded-xl bg-white/60 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/60 p-0.5 shadow-sm" role="radiogroup" aria-label="AI model quality">
+              {qualityOptions.map(qo => (
+                <button
+                  key={qo.value}
+                  role="radio"
+                  aria-checked={quality === qo.value}
+                  onClick={() => setQualityAndStore(qo.value)}
+                  disabled={streaming}
+                  title={qo.desc}
+                  className={`px-2.5 py-1 rounded-[10px] text-[11px] font-medium transition-all disabled:opacity-50 ${
+                    quality === qo.value
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white/70 dark:hover:bg-zinc-700/50'
+                  }`}
+                >
+                  {qo.label}
+                </button>
+              ))}
+            </div>
             {aiUsage && (
               <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700/60 text-[10px] font-medium text-slate-500 dark:text-slate-400" title="AI calls used today">
                 <Sparkles size={11} className="text-indigo-500" />
@@ -324,7 +450,7 @@ function AIPlanner() {
           <div className="flex-1 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <Loader2 size={28} className="animate-spin text-indigo-500" />
-              <p className="text-sm text-slate-400 dark:text-slate-500 animate-pulse">Loading conversations...</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 animate-pulse">streaming conversations...</p>
             </div>
           </div>
         ) : (
@@ -353,10 +479,14 @@ function AIPlanner() {
                         <div className={`flex flex-col min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                           <div className={`relative px-4 py-3 text-sm leading-relaxed shadow-sm break-words ${
                             msg.role === 'user'
-                              ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm max-w-[85%] md:max-w-[70%]'
+                              ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm max-w-[85%] md:max-w-[70%] whitespace-pre-wrap'
                               : 'bg-white dark:bg-zinc-800/90 border border-slate-100 dark:border-zinc-700/50 text-slate-700 dark:text-slate-300 rounded-2xl rounded-tl-sm max-w-[90%] md:max-w-[75%]'
                           }`}>
-                            {msg.text}
+                            {msg.role === 'ai'
+                              ? (msg.streaming
+                                ? <span className="whitespace-pre-wrap">{msg.text}<span className="inline-block w-1.5 h-4 align-middle bg-indigo-400 rounded-sm ml-0.5 animate-pulse" /></span>
+                                : <Markdown>{msg.text}</Markdown>)
+                              : msg.text}
                           </div>
                           {msg._id && (
                             <button
@@ -414,11 +544,51 @@ function AIPlanner() {
                           })}
                         </div>
                       )}
+                      {msg.role === 'ai' && msg.actions && msg.actions.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2 ml-0 sm:ml-10 max-w-lg">
+                          {msg.actions.map((a, j) => {
+                            const meta = actionMeta[a.action] || actionMeta.update
+                            const ok = a.ok
+                            return (
+                              <span
+                                key={j}
+                                className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg ${
+                                  ok ? meta.cls : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
+                                }`}
+                              >
+                                <meta.Icon size={12} />
+                                {ok ? `${meta.label}: ${a.title || a.taskId}` : `${a.action || 'action'} failed`}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      {msg.role === 'ai' && !msg.streaming && msg.suggestions && msg.suggestions.length > 0 && i === messages.length - 1 && (
+                        <div className="mt-3 ml-0 sm:ml-10 flex flex-wrap gap-2 max-w-lg">
+                          {msg.suggestions.slice(0, 3).map((s, j) => (
+                            <motion.button
+                              key={j}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: j * 0.05 }}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => handleSend(s)}
+                              disabled={streaming}
+                              className="text-xs px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50 text-indigo-600 dark:text-indigo-300 hover:border-indigo-300 dark:hover:border-indigo-600/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+                            >
+                              <CornerDownRight size={11} />
+                              {s}
+                            </motion.button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
 
-              {loading && (
+              {streaming && (
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-xl bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center flex-shrink-0 shadow-md">
                     <Bot size={14} className="text-white" />
@@ -451,7 +621,7 @@ function AIPlanner() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleSend(s.text)}
-                      disabled={loading}
+                      disabled={streaming}
                       className="group relative overflow-hidden text-xs px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-800/80 border border-slate-100 dark:border-zinc-700/50 text-slate-600 dark:text-slate-400 hover:border-indigo-200 dark:hover:border-indigo-700/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md"
                     >
                       <div className={`absolute inset-0 ${s.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
@@ -477,7 +647,18 @@ function AIPlanner() {
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" style={{animationDelay:'0.4s'}} />
                   </span>
                   <span className="text-red-500">Listening...</span>
-                  <span className="text-slate-400 dark:text-slate-500">Speak now, I'm all ears</span>
+                  <span className="hidden sm:inline text-slate-400 dark:text-slate-500">Speak now, auto-sends on pause</span>
+                  <label className="flex items-center gap-1.5 ml-auto sm:ml-2 text-xs">
+                    <span className="text-slate-400 dark:text-slate-500">Voice:</span>
+                    <select
+                      value={voiceLang}
+                      onChange={e => setVoiceLang(e.target.value)}
+                      className="bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 rounded-lg px-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-red-400"
+                      aria-label="Voice input language"
+                    >
+                      {voiceLangs.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                    </select>
+                  </label>
                 </motion.div>
               )}
               <div className="flex gap-2.5">
@@ -494,7 +675,7 @@ function AIPlanner() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={toggleVoice}
-                  disabled={loading}
+                  disabled={streaming}
                   className={`relative px-3.5 py-3 rounded-xl border transition-all flex items-center justify-center gap-2 shadow-sm ${
                     listening
                       ? 'bg-red-500 border-red-400 text-white shadow-lg shadow-red-500/20'
@@ -508,10 +689,10 @@ function AIPlanner() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleSend()}
-                  disabled={!input.trim() || loading}
+                  disabled={!input.trim() || streaming}
                   className="px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30"
                 >
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                  {streaming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                 </motion.button>
               </div>
             </div>

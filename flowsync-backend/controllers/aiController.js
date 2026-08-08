@@ -11,6 +11,13 @@ const { AI_DAILY_LIMIT } = require('../config/constants')
 
 const userQuality = req => (req.user?.aiSettings?.quality || 'medium')
 
+function requestQuality(req) {
+  const q = req.body?.quality
+  return q && ['low', 'medium', 'high'].includes(q) ? q : userQuality(req)
+}
+
+const CHAT_CONTEXT_MESSAGES = aiService.CHAT_CONTEXT_MESSAGES || 24
+
 async function canUseAi(userId) {
   const today = localDateKey()
   const usage = await AiUsage.findOne({ user: userId, date: today })
@@ -95,9 +102,9 @@ const chatAI = async (req, res) => {
     if (sessionId) {
       history = (await ChatMessage.find({ user: req.user._id, sessionId })
         .sort({ createdAt: -1 })
-        .limit(8)).reverse()
+        .limit(CHAT_CONTEXT_MESSAGES)).reverse()
     }
-    const result = await aiService.chatWithContext(message, tasks, goals, habits, { quality: userQuality(req), history, mode })
+    const result = await aiService.chatWithContext(message, tasks, goals, habits, { quality: requestQuality(req), history, mode })
     if (result.tasks && result.tasks.length > 0) {
       const created = await Task.insertMany(
         result.tasks.map(t => ({ ...t, user: req.user._id }))
@@ -110,6 +117,105 @@ const chatAI = async (req, res) => {
     if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', reply: "AI service is currently unavailable due to quota limits. Please try again later or upgrade your API plan.", tasks: [], suggestions: [] })
     if (error.name === 'ValidationError') return handleValidationError(res, error)
     handleError(res, error)
+  }
+}
+
+const executeChatActions = async (userId, actions = []) => {
+  const results = []
+  for (const a of actions.slice(0, 10)) {
+    const id = a?.taskId
+    if (!id || !mongoose.isValidObjectId(id)) {
+      results.push({ taskId: id, ok: false, error: 'invalid task id' })
+      continue
+    }
+    try {
+      if (['complete', 'in_progress', 'pending'].includes(a.action)) {
+        const status = a.action === 'complete' ? 'done' : a.action === 'in_progress' ? 'in_progress' : 'todo'
+        const task = await Task.findOneAndUpdate({ _id: id, user: userId }, { status }, { new: true })
+        if (!task) { results.push({ taskId: id, ok: false, error: 'task not found' }); continue }
+        results.push({ taskId: id, ok: true, action: a.action, title: task.title, status: task.status })
+      } else if (a.action === 'delete') {
+        const task = await Task.findOneAndDelete({ _id: id, user: userId })
+        if (!task) { results.push({ taskId: id, ok: false, error: 'task not found' }); continue }
+        results.push({ taskId: id, ok: true, action: 'delete', title: task.title })
+      } else if (a.action === 'update') {
+        const patch = {}
+        if (typeof a.title === 'string' && a.title.trim()) patch.title = require('../utils/sanitize').sanitizeText(a.title.trim())
+        if (['low', 'medium', 'high'].includes(a.priority)) patch.priority = a.priority
+        if (a.deadline) { const d = new Date(a.deadline); if (!Number.isNaN(d.getTime())) patch.deadline = d }
+        const task = await Task.findOneAndUpdate({ _id: id, user: userId }, { $set: patch }, { new: true })
+        if (!task) { results.push({ taskId: id, ok: false, error: 'task not found' }); continue }
+        results.push({ taskId: id, ok: true, action: 'update', title: task.title })
+      } else {
+        results.push({ taskId: id, ok: false, error: 'unknown action' })
+      }
+    } catch (error) {
+      results.push({ taskId: id, ok: false, error: error.message })
+    }
+  }
+  return results
+}
+
+const chatStream = async (req, res) => {
+  try {
+    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    const { message, sessionId, mode } = req.body
+    if (!message) return res.status(400).json({ message: 'Message required' })
+    const [tasks, goals, habits] = await Promise.all([
+      Task.find({ user: req.user._id, status: { $ne: 'done' } }),
+      Goal.find({ user: req.user._id }),
+      Habit.find({ user: req.user._id }),
+    ])
+    let history = []
+    if (sessionId) {
+      history = (await ChatMessage.find({ user: req.user._id, sessionId })
+        .sort({ createdAt: -1 })
+        .limit(CHAT_CONTEXT_MESSAGES)).reverse()
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache, no-transform')
+    res.setHeader('Connection', 'keep-alive')
+    res.setHeader('X-Accel-Buffering', 'no')
+    res.flushHeaders()
+
+    const send = (obj) => { try { res.write(`data: ${JSON.stringify(obj)}\n\n`) } catch {} }
+    send({ event: 'start' })
+
+    try {
+      const onReplyToken = (token) => send({ token })
+      const result = await aiService.chatStreamWithContext(
+        message, tasks, goals, habits,
+        { quality: requestQuality(req), history, mode },
+        onReplyToken,
+      )
+      const actionResults = await executeChatActions(req.user._id, result.actions)
+      let createdTasks = []
+      if (result.tasks && result.tasks.length > 0) {
+        createdTasks = await Task.insertMany(result.tasks.map(t => ({ ...t, user: req.user._id })))
+      }
+      await recordAiUsage(req.user._id)
+      send({
+        done: true,
+        reply: result.reply,
+        tasks: result.tasks || [],
+        createdTasks: createdTasks.map(ct => ({ _id: ct._id, title: ct.title, priority: ct.priority, deadline: ct.deadline, status: ct.status })),
+        actions: actionResults,
+        suggestions: result.suggestions || [],
+      })
+      res.end()
+    } catch (error) {
+      if (error.message === 'AI_SERVICE_UNAVAILABLE') {
+        send({ error: 'AI_SERVICE_UNAVAILABLE', message: "AI service is currently unavailable due to quota limits. Please try again later." })
+      } else {
+        console.error('Chat stream error:', error.message)
+        send({ error: 'SERVER_ERROR', message: 'Something went wrong while generating a reply. Please try again.' })
+      }
+      res.end()
+    }
+  } catch (error) {
+    if (!res.headersSent) return handleError(res, error)
+    res.end()
   }
 }
 
@@ -219,4 +325,4 @@ const organizeNotifications = async (req, res) => {
   }
 }
 
-module.exports = { plan, prioritize, rescue, chatAI, suggestTaskAI, getUsage, analyticsInsights, habitInsights, focusSuggestion, profileInsights, organizeNotifications }
+module.exports = { plan, prioritize, rescue, chatAI, chatStream, suggestTaskAI, getUsage, analyticsInsights, habitInsights, focusSuggestion, profileInsights, organizeNotifications }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Brain, Zap, Timer, ArrowDown, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { Brain, Zap, Timer, ArrowDown, Loader2, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
 
@@ -50,6 +50,17 @@ function AISettings() {
     } finally {
       setRescueLoading(false)
     }
+  }
+
+  const deactivateRescue = () => {
+    setSettings(s => ({ ...s, rescueMode: false }))
+    setRescueResult(null)
+    toast.success('Rescue Mode deactivated')
+  }
+
+  const handleRescueClick = () => {
+    if (settings.rescueMode) deactivateRescue()
+    else activateRescue()
   }
 
   const setAggressiveness = (val) => {
@@ -108,9 +119,13 @@ function AISettings() {
                 </div>
               </div>
               {key === 'rescueMode' ? (
-                <button onClick={activateRescue} disabled={rescueLoading} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${settings.rescueMode ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50'}`}>
-                  {rescueLoading ? <Loader2 size={12} className="animate-spin" /> : settings.rescueMode ? <CheckCircle size={12} /> : <ArrowDown size={12} />}
-                  {rescueLoading ? 'Analyzing...' : settings.rescueMode ? 'Active' : 'Activate'}
+                <button onClick={handleRescueClick} disabled={rescueLoading} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  settings.rescueMode
+                    ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
+                    : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50'
+                }`}>
+                  {rescueLoading ? <Loader2 size={12} className="animate-spin" /> : settings.rescueMode ? <XCircle size={12} /> : <ArrowDown size={12} />}
+                  {rescueLoading ? 'Analyzing...' : settings.rescueMode ? 'Deactivate' : 'Activate'}
                 </button>
               ) : (
                 <button onClick={() => toggle(key)} role="switch" aria-checked={settings[key]} className={`relative w-10 h-5 rounded-full transition flex-shrink-0 ${settings[key] ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-zinc-700'}`}>

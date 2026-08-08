@@ -6,9 +6,54 @@ export const prioritizeTasks = async () => {
   return data
 }
 
-export const chatAI = async (message, sessionId) => {
-  const { data } = await api.post('/api/ai/chat', { message, sessionId })
+export const chatAI = async (message, sessionId, quality) => {
+  const { data } = await api.post('/api/ai/chat', { message, sessionId, quality })
   return data
+}
+
+export const streamChatAI = async ({ message, sessionId, quality, onToken, onDone, onError, onStart }) => {
+  const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '')
+  const token = localStorage.getItem('token')
+  try {
+    const res = await fetch(`${API_URL}/api/ai/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      credentials: 'include',
+      body: JSON.stringify({ message, sessionId, quality }),
+    })
+    if (!res.ok) {
+      let msg = `Request failed (${res.status})`
+      try { const j = await res.json(); msg = j.message || j.code || msg } catch {}
+      if (res.status === 401) msg = 'Session expired. Please log in again.'
+      throw new Error(msg)
+    }
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const events = buffer.split('\n\n')
+      buffer = events.pop()
+      for (const evt of events) {
+        const line = evt.split('\n').find(l => l.startsWith('data: '))
+        if (!line) continue
+        let payload
+        try { payload = JSON.parse(line.slice(6)) } catch { continue }
+        if (payload.event === 'start') { onStart && onStart() }
+        else if (payload.token) { onToken && onToken(payload.token) }
+        else if (payload.done) { onDone && onDone(payload); return payload }
+        else if (payload.error) { onError && onError(payload); return payload }
+      }
+    }
+    onError && onError({ error: 'SERVER_ERROR', message: 'Stream ended unexpectedly. Please try again.' })
+  } catch (err) {
+    onError && onError({ error: 'NETWORK_ERROR', message: err.message || 'Network error. Check your connection.' })
+  }
 }
 
 export const suggestTask = async (title) => {

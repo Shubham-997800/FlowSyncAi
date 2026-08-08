@@ -315,12 +315,27 @@ OUTPUT FORMAT (ONLY valid JSON, no other text):
 If no tasks to create, set "tasks" to [].`
 }
 
-async function chatWithContext(message, tasks = [], goals = [], habits = [], opts = {}) {
-  const quality = opts.quality
-  const history = dedupeHistory(opts.history || [], message)
-  const mode = opts.mode || detectToneMode(message)
-  let sysMsg = chatSystemPrompt(mode)
+const CHAT_CONTEXT_MESSAGES = 24
+const CHAT_CONTEXT_MAX_CHARS = 600
+const STREAM_DELIMITER = '===TASKS_JSON==='
 
+function truncate(text = '', max) {
+  const s = String(text)
+  return s.length > max ? s.slice(0, max) + '…' : s
+}
+
+function buildHistoryText(history = []) {
+  if (history.length === 0) return ''
+  return `\nRecent conversation (for context only, respond to the LAST user message):\n${history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${truncate(m.text, CHAT_CONTEXT_MAX_CHARS)}`).join('\n')}`
+}
+
+function buildUserContext(tasks = [], goals = [], habits = []) {
+  return `Tasks: ${JSON.stringify(tasks.map(t => ({ _id: t._id, title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
+Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
+Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}`
+}
+
+function buildLanguageSwitchPrompt(message, sysMsg) {
   const langSwitch = detectLanguageSwitch(message)
   sysMsg += `
 LANGUAGE SWITCH RULE: If the user explicitly asks you to change language mid-conversation (for example "talk in Spanish", "ab French me baat karo", "अब तुम फ्रेंच बोलो", "भाषा बदलो"), that explicit request ALWAYS overrides the mirror-language rule. Switch to the requested language immediately and keep using it in every following reply until the user asks for another language.`
@@ -328,15 +343,19 @@ LANGUAGE SWITCH RULE: If the user explicitly asks you to change language mid-con
     sysMsg += `
 *** CRITICAL LANGUAGE OVERRIDE (highest priority) ***: The user's latest message asks to switch to ${langSwitch.name}. Write the ENTIRE "reply" in ${langSwitch.name} — completely ignore the language used in previous conversation messages and in this instruction message itself. Continue using ${langSwitch.name} in all following replies until the user requests a different language.`
   }
+  return sysMsg
+}
 
-  const historyText = history.length > 0
-    ? `\nRecent conversation (for context only, respond to the LAST user message):\n${history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n')}`
-    : ''
+async function chatWithContext(message, tasks = [], goals = [], habits = [], opts = {}) {
+  const quality = opts.quality
+  const history = dedupeHistory(opts.history || [], message)
+  const mode = opts.mode || detectToneMode(message)
+  let sysMsg = buildLanguageSwitchPrompt(message, chatSystemPrompt(mode))
+
+  const historyText = buildHistoryText(history)
 
   const userMsg = `User Context:
-Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, deadline: t.deadline, status: t.status })))}
-Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
-Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}${historyText}
+${buildUserContext(tasks, goals, habits)}${historyText}
 
 User message: "${message}"
 
@@ -352,6 +371,143 @@ CRITICAL: Follow the language, tone, and style rules from the system instruction
   const parsed = parseJSON(raw)
   if (parsed && parsed.reply) return parsed
   return { reply: "I understand. Could you be more specific about what you'd like help with?", tasks: [], suggestions: [] }
+}
+
+async function callAIStream(systemMsg, userMsg, temperature = 0.7, maxTokens = 2048, quality, opts = {}, onToken) {
+  let ai
+  try {
+    ai = getAI()
+  } catch {
+    throw new Error('AI_SERVICE_UNAVAILABLE')
+  }
+  const timeoutMs = opts.timeoutMs || 60000
+  let lastErr = null
+  for (const model of resolveModels(quality)) {
+    try {
+      const payload = {
+        model,
+        messages: [
+          { role: 'system', content: systemMsg },
+          { role: 'user', content: userMsg },
+        ],
+        temperature,
+        max_tokens: maxTokens,
+        stream: true,
+      }
+      if (opts.frequencyPenalty != null) payload.frequency_penalty = opts.frequencyPenalty
+      if (opts.presencePenalty != null) payload.presence_penalty = opts.presencePenalty
+      const stream = await Promise.race([
+        ai.chat.completions.create(payload),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs)),
+      ])
+      let full = ''
+      try {
+        for await (const chunk of stream) {
+          const delta = chunk?.choices?.[0]?.delta?.content
+          if (delta) {
+            full += delta
+            if (typeof onToken === 'function') onToken(delta)
+          }
+        }
+      } catch (err) {
+        const wrapped = new Error('stream_interrupted')
+        wrapped.cause = err
+        throw wrapped
+      }
+      if (full) return { full, model }
+    } catch (err) {
+      lastErr = err
+      const info = `${err.message || ''} ${err.error?.message || ''}`
+      console.error(`[AI] ${model} failed: ${info.slice(0, 100)}`)
+      const status = err.status || err.error?.code || 0
+      if (status === 401 || info.includes('401') || info.includes('invalid_api_key') || info.includes('Incorrect API key')) {
+        const unavailable = new Error('AI_SERVICE_UNAVAILABLE')
+        unavailable.cause = err
+        throw unavailable
+      }
+      if (err.message === 'stream_interrupted') throw err
+    }
+  }
+  console.error('[AI] All models failed to stream')
+  throw lastErr || new Error('AI_SERVICE_UNAVAILABLE')
+}
+
+function parseChatStreamOutput(full) {
+  const idx = full.indexOf(STREAM_DELIMITER)
+  if (idx === -1) {
+    const legacy = parseJSON(full)
+    if (legacy && legacy.reply) {
+      return { reply: legacy.reply, tasks: legacy.tasks || [], actions: [], suggestions: legacy.suggestions || [] }
+    }
+    return { reply: full.trim(), tasks: [], actions: [], suggestions: [] }
+  }
+  const reply = full.slice(0, idx).trim()
+  const parsed = parseJSON(full.slice(idx + STREAM_DELIMITER.length).trim()) || {}
+  return {
+    reply: reply || parsed.reply || '',
+    tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+    actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+    suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+  }
+}
+
+function createReplyTokenizer(onReplyToken) {
+  let buffer = ''
+  let suppress = false
+  return (delta) => {
+    if (suppress || typeof onReplyToken !== 'function') return
+    buffer += delta
+    const trimmed = buffer.trimStart()
+    if (!trimmed) return
+    if (trimmed.startsWith('{')) { suppress = true; return }
+    const idx = buffer.indexOf(STREAM_DELIMITER)
+    if (idx !== -1) {
+      const text = buffer.slice(0, idx)
+      if (text) onReplyToken(text)
+      suppress = true
+      return
+    }
+    const keep = STREAM_DELIMITER.length + 1
+    const safe = buffer.slice(0, Math.max(0, buffer.length - keep))
+    if (safe) {
+      onReplyToken(safe)
+      buffer = buffer.slice(safe.length)
+    }
+  }
+}
+
+async function chatStreamWithContext(message, tasks = [], goals = [], habits = [], opts = {}, onReplyToken) {
+  const quality = opts.quality
+  const history = dedupeHistory(opts.history || [], message)
+  const mode = opts.mode || detectToneMode(message)
+  let sysMsg = buildLanguageSwitchPrompt(message, chatSystemPrompt(mode))
+  sysMsg += `
+OUTPUT FORMAT OVERRIDE FOR THIS REQUEST (this overrides the JSON-only format above): Output exactly three parts.
+Part 1 — your reply to the user: plain conversational markdown text (bold, lists, headers, code are all fine). Follow every language/tone/style rule above.
+Part 2 — a single line containing exactly this delimiter: ===TASKS_JSON===
+Part 3 — a JSON object (no code fences, no extra text after it) with exactly this shape:
+{ "tasks": [{ "title": "...", "description": "", "priority": "low|medium|high", "deadline": null }], "actions": [{ "taskId": "...", "action": "complete|in_progress|pending|update|delete", "title": "", "priority": "", "deadline": "" }], "suggestions": ["follow-up 1", "follow-up 2"] }
+- "tasks" holds ONLY brand-new tasks the user explicitly asked to create ([] otherwise).
+- "actions" holds ONLY changes to EXISTING tasks using their real _id from the context: "complete" -> done, "in_progress", "pending" -> todo; "update" may set title/priority/deadline; "delete" removes it. Use [] when the user asked nothing actionable.
+- "suggestions" must be 2-3 short natural follow-up questions the user could tap next, in the same language as your reply.`
+
+  const historyText = buildHistoryText(history)
+  const userMsg = `User Context:
+${buildUserContext(tasks, goals, habits)}${historyText}
+
+User message: "${message}"
+
+Follow the language/tone/style rules from the system instructions and the OUTPUT FORMAT OVERRIDE above exactly.`
+
+  const temp = mode === 'fun' ? 0.9 : mode === 'gf' ? 0.85 : 0.7
+  const tokens = mode === 'normal' ? 3072 : 1024
+  const tokenizer = createReplyTokenizer(onReplyToken)
+  const { full } = await callAIStream(sysMsg, userMsg, temp, tokens, quality, {
+    timeoutMs: 60000,
+    frequencyPenalty: 0.6,
+    presencePenalty: 0.3,
+  }, tokenizer)
+  return parseChatStreamOutput(full)
 }
 
 async function suggestTask(title, description = '', existingTasks = [], opts = {}) {
@@ -532,6 +688,9 @@ module.exports = {
   prioritizeTasks,
   rescueMode,
   chatWithContext,
+  chatStreamWithContext,
+  parseChatStreamOutput,
+  createReplyTokenizer,
   suggestTask,
   generateAnalyticsInsights,
   generateHabitInsights,
@@ -543,4 +702,5 @@ module.exports = {
   dedupeHistory,
   detectLanguageSwitch,
   LANGUAGE_KEYWORDS,
+  CHAT_CONTEXT_MESSAGES,
 }
