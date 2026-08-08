@@ -170,7 +170,7 @@ We believe productivity tools should work **for** you, not the other way around.
 
 | Category | Feature | Details |
 |----------|---------|---------|
-| 🔐 **Auth** | Login / Signup / 401 / 404 | JWT-based with bcrypt hashing, inline validation, password strength meter (5 levels + colored bars), requirement checklist, framer-motion animations + Helmet SEO |
+| 🔐 **Auth** | Login / Signup / 401 / 404 | JWT-based with bcrypt hashing, inline validation, password strength meter (5 levels + colored bars), requirement checklist, framer-motion animations + Helmet SEO. **No email verification required** — sign up and log in instantly |
 | 📝 **Tasks** | Full CRUD + Goals | Priority levels, status tracking, deadlines, descriptions, field sanitization, AI suggested priority/estimate/tags, framer-motion staggered list + Helmet SEO |
 | 🎯 **Goals** | Milestone Tracking | Target dates, progress percentage, aligned with tasks, animated progress bars |
 | 🔄 **Habits** | Streak Tracking | Daily/weekly frequency, auto-calculated streaks, visual weekly grid, framer-motion card animations + Helmet SEO |
