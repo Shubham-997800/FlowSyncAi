@@ -588,20 +588,6 @@ function AIPlanner() {
                   </motion.div>
                 ))}
 
-              {streaming && (
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center flex-shrink-0 shadow-md">
-                    <Bot size={14} className="text-white" />
-                  </div>
-                  <div className="bg-white dark:bg-zinc-800/90 border border-slate-100 dark:border-zinc-700/50 rounded-2xl rounded-tl-sm px-5 py-3.5 shadow-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{animationDelay:'0s'}} />
-                      <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{animationDelay:'0.15s'}} />
-                      <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" style={{animationDelay:'0.3s'}} />
-                    </div>
-                  </div>
-                </div>
-              )}
               <div ref={bottomRef} />
             </div>
 
