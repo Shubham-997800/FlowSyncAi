@@ -23,7 +23,7 @@ async function t(name, fn) {
 
 async function main() {
   const { normalizeError } = require('../utils/errorHandler')
-  const { resolveModels, MODEL_TIERS, dedupeHistory } = require('../services/aiService')
+  const { resolveModels, MODEL_TIERS, dedupeHistory, detectLanguageSwitch } = require('../services/aiService')
   const { localDateKey } = require('../utils/dateKey')
 
   console.log('===== UNIT TESTS (error handler + AI helpers) =====')
@@ -99,6 +99,37 @@ async function main() {
   await t('localDateKey: today matches Date.now', async () => {
     const n = new Date()
     return localDateKey() === `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`
+  })
+
+  await t('detectLanguageSwitch: "talk to me in Spanish"', async () => {
+    const lang = detectLanguageSwitch('talk to me in Spanish from now on')
+    return lang && lang.name === 'Spanish'
+  })
+  await t('detectLanguageSwitch: "ab French me baat karo" (Hinglish)', async () => {
+    const lang = detectLanguageSwitch('ab French me baat karo')
+    return lang && lang.name === 'French'
+  })
+  await t('detectLanguageSwitch: "फ्रेंच में बात करो" (Devanagari)', async () => {
+    const lang = detectLanguageSwitch('अब तुम फ्रेंच में बात करो')
+    return lang && lang.name === 'French'
+  })
+  await t('detectLanguageSwitch: "स्पेनिश में बोलो"', async () => {
+    const lang = detectLanguageSwitch('मुझसे स्पेनिश में बोलो')
+    return lang && lang.name === 'Spanish'
+  })
+  await t('detectLanguageSwitch: "switch to Japanese"', async () => {
+    const lang = detectLanguageSwitch('switch to Japanese')
+    return lang && lang.name === 'Japanese'
+  })
+  await t('detectLanguageSwitch: "habla español"', async () => {
+    const lang = detectLanguageSwitch('habla español ahora')
+    return lang && lang.name === 'Spanish'
+  })
+  await t('detectLanguageSwitch: normal English msg ignored', async () => {
+    return detectLanguageSwitch('plan my day and tell me what to focus on') === null
+  })
+  await t('detectLanguageSwitch: homework mention ignored', async () => {
+    return detectLanguageSwitch('help me with my spanish homework please') === null
   })
 
   const passed = results.filter((r) => r.ok).length

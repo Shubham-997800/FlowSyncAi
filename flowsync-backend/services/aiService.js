@@ -171,6 +171,61 @@ function detectToneMode(message = '') {
   return 'normal'
 }
 
+const LANGUAGE_KEYWORDS = [
+  { name: 'English', keywords: ['english'] },
+  { name: 'Hindi', keywords: ['hindi', 'हिन्दी', 'हिंदी'] },
+  { name: 'Hinglish', keywords: ['hinglish', 'हिंगलिश', 'हिन्दुस्तानी'] },
+  { name: 'Bhojpuri', keywords: ['bhojpuri', 'भोजपुरी'] },
+  { name: 'Maithili', keywords: ['maithili', 'मैथिली'] },
+  { name: 'Spanish', keywords: ['spanish', 'español', 'espanol', 'castellano', 'स्पेनिश', 'स्पैनिश', 'española'] },
+  { name: 'French', keywords: ['french', 'français', 'francais', 'फ्रेंच', 'फ्रान्सेली', 'française'] },
+  { name: 'German', keywords: ['german', 'deutsch', 'जर्मन'] },
+  { name: 'Punjabi', keywords: ['punjabi', 'पंजाबी', 'ਪੰਜਾਬੀ'] },
+  { name: 'Bengali', keywords: ['bengali', 'bangla', 'बंगाली', 'বাংলা'] },
+  { name: 'Marathi', keywords: ['marathi', 'मराठी'] },
+  { name: 'Tamil', keywords: ['tamil', 'தமிழ்', 'तमिल'] },
+  { name: 'Telugu', keywords: ['telugu', 'తెలుగు', 'तेलुगु'] },
+  { name: 'Gujarati', keywords: ['gujarati', 'ગુજરાતી', 'गुजराती'] },
+  { name: 'Urdu', keywords: ['urdu', 'اردو', 'उर्दू'] },
+  { name: 'Odia', keywords: ['odia', 'oriya', 'ଓଡ଼ିଆ', 'उड़िया'] },
+  { name: 'Assamese', keywords: ['assamese', 'অসমীয়া', 'असमिया'] },
+  { name: 'Malayalam', keywords: ['malayalam', 'മലയാളം', 'मलयालम'] },
+  { name: 'Kannada', keywords: ['kannada', 'ಕನ್ನಡ', 'कन्नड़'] },
+  { name: 'Chinese', keywords: ['chinese', 'mandarin', '中文', 'चीनी'] },
+  { name: 'Japanese', keywords: ['japanese', '日本語', 'जापानी'] },
+  { name: 'Korean', keywords: ['korean', '한국어', 'कोरियाई'] },
+  { name: 'Arabic', keywords: ['arabic', 'العربية', 'अरबी'] },
+  { name: 'Portuguese', keywords: ['portuguese', 'português', 'portugues', 'पुर्तगाली'] },
+  { name: 'Russian', keywords: ['russian', 'русский', 'रूसी'] },
+  { name: 'Italian', keywords: ['italian', 'italiano', 'इतालवी'] },
+  { name: 'Dutch', keywords: ['dutch', 'डच'] },
+  { name: 'Turkish', keywords: ['turkish', 'türkçe', 'तुर्की'] },
+  { name: 'Vietnamese', keywords: ['vietnamese', 'tiếng việt', 'वियतनामी'] },
+  { name: 'Thai', keywords: ['thai', 'ไทย', 'थाई'] },
+  { name: 'Indonesian', keywords: ['indonesian', 'bahasa indonesia', 'इंडोनेशियाई'] },
+]
+
+const SWITCH_INTENT = /\b(?:switch|change|speak|talk|chat|reply|respond|answer|write|prefer|can you|can u|from now on|now)\b|\b(?:bolo|bolna|baat|karo|karein|kare|batao)\b|(?:habla|parla|parle|sprich|auf)|में|बात|बोलो|बोलना|बोलिये|करो|करें|करना|भाषा|बदलो|बदल/i
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function detectLanguageSwitch(message = '') {
+  const text = ' ' + String(message).toLowerCase().replace(/\s+/g, ' ').trim() + ' '
+  for (const lang of LANGUAGE_KEYWORDS) {
+    const kw = lang.keywords.find((k) => text.includes(k.toLowerCase()))
+    if (!kw) continue
+    const kwL = kw.toLowerCase()
+    const idx = text.indexOf(kwL)
+    const window = text.slice(Math.max(0, idx - 40), Math.min(text.length, idx + kwL.length + 40))
+    const nearEnd = idx + kwL.length > text.length - 45
+    const prepBefore = new RegExp(`\\b(?:in|into|to)\\s+${escapeRegExp(kwL)}\\b`, 'i').test(window) && nearEnd
+    if (SWITCH_INTENT.test(window) || prepBefore) return lang
+  }
+  return null
+}
+
 function chatSystemPrompt(mode) {
   const emojiRules = `- UNDERSTAND EMOJIS: Read emojis the user sends as real feelings/expressions (😂 = laughing, 😡 = angry, 🥺 = emotional, ❤️ = love/affection, 😭 = crying/sad, 😅 = awkward, 🙏 = please/thankful). Acknowledge the emotion they convey and respond accordingly — if the user is sad, be comforting; if laughing, keep the fun going; if angry, match with understanding first.
 - USE EMOJIS NATURALLY: Sprinkle a few emojis in your replies whenever an emotion or expression needs to be shown (reassurance ❤️, excitement 🎉, warning ⚠️, frustration 😤, approval ✅, motivation 💪). Match the user's emoji style — if they use none, use few; if they use lots, match that energy. Never overdo it.`
@@ -264,7 +319,15 @@ async function chatWithContext(message, tasks = [], goals = [], habits = [], opt
   const quality = opts.quality
   const history = dedupeHistory(opts.history || [], message)
   const mode = opts.mode || detectToneMode(message)
-  const sysMsg = chatSystemPrompt(mode)
+  let sysMsg = chatSystemPrompt(mode)
+
+  const langSwitch = detectLanguageSwitch(message)
+  sysMsg += `
+LANGUAGE SWITCH RULE: If the user explicitly asks you to change language mid-conversation (for example "talk in Spanish", "ab French me baat karo", "अब तुम फ्रेंच बोलो", "भाषा बदलो"), that explicit request ALWAYS overrides the mirror-language rule. Switch to the requested language immediately and keep using it in every following reply until the user asks for another language.`
+  if (langSwitch) {
+    sysMsg += `
+*** CRITICAL LANGUAGE OVERRIDE (highest priority) ***: The user's latest message asks to switch to ${langSwitch.name}. Write the ENTIRE "reply" in ${langSwitch.name} — completely ignore the language used in previous conversation messages and in this instruction message itself. Continue using ${langSwitch.name} in all following replies until the user requests a different language.`
+  }
 
   const historyText = history.length > 0
     ? `\nRecent conversation (for context only, respond to the LAST user message):\n${history.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.text}`).join('\n')}`
@@ -478,4 +541,6 @@ module.exports = {
   resolveModels,
   MODEL_TIERS,
   dedupeHistory,
+  detectLanguageSwitch,
+  LANGUAGE_KEYWORDS,
 }
