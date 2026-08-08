@@ -30,7 +30,8 @@
     "mongoose": "^9.7.3",
     "morgan": "^1.11.0",
     "openai": "^6.45.0",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -5,11 +5,13 @@ const AiUsage = require('../models/AiUsage')
 const ChatMessage = require('../models/ChatMessage')
 const mongoose = require('mongoose')
 const aiService = require('../services/aiService')
+const { AiServiceUnavailableError } = require('../utils/errors')
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { localDateKey } = require('../utils/dateKey')
 const { AI_DAILY_LIMIT } = require('../config/constants')
 
 const MAX_MESSAGE_LEN = 2000
+const AI_UNAVAILABLE_MESSAGE = 'The AI service is temporarily busy due to provider limits. Please try again in a few minutes.'
 
 const userQuality = req => (req.user?.aiSettings?.quality || 'medium')
 
@@ -20,10 +22,14 @@ function requestQuality(req) {
 
 const CHAT_CONTEXT_MESSAGES = aiService.CHAT_CONTEXT_MESSAGES || 24
 
-async function canUseAi(userId) {
+async function getAiUsageCount(userId) {
   const today = localDateKey()
   const usage = await AiUsage.findOne({ user: userId, date: today })
-  return !(usage && usage.count >= AI_DAILY_LIMIT)
+  return usage?.count || 0
+}
+
+async function canUseAi(userId) {
+  return (await getAiUsageCount(userId)) < AI_DAILY_LIMIT
 }
 
 async function recordAiUsage(userId) {
@@ -33,6 +39,27 @@ async function recordAiUsage(userId) {
     { $inc: { count: 1 } },
     { upsert: true }
   )
+}
+
+function nextResetDate() {
+  const now = new Date()
+  const reset = new Date(now)
+  reset.setHours(24, 0, 0, 0)
+  return reset
+}
+
+async function limitReachedResponse(res, userId) {
+  const used = await getAiUsageCount(userId)
+  const reset = nextResetDate()
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'your timezone'
+  const time = reset.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+  return res.status(429).json({
+    code: 'AI_DAILY_LIMIT',
+    message: `You've used all ${AI_DAILY_LIMIT} AI messages for today. Your limit resets at ${time} (${tz}).`,
+    used,
+    limit: AI_DAILY_LIMIT,
+    resetsAt: reset.toISOString(),
+  })
 }
 
 function sanitizeAiTask(t = {}) {
@@ -53,7 +80,7 @@ async function createTasksFromAI(userId, tasks = []) {
 
 const plan = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const { prompt } = req.body
     if (!prompt) return res.status(400).json({ message: 'Prompt required' })
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
@@ -61,8 +88,8 @@ const plan = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') {
-      return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service is currently unavailable due to quota limits. Please try again later.', reply: "I'm currently unavailable due to API limits. Try again later.", tasks: [], suggestions: [] })
+    if (error instanceof AiServiceUnavailableError) {
+      return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE, reply: "I'm currently unavailable due to API limits. Try again in a few minutes.", tasks: [], suggestions: [] })
     }
     handleError(res, error)
   }
@@ -70,7 +97,7 @@ const plan = async (req, res) => {
 
 const prioritize = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.prioritizeTasks(tasks, { quality: userQuality(req) })
     for (const r of result.rankings) {
@@ -84,14 +111,14 @@ const prioritize = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service quota exceeded' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
     handleError(res, error)
   }
 }
 
 const rescue = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const tasks = await Task.find({
       user: req.user._id,
       status: { $ne: 'done' },
@@ -101,14 +128,14 @@ const rescue = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service quota exceeded' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
     handleError(res, error)
   }
 }
 
 const chatAI = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const { message, sessionId, mode } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
     if (String(message).length > MAX_MESSAGE_LEN) return res.status(400).json({ message: `Message too long (max ${MAX_MESSAGE_LEN} characters)` })
@@ -131,7 +158,7 @@ const chatAI = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', reply: "AI service is currently unavailable due to quota limits. Please try again later or upgrade your API plan.", tasks: [], suggestions: [] })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE, reply: "I'm currently unavailable due to API limits. Try again in a few minutes.", tasks: [], suggestions: [] })
     if (error.name === 'ValidationError') return handleValidationError(res, error)
     handleError(res, error)
   }
@@ -175,7 +202,7 @@ const executeChatActions = async (userId, actions = []) => {
 
 const chatStream = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const { message, sessionId, mode } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
     if (String(message).length > MAX_MESSAGE_LEN) return res.status(400).json({ message: `Message too long (max ${MAX_MESSAGE_LEN} characters)` })
@@ -223,8 +250,8 @@ const chatStream = async (req, res) => {
       })
       res.end()
     } catch (error) {
-      if (error.message === 'AI_SERVICE_UNAVAILABLE') {
-        send({ error: 'AI_SERVICE_UNAVAILABLE', message: "AI service is currently unavailable due to quota limits. Please try again later." })
+      if (error instanceof AiServiceUnavailableError) {
+        send({ error: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
       } else {
         console.error('Chat stream error:', error.message)
         send({ error: 'SERVER_ERROR', message: 'Something went wrong while generating a reply. Please try again.' })
@@ -239,7 +266,7 @@ const chatStream = async (req, res) => {
 
 const suggestTaskAI = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const { title, description } = req.body
     if (!title) return res.status(400).json({ message: 'Title required' })
     const existingTasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(10)
@@ -247,7 +274,7 @@ const suggestTaskAI = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service unavailable', suggestedPriority: 'medium', suggestedEstimatedTime: 30, suggestedTags: [], reason: '' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE, suggestedPriority: 'medium', suggestedEstimatedTime: 30, suggestedTags: [], reason: '' })
     handleError(res, error)
   }
 }
@@ -264,7 +291,7 @@ const getUsage = async (req, res) => {
 
 const analyticsInsights = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const [tasks, habits, goals] = await Promise.all([
       Task.find({ user: req.user._id }),
       Habit.find({ user: req.user._id }),
@@ -274,14 +301,14 @@ const analyticsInsights = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service unavailable' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
     handleError(res, error)
   }
 }
 
 const habitInsights = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const [habits, tasks, goals] = await Promise.all([
       Habit.find({ user: req.user._id }),
       Task.find({ user: req.user._id }).limit(10),
@@ -291,28 +318,28 @@ const habitInsights = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service unavailable' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
     handleError(res, error)
   }
 }
 
 const focusSuggestion = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const { taskId } = req.body
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.generateFocusSuggestion(tasks, taskId, { quality: userQuality(req) })
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service unavailable' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
     handleError(res, error)
   }
 }
 
 const profileInsights = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const [tasks, habits, goals] = await Promise.all([
       Task.find({ user: req.user._id }),
       Habit.find({ user: req.user._id }),
@@ -322,14 +349,14 @@ const profileInsights = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service unavailable' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
     handleError(res, error)
   }
 }
 
 const organizeNotifications = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached.` })
+    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
     const { notifications } = req.body
     if (!Array.isArray(notifications) || notifications.length === 0) {
       return res.json({ groups: [], prioritizedIds: [], summary: 'No notifications to organize' })
@@ -338,7 +365,7 @@ const organizeNotifications = async (req, res) => {
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {
-    if (error.message === 'AI_SERVICE_UNAVAILABLE') return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: 'AI service unavailable' })
+    if (error instanceof AiServiceUnavailableError) return res.status(503).json({ code: 'AI_SERVICE_UNAVAILABLE', message: AI_UNAVAILABLE_MESSAGE })
     handleError(res, error)
   }
 }

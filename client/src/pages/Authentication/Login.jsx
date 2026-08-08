@@ -40,7 +40,11 @@ function Login() {
       toast.success('Welcome back!')
       navigate('/dashboard')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Invalid email or password')
+      if (!err.response) {
+        toast.error('Network error. Check your connection and try again.')
+      } else {
+        toast.error(err.response?.data?.message || 'Invalid email or password')
+      }
     } finally {
       setLoading(false)
     }

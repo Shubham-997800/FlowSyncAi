@@ -22,7 +22,7 @@ const sections = [
     icon: Database,
     title: '2. How We Use Your Data',
     content: [
-      'AI Processing: Your tasks and schedule data are sent to OpenRouter AI (Llama, GPT-4o-mini, Claude) to generate plans, prioritization, and suggestions — no personal identifiers (name/email) are included in AI requests',
+      'AI Processing: Your tasks and schedule data are sent to AI providers (Groq, Gemini, Mistral, OpenRouter, and others) to generate plans, prioritization, and suggestions — no personal identifiers (name/email) are included in AI requests',
       'Productivity Analytics: We aggregate your completion rates, focus patterns, and habit streaks to generate insights',
       'Service Improvement: Anonymized usage patterns help us optimize features and UI',
       'Communication: Password reset emails via SMTP (your email is never shared with third parties)',
@@ -44,7 +44,7 @@ const sections = [
     icon: Eye,
     title: '4. AI Processing & Third-Party Services',
     content: [
-      'AI Provider: OpenRouter (openrouter.ai) — processes task titles, descriptions, and deadlines for planning/prioritization',
+      'AI Providers: Groq, Google Gemini, Cerebras, Mistral, and OpenRouter — process task titles, descriptions, and deadlines for planning/prioritization',
       'Hosting: Vercel — standard cloud infrastructure',
       'Database: MongoDB Atlas — cloud database with automated backups',
       'Email: SMTP provider of your choice (default: Ethereal for testing)',

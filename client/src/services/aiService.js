@@ -26,10 +26,11 @@ export const streamChatAI = async ({ message, sessionId, quality, onToken, onDon
       body: JSON.stringify({ message, sessionId, quality }),
     })
     if (!res.ok) {
-      let msg = `Request failed (${res.status})`
-      try { const j = await res.json(); msg = j.message || j.code || msg } catch {}
-      if (res.status === 401) msg = 'Session expired. Please log in again.'
-      throw new Error(msg)
+      let payload = { error: 'SERVER_ERROR', message: `Request failed (${res.status})` }
+      try { const j = await res.json(); payload = { ...payload, error: j.code || payload.error, message: j.message || payload.message } } catch {}
+      if (res.status === 401) payload = { ...payload, error: 'UNAUTHORIZED', message: 'Session expired. Please log in again.' }
+      onError && onError(payload)
+      return payload
     }
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
@@ -51,13 +52,18 @@ export const streamChatAI = async ({ message, sessionId, quality, onToken, onDon
         else if (payload.error) { onError && onError(payload); return payload }
       }
     }
-    onError && onError({ error: 'SERVER_ERROR', message: 'Stream ended unexpectedly. Please try again.' })
+    const payload = { error: 'SERVER_ERROR', message: 'Stream ended unexpectedly. Please try again.' }
+    onError && onError(payload)
+    return payload
   } catch (err) {
     if (err && err.name === 'AbortError') {
-      onDone && onDone({ aborted: true })
-      return
+      const payload = { aborted: true }
+      onDone && onDone(payload)
+      return payload
     }
-    onError && onError({ error: 'NETWORK_ERROR', message: err.message || 'Network error. Check your connection.' })
+    const payload = { error: 'NETWORK_ERROR', message: err.message || 'Network error. Check your connection.' }
+    onError && onError(payload)
+    return payload
   }
 }
 

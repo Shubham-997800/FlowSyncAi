@@ -70,7 +70,7 @@ function Footer() {
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">2. How We Use Your Data</h3>
             <ul className="list-disc pl-5 space-y-1 text-xs">
-              <li>AI Processing: Your tasks and schedule data are sent to OpenRouter AI for planning and prioritization — no personal identifiers are included in AI requests</li>
+              <li>AI Processing: Your tasks and schedule data are sent to AI providers (Groq, Gemini, Mistral, OpenRouter, and others) for planning and prioritization — no personal identifiers are included in AI requests</li>
               <li>Productivity Analytics: We aggregate your completion rates, focus patterns, and habit streaks to generate insights</li>
               <li>Service Improvement: Anonymized usage patterns help us optimize features and UI</li>
               <li>Communication: Password reset emails via SMTP (your email is never shared with third parties)</li>

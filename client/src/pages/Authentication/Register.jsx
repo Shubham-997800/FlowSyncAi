@@ -101,7 +101,11 @@ function Register() {
       toast.success('Account created! Welcome to FlowSync AI.')
       navigate('/dashboard')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed. Check your details and try again.')
+      if (!err.response) {
+        toast.error('Network error. Check your connection and try again.')
+      } else {
+        toast.error(err.response?.data?.message || 'Registration failed. Check your details and try again.')
+      }
     } finally { setLoading(false) }
   }
 

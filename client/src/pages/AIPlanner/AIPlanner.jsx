@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, CornerDownRight, CheckCircle2, Trash, PencilLine, Square, RotateCcw, Copy } from 'lucide-react'
+import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, CornerDownRight, CheckCircle2, Trash, PencilLine, Square } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { streamChatAI, getAiUsage } from '../../services/aiService'
@@ -263,6 +263,9 @@ function AIPlanner() {
         const errText = done.message || 'Sorry, something went wrong. Try again.'
         const savedAI = await saveChatMessage({ sessionId, role: 'ai', text: errText }).catch(() => null)
         setMessages(prev => prev.map(m => m.id === aiId ? (savedAI || { ...m, text: errText, streaming: false }) : m))
+        if (done.error === 'AI_DAILY_LIMIT') {
+          getAiUsage().then(({ used, limit }) => setAiUsage({ used, limit })).catch(() => {})
+        }
         toast.error(errText)
       } else if (done) {
         const replyText = (done.reply || '').trim()
@@ -291,7 +294,7 @@ function AIPlanner() {
         setMessages(prev => prev.filter(m => m.id !== aiId))
         return
       }
-      const errText = err?.response?.status === 503 ? "AI service quota exceeded. Please try again later." : 'Sorry, something went wrong. Try again.'
+      const errText = err?.message || 'Sorry, something went wrong. Try again.'
       const savedErr = await saveChatMessage({ sessionId, role: 'ai', text: errText }).catch(() => null)
       setMessages(prev => prev.map(m => m.id === aiId ? (savedErr || { ...m, text: errText, streaming: false }) : m))
     } finally {
@@ -303,16 +306,6 @@ function AIPlanner() {
   useEffect(() => { handleSendRef.current = handleSend })
 
   const stopGeneration = () => { abortRef.current?.abort() }
-
-  const handleRegenerate = () => {
-    const lastUser = [...messages].reverse().find(m => m.role === 'user')
-    if (lastUser) handleSend(lastUser.text, { skipUserSave: true })
-  }
-
-  const copyMessage = async (text) => {
-    try { await navigator.clipboard.writeText(text); toast.success('Copied to clipboard') }
-    catch { toast.error('Could not copy message') }
-  }
 
   const handleDeleteMessage = async (id) => {
     try { await deleteChatMessage(id); setMessages(prev => prev.filter(m => m._id !== id)); toast.success('Message deleted') }
@@ -515,7 +508,7 @@ function AIPlanner() {
                           }`}>
                             {msg.role === 'ai'
                               ? (msg.streaming
-                                ? <span className="whitespace-pre-wrap">{msg.text}<span className="inline-block w-1.5 h-4 align-middle bg-indigo-400 rounded-sm ml-0.5 animate-pulse" /></span>
+                                ? <div><Markdown>{msg.text}</Markdown><span className="inline-block w-1.5 h-4 align-middle bg-indigo-400 rounded-sm ml-0.5 animate-pulse" /></div>
                                 : <Markdown>{msg.text}</Markdown>)
                               : msg.text}
                           </div>
@@ -613,25 +606,6 @@ function AIPlanner() {
                               {s}
                             </motion.button>
                           ))}
-                        </div>
-                      )}
-
-                      {msg.role === 'ai' && !msg.streaming && i === messages.length - 1 && (
-                        <div className="mt-2 ml-0 sm:ml-10 flex items-center gap-2">
-                          <button
-                            onClick={handleRegenerate}
-                            disabled={streaming}
-                            className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-zinc-700 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all disabled:opacity-50"
-                          >
-                            <RotateCcw size={11} /> Regenerate
-                          </button>
-                          <button
-                            onClick={() => copyMessage(msg.text)}
-                            disabled={streaming}
-                            className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-zinc-700 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all disabled:opacity-50"
-                          >
-                            <Copy size={11} /> Copy
-                          </button>
                         </div>
                       )}
                     </div>

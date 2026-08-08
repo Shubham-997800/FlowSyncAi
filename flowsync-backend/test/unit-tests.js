@@ -64,16 +64,65 @@ async function main() {
     const n = normalizeError(new Error('boom'))
     return n.statusCode === 500 && n.code === 'SERVER_ERROR'
   })
+
+  await t('normalizeError: AiServiceUnavailableError -> 503 AI_SERVICE_UNAVAILABLE', async () => {
+    const { AiServiceUnavailableError } = require('../utils/errors')
+    const n = normalizeError(new AiServiceUnavailableError('down'))
+    return n.statusCode === 503 && n.code === 'AI_SERVICE_UNAVAILABLE'
+  })
+
+  await t('normalizeError: NotFoundError -> 404 NOT_FOUND', async () => {
+    const { NotFoundError } = require('../utils/errors')
+    const n = normalizeError(new NotFoundError('gone'))
+    return n.statusCode === 404 && n.code === 'NOT_FOUND' && n.message === 'gone'
+  })
+
+  await t('validation: authSchemas.signup rejects bad email', async () => {
+    const { authSchemas } = require('../utils/validation')
+    const r = authSchemas.signup.safeParse({ name: 'John', email: 'not-an-email', password: 'Password123!' })
+    return !r.success && r.error.issues[0].message.includes('email')
+  })
+
+  await t('validation: authSchemas.signup rejects weak password', async () => {
+    const { authSchemas } = require('../utils/validation')
+    const r = authSchemas.signup.safeParse({ name: 'John', email: 'j@x.com', password: 'short' })
+    return !r.success
+  })
+
+  await t('validation: taskSchemas.create rejects empty title', async () => {
+    const { taskSchemas } = require('../utils/validation')
+    const r = taskSchemas.create.safeParse({ title: '  ' })
+    return !r.success && r.error.issues[0].message.includes('Title')
+  })
+
+  await t('validation: taskSchemas.create strips unknown fields (mass assignment)', async () => {
+    const { taskSchemas } = require('../utils/validation')
+    const r = taskSchemas.create.safeParse({ title: 'Forge', _id: '66c0a00000000000000000aa', isAdmin: true })
+    return r.success && !('_id' in r.data) && !('isAdmin' in r.data)
+  })
+
+  await t('validation: taskSchemas.create accepts valid task', async () => {
+    const { taskSchemas } = require('../utils/validation')
+    const r = taskSchemas.create.safeParse({ title: 'Ship v2', priority: 'high', deadline: '2026-08-15T10:00:00.000Z' })
+    return r.success && r.data.priority === 'high'
+  })
+
+  await t('validation: aiSchemas.chat rejects empty message', async () => {
+    const { aiSchemas } = require('../utils/validation')
+    const r = aiSchemas.chat.safeParse({ message: '' })
+    return !r.success && r.error.issues[0].message.includes('Message')
+  })
   await t('resolveModels: AI_MODEL always first', async () => {
     process.env.AI_MODEL = 'custom/model'
     const m = resolveModels('medium')
-    return m[0] === 'custom/model'
+    return m[0].provider === 'openrouter' && m[0].model === 'custom/model'
   })
   await t('resolveModels: known quality uses its tier', async () => {
     process.env.AI_MODEL = ''
     const low = resolveModels('low')
     const high = resolveModels('high')
-    return MODEL_TIERS.low.every(x => low.includes(x)) && MODEL_TIERS.high.every(x => high.includes(x))
+    return MODEL_TIERS.low.every(x => low.some(r => r.provider === x.provider && r.model === x.model)) &&
+      MODEL_TIERS.high.every(x => high.some(r => r.provider === x.provider && r.model === x.model))
   })
   await t('resolveModels: unknown quality falls back to default chain', async () => {
     const m = resolveModels('unknown-tier')

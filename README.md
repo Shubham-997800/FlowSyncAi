@@ -24,10 +24,11 @@
   <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white" />
   <img src="https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express&logoColor=white" />
   <img src="https://img.shields.io/badge/MongoDB-47A248?style=flat-square&logo=mongodb&logoColor=white" />
-  <img src="https://img.shields.io/badge/OpenRouter-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
+  <img src="https://img.shields.io/badge/Multi_Provider_AI-FF6600?style=flat-square&logo=openrouter&logoColor=white" />
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
+  <img src="https://img.shields.io/badge/Zod_Validation-3E67B1?style=flat-square&logo=zod&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tests-226%2F226-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/Tests-253%2F253-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/actions/workflow/status/Shubham-997800/FlowSync-Ai/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
@@ -37,7 +38,7 @@
 </p>
 
 <p align="center">
-   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.7_Current-22c55e?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.8_Current-22c55e?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -244,7 +245,8 @@ Every core screen is covered below; for a visual walkthrough, open the live demo
 
 | Technology | Purpose |
 |------------|---------|
-| **OpenRouter** | AI chat, planning, prioritization, rescue mode — quality-tiered model failover (Fast/Balanced/Smart chains: GPT-4o-mini, Gemini 2.5 Flash/Flash-Lite, Llama 3.3 70B, Qwen3, DeepSeek, GLM-4.7, GPT-OSS, free tiers, GPT-4o, DeepSeek R1) via OpenAI-compatible SDK |
+| **Multi-Provider AI** | Chat, planning, prioritization, rescue mode — quality-tiered model failover across **Groq, Gemini, Cerebras, Mistral, and OpenRouter** with multi-key rotation (Fast/Balanced/Smart chains) via OpenAI-compatible SDKs |
+| **Zod** | Runtime request validation — schema-driven `validate()` middleware on auth/tasks/AI routes (strips mass-assignment fields, typed error messages) |
 | **Vercel** | Frontend + backend hosting with auto-deploy from GitHub, HTTPS, edge CDN |
 
 ---
@@ -278,7 +280,7 @@ flowchart TB
         M1["Users · Tasks · Goals · Habits · Notifications"]
     end
 
-    subgraph AI["🤖 OpenRouter AI"]
+    subgraph AI["🤖 Multi-Provider AI — Groq · Gemini · Cerebras · Mistral · OpenRouter"]
         A1["Quality-tiered model failover · chat.completions · structured JSON"]
     end
 
@@ -416,7 +418,7 @@ flowsync-ai/
 │   │
 │   ├── config/
 │   │   ├── db.js                          # Mongoose connection with retry logic
-│   │   ├── aiConfig.js                    # OpenRouter client (OpenAI SDK)
+│   │   ├── aiConfig.js                    # Multi-provider AI clients (Groq/Gemini/Cerebras/Mistral/OpenRouter)
 │   │   └── constants.js                   # Shared app constants
 │   │
 │   ├── middleware/
@@ -466,10 +468,13 @@ flowsync-ai/
 │   ├── utils/
 │   │   ├── dateKey.js                     # Local-timezone date helpers
 │   │   ├── errorHandler.js                # Unified { message, code } error mapping (no leak on 5xx)
+│   │   ├── errors.js                      # Typed error classes (AiServiceUnavailableError, NotFoundError, ...)
+│   │   ├── validation.js                  # Zod schemas + validate() middleware (auth/tasks/AI)
 │   │   └── validateId.js                  # ObjectId validation
 │   │
 │   ├── test/
-│   │   └── run-tests.js                   # 147-test integration harness (real Mongo, same handler Vercel runs)
+│   │   ├── run-tests.js                   # 147-test integration harness (real Mongo, same handler Vercel runs)
+│   │   └── unit-tests.js                  # 41 pure unit tests (errors, zod, AI tiers) — no server needed
 │   │
 │   └── package.json
 │
@@ -604,7 +609,7 @@ flowchart TB
 
     subgraph EXT["External"]
         DB["🗄️ MongoDB Atlas — indexed collections"]
-        OA["🤖 OpenRouter AI — OpenAI SDK · structured JSON"]
+        OA["🤖 Multi-Provider AI — OpenAI-compatible SDK · structured JSON"]
     end
 
     C1 --> C2
@@ -696,7 +701,7 @@ Query-heavy paths are covered by composite indexes (MongoDB Atlas). Notification
 
 ## 🤖 AI Architecture
 
-FlowSync AI's intelligence is powered by **OpenRouter** with **quality-tiered model failover** — Fast / Balanced / Smart chains covering GPT-4o-mini, Gemini 2.5 Flash / Flash-Lite, Llama 3.3 70B, Qwen3, DeepSeek Chat, GLM-4.7 Flash, GPT-OSS (incl. free tiers), GPT-4o, and DeepSeek R1, plus an env override — accessed through the **OpenAI-compatible SDK**. The AI layer is designed for reliability, structured output, graceful fallbacks, and full multilingual support with tone matching.
+FlowSync AI's intelligence is powered by a **multi-provider AI layer** with automatic **failover and multi-key rotation** — Groq, Gemini, Cerebras, Mistral, and OpenRouter — each with provider-specific model chains across Fast / Balanced / Smart quality tiers. Every provider is hit through an **OpenAI-compatible SDK**; if one provider's key is exhausted or rate-limited, the next model/key in the chain takes over automatically. Gemini auto-skips unsupported penalty parameters, and dead/expired accounts fail over gracefully instead of erroring. The AI layer is designed for reliability, structured output, graceful fallbacks, and full multilingual support with tone matching.
 
 ### Architecture Overview
 
@@ -704,9 +709,9 @@ FlowSync AI's intelligence is powered by **OpenRouter** with **quality-tiered mo
 flowchart TB
     SYS["🧠 System Prompt — 'You are FlowSync AI ... respond valid JSON only'"]
     PB["📝 Prompt Builder — injects user message + current tasks + context"]
-    OR["🌐 OpenRouter API (OpenAI SDK) — quality-tiered model failover"]
+    OR["🌐 Multi-Provider Layer — Groq · Gemini · Cerebras · Mistral · OpenRouter (model + key failover)"]
     PARSER["🔧 JSON Response Parser — strip fences → parse → fallback structure"]
-    ERR["🚨 Error Handling — no key → AI_SERVICE_UNAVAILABLE · parse fail → defaults · per-model fallback"]
+    ERR["🚨 Error Handling — typed AiServiceUnavailableError · no key → 503 · parse fail → defaults · per-model fallback"]
 
     SYS --> PB --> OR --> PARSER
     PARSER --> ERR
@@ -716,6 +721,17 @@ flowchart TB
     style OR fill:#ea580c,stroke:#fff,color:#fff
     style OUT fill:#047857,stroke:#fff,color:#fff
 ```
+
+### Provider Tiers (via `resolveModels`)
+
+| Quality | Providers / Models |
+|---------|-------------------|
+| **Low (Fast)** | Groq llama-3.1-8b · Gemini 2.5 Flash-Lite · Cerebras gpt-oss-120b · Mistral small · top free-tier OpenRouter models |
+| **Medium (Balanced)** | Groq llama-3.1/3.3 · Gemini 2.5 Flash · Cerebras · Mistral small · `openrouter/free` + full free chain + top paid models |
+| **High (Smart)** | Gemini 2.5 Flash · Groq llama-3.3-70b · Cerebras gpt-oss-120b · GPT-4o · premium paid models |
+
+> [!NOTE]
+> The primary model is always pinned first via the `AI_MODEL` env override; dead providers (e.g. a free-tier Gemini key with zero quota) are skipped in the chain so replies never fail.
 
 ### AI Capabilities Breakdown
 
@@ -824,6 +840,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 | **v3.5** | `Polish + Coverage` | **AI quality tiers** (Fast/Balanced/Smart), **AI chat context** (last 8 messages), **AI usage meter**, keyboard shortcuts + swipe nav, device onboarding. Rate-limit `code`, `headersSent` guard, daily AI limit 400. **Backend 135/135 + frontend 58/58 tests, lint clean, build green.** |
 | **v3.6** | `Auto Tone + Mobile` | Removed the AI mode/quality chooser from the chat and Settings — the assistant now **auto-detects tone** (fun / companion / normal) from the message. Mobile AI chat overhaul: header fits 320–360px, `break-words`/`overflow-wrap` on bubbles (long URLs & code), `100dvh` shell + safe-area input, touch-visible delete buttons, full-height mobile history drawer, `viewport-fit=cover` + `interactive-widget=resizes-content`. Reliability: stop retrying HTTP 429, throttle redundant deadline checks, drop CSP-blocked Google Fonts preload. **Backend 135/135 + frontend 65/65 tests, lint clean, build green.** |
 | **v3.7** | `Reliability + Sec + Mobile` | **Dashboard can never blank on refresh**: tasks cached in `sessionStorage` (instant paint), per-widget error boundaries, identical in-flight GET dedupe (halves API chatter), and hard-logout only on genuinely invalid tokens (transient 429/5xx no longer logs you out). **Every popup/modal verified fully on-screen at 320–390px** (notification/permission dropdowns became full-width panels, task/goal/onboarding got max-h + scroll, no 2-line button labels). **Security**: refresh token moved out of localStorage into an **httpOnly SameSite=Lax cookie** (30d, Secure in prod) with rotation + reuse-revocation + cookie clear on logout — XSS can't steal the long-lived credential. **DB**: `{ deadline: 1 }` index so the reminder sweep avoids a collection scan. AI task-create + push subscribe now map validation errors to 400. a11y labels on the AI-chat drawer toggle + notification bell. Test harness split into integration + pure-unit suites. **Backend 161/161 (147 integration + 14 unit) + frontend 65/65 tests, lint clean, build green, all live-audited.** |
+| **v3.8** | `Craftsmanship + AI Scale` | **Multi-provider AI layer**: Groq · Gemini · Cerebras · Mistral (multi-key rotation) · OpenRouter with quality-tiered failover — dead keys skip, ~16K messages/day across providers. **Typed error classes** (`AiServiceUnavailableError`, `NotFoundError`, …) replacing magic-string checks. **Zod request validation** on auth/tasks/AI routes (schema-driven, mass-assignment stripping, typed messages). **Error UX overhaul**: daily-limit 429 now includes exact reset time + `resetsAt`; streamed chat surfaces the real server error instead of a generic message; login/signup distinguish network vs server failures. **Docker Compose** for one-command full-stack dev. **Backend 188/188 (147 integration + 41 unit) + frontend 65/65 tests, lint clean.** |
 
 ---
 
@@ -831,7 +848,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 161/161 (147 integration + 14 unit) + frontend 65/65 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
+**Current status: backend 188/188 (147 integration + 41 unit) + frontend 65/65 tests passing · both lint clean · production build succeeds · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
 
 | Coverage Area | What's Verified |
 |---|---|
@@ -846,6 +863,8 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 | 📤 **Export (client)** | Unit tests cover CSV quote-escaping, JSON round-trip, XML well-formedness + escaping, TXT layout, and download-triggering for every text format |
 | 🧭 **Navigation (client)** | Unit tests cover keyboard shortcuts (1-9/0, ←/→, ?), swipe navigation, and typing-target detection |
 | 🧩 **Error Handler (unit)** | `normalizeError` maps validation/duplicate/cast/JSON/payload/statusCode errors to the correct `{ statusCode, code, message }` |
+| 🧩 **Typed Errors (unit)** | `AiServiceUnavailableError`/`NotFoundError` normalize to the right 503/404 codes; magic-string checks replaced with `instanceof` |
+| 🧾 **Zod Validation (unit)** | Auth/task/AI schemas reject bad email/password/empty titles, accept valid payloads, and strip mass-assignment fields (`_id`, `isAdmin`) |
 | 🤖 **AI Tiers (unit)** | Model-tier resolution (`resolveModels`) pins Fast/Balanced/Smart chains and always leads with the env-override model |
 | 🎭 **AI Auto Tone (unit)** | `detectToneMode` maps fun / companion / normal keywords to the correct chat persona, defaulting to normal |
 
@@ -855,7 +874,7 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 cd flowsync-backend
 npm install
 node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 147 integration checks
-node test/unit-tests.js    # 14 pure unit tests (error handler + AI model tiers) — no server needed
+node test/unit-tests.js    # 41 pure unit tests (error handler, typed errors, zod validation, AI tiers) — no server needed
 
 cd ../client
 npm install
@@ -872,12 +891,13 @@ The full audit — findings, fixes, and remaining recommendations — lives in [
 | Focus | Improvements |
 |-------|-------------|
 | **TypeScript** | Migrate frontend to TypeScript (strict mode) + backend type definitions |
-| **Testing** | Expand to E2E (Playwright); grow frontend unit coverage beyond 58 tests |
-| **Backend Validation** | Input validation middleware (zod) on top of existing type/sanitize guards |
+| **Testing** | Expand to E2E (Playwright); grow frontend unit coverage beyond 65 tests |
 | **Auth Upgrade** | API versioning, social login (Google/GitHub OAuth) |
-| **Performance** | React Query/SWR for caching, AI streaming via SSE, DB read-tier |
+| **Performance** | React Query/SWR for caching, DB read-tier |
 | **UX Pro** | Drag-and-drop tasks, file attachments, PWA offline |
-| **Platform** | Docker setup, i18n multi-language, Storybook |
+| **Platform** | i18n multi-language, Storybook, error tracking (Sentry) |
+
+> ✅ **Done (v3.8):** zod input validation on auth/tasks/AI routes · typed error classes · multi-provider AI (Groq/Gemini/Cerebras/Mistral/OpenRouter) with key rotation · AI streaming via SSE · Docker Compose (full stack).
 
 ---
 
@@ -885,20 +905,29 @@ The full audit — findings, fixes, and remaining recommendations — lives in [
 
 ### Prerequisites
 
-- **Node.js 24+** and npm
+- **Node.js 24+** and npm — or **Docker + Docker Compose** for the one-command path
 - **MongoDB** (Atlas cluster or local) with a connection string
-- **OpenRouter API key** (for AI features) and generated **VAPID keys** (for push) — optional; the app degrades gracefully without them
+- **At least one AI provider key** (Groq / Gemini / Cerebras / Mistral / OpenRouter) — optional; the app degrades gracefully without them, plus generated **VAPID keys** (for push)
 
-### 1. Backend
+### Option A — Docker (one command, full stack)
+
+```bash
+docker compose up --build
+# API → http://localhost:5000  ·  App → http://localhost:5173  ·  Mongo → localhost:27017
+```
+
+### Option B — Local dev
+
+#### 1. Backend
 
 ```bash
 cd flowsync-backend
 npm install
-cp .env.example .env        # then fill in MONGODB_URI, JWT_SECRET, CLIENT_URL, OPENROUTER_API_KEY, VAPID keys
+cp .env.example .env        # then fill in MONGODB_URI, JWT_SECRET, CLIENT_URL + AI provider keys
 npm run dev                 # API on http://localhost:5000
 ```
 
-### 2. Frontend
+#### 2. Frontend
 
 ```bash
 cd client
@@ -928,11 +957,15 @@ Or simply push to `main` (the project auto-deploys from GitHub).
 | `JWT_SECRET` | ✅ | ≥ 32 random characters; app refuses to boot without it |
 | `CLIENT_URL` | ✅ | CORS allowlist for your frontend origin |
 | `CLIENT_URL_2` | 🔶 | Optional second allowed origin (e.g. staging) |
-| `OPENROUTER_API_KEY` | ⭐ | Enables all AI features (OpenRouter gateway) |
-| `XAI_API_KEY` | 🔶 | Fallback AI key if OpenRouter is unset |
+| `GROQ_API_KEY` | ⭐ | Primary AI provider (llama-3.1-8b / llama-3.3-70b) |
+| `GEMINI_API_KEY` | ⭐ | AI fallback (Gemini 2.5 Flash / Flash-Lite) |
+| `CEREBRAS_API_KEY` | ⭐ | AI fallback (gpt-oss-120b / gemma-4-31b) |
+| `MISTRAL_API_KEY` / `MISTRAL_API_KEY_2` | ⭐ | AI fallback — second key enables automatic rotation (mistral-small) |
+| `OPENROUTER_API_KEY` | ⭐ | AI fallback gateway (free + paid tiers) |
+| `XAI_API_KEY` | 🔶 | Legacy fallback if other providers are unset |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | ⭐ | Web Push; if invalid, push auto-disables instead of crashing |
 | `VAPID_SUBJECT` | 🔶 | Email/mailto used by web-push |
-| `AI_DAILY_LIMIT` | 🔶 | Max AI calls per user/day (default 400) |
+| `AI_DAILY_LIMIT` | 🔶 | Max AI calls per user/day (default **300**) |
 | `MAX_CHAT_SESSIONS` | 🔶 | Max chat sessions kept per user (default 6) |
 | `REMINDER_CHECK_INTERVAL` | 🔶 | Reminder sweep interval in ms (default 30 min) |
 | `RATE_LIMIT_AUTH` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_AI` / `RATE_LIMIT_GENERAL` | 🔶 | Per-endpoint rate limits (req/min) |
