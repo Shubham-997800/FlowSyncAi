@@ -160,6 +160,30 @@ async function main() {
     ;['{"re', 'ply":"hi"}'].forEach(tok)
     return text === ''
   })
+  await t('createReplyTokenizer: code-fenced JSON streams nothing', async () => {
+    let text = ''
+    const tok = createReplyTokenizer((t) => { text += t })
+    ;['```json\n', '{"tasks', '":[]}```'].forEach(tok)
+    return text === ''
+  })
+  await t('createReplyTokenizer: preamble before JSON leaks no JSON', async () => {
+    let text = ''
+    const tok = createReplyTokenizer((t) => { text += t })
+    ;['Sure, ', 'here it is: ', '{"tasks":[', '{"title":"x"}]}'].forEach(tok)
+    return text === 'Sure, here it is:'
+  })
+  await t('parseChatStreamOutput: code-fenced JSON with reply', async () => {
+    const out = parseChatStreamOutput('```json\n{"reply":"hi there","tasks":[],"suggestions":["s1"]}\n```')
+    return out.reply === 'hi there' && out.suggestions[0] === 's1'
+  })
+  await t('parseChatStreamOutput: JSON with no reply field never returns raw JSON', async () => {
+    const out = parseChatStreamOutput('{"tasks":[{"title":"x"}],"suggestions":[]}')
+    return !out.reply.includes('"tasks"') && out.reply.length > 0 && out.tasks[0].title === 'x'
+  })
+  await t('parseChatStreamOutput: preamble + JSON without reply keeps text', async () => {
+    const out = parseChatStreamOutput('Here is your plan\n{"tasks":[{"title":"x"}],"suggestions":["y"]}')
+    return out.reply === 'Here is your plan' && out.tasks[0].title === 'x'
+  })
 
   const passed = results.filter((r) => r.ok).length
   const failed = results.length - passed

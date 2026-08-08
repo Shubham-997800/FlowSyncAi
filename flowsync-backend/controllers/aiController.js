@@ -9,6 +9,8 @@ const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { localDateKey } = require('../utils/dateKey')
 const { AI_DAILY_LIMIT } = require('../config/constants')
 
+const MAX_MESSAGE_LEN = 2000
+
 const userQuality = req => (req.user?.aiSettings?.quality || 'medium')
 
 function requestQuality(req) {
@@ -31,6 +33,22 @@ async function recordAiUsage(userId) {
     { $inc: { count: 1 } },
     { upsert: true }
   )
+}
+
+function sanitizeAiTask(t = {}) {
+  const title = typeof t.title === 'string' ? t.title.trim().slice(0, 200) : ''
+  if (!title) return null
+  const priority = ['low', 'medium', 'high'].includes(t.priority) ? t.priority : 'medium'
+  let deadline = null
+  if (t.deadline) { const d = new Date(t.deadline); if (!Number.isNaN(d.getTime())) deadline = d }
+  const description = typeof t.description === 'string' ? t.description.trim().slice(0, 2000) : ''
+  return { title, description, priority, deadline }
+}
+
+async function createTasksFromAI(userId, tasks = []) {
+  const clean = (Array.isArray(tasks) ? tasks : []).map(sanitizeAiTask).filter(Boolean)
+  if (clean.length === 0) return []
+  return Task.insertMany(clean.map(t => ({ ...t, user: userId })))
 }
 
 const plan = async (req, res) => {
@@ -93,6 +111,7 @@ const chatAI = async (req, res) => {
     if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const { message, sessionId, mode } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
+    if (String(message).length > MAX_MESSAGE_LEN) return res.status(400).json({ message: `Message too long (max ${MAX_MESSAGE_LEN} characters)` })
     const [tasks, goals, habits] = await Promise.all([
       Task.find({ user: req.user._id, status: { $ne: 'done' } }),
       Goal.find({ user: req.user._id }),
@@ -106,9 +125,7 @@ const chatAI = async (req, res) => {
     }
     const result = await aiService.chatWithContext(message, tasks, goals, habits, { quality: requestQuality(req), history, mode })
     if (result.tasks && result.tasks.length > 0) {
-      const created = await Task.insertMany(
-        result.tasks.map(t => ({ ...t, user: req.user._id }))
-      )
+      const created = await createTasksFromAI(req.user._id, result.tasks)
       result.createdTasks = created
     }
     await recordAiUsage(req.user._id)
@@ -161,6 +178,7 @@ const chatStream = async (req, res) => {
     if (!(await canUseAi(req.user._id))) return res.status(429).json({ code: 'AI_DAILY_LIMIT', message: `Daily AI limit (${AI_DAILY_LIMIT}) reached. Try again tomorrow.` })
     const { message, sessionId, mode } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
+    if (String(message).length > MAX_MESSAGE_LEN) return res.status(400).json({ message: `Message too long (max ${MAX_MESSAGE_LEN} characters)` })
     const [tasks, goals, habits] = await Promise.all([
       Task.find({ user: req.user._id, status: { $ne: 'done' } }),
       Goal.find({ user: req.user._id }),
@@ -192,7 +210,7 @@ const chatStream = async (req, res) => {
       const actionResults = await executeChatActions(req.user._id, result.actions)
       let createdTasks = []
       if (result.tasks && result.tasks.length > 0) {
-        createdTasks = await Task.insertMany(result.tasks.map(t => ({ ...t, user: req.user._id })))
+        createdTasks = await createTasksFromAI(req.user._id, result.tasks)
       }
       await recordAiUsage(req.user._id)
       send({

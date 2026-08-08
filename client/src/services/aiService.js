@@ -11,7 +11,7 @@ export const chatAI = async (message, sessionId, quality) => {
   return data
 }
 
-export const streamChatAI = async ({ message, sessionId, quality, onToken, onDone, onError, onStart }) => {
+export const streamChatAI = async ({ message, sessionId, quality, onToken, onDone, onError, onStart, signal }) => {
   const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : '')
   const token = localStorage.getItem('token')
   try {
@@ -22,6 +22,7 @@ export const streamChatAI = async ({ message, sessionId, quality, onToken, onDon
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       credentials: 'include',
+      signal,
       body: JSON.stringify({ message, sessionId, quality }),
     })
     if (!res.ok) {
@@ -52,6 +53,10 @@ export const streamChatAI = async ({ message, sessionId, quality, onToken, onDon
     }
     onError && onError({ error: 'SERVER_ERROR', message: 'Stream ended unexpectedly. Please try again.' })
   } catch (err) {
+    if (err && err.name === 'AbortError') {
+      onDone && onDone({ aborted: true })
+      return
+    }
     onError && onError({ error: 'NETWORK_ERROR', message: err.message || 'Network error. Check your connection.' })
   }
 }

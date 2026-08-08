@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, CornerDownRight, CheckCircle2, Trash, PencilLine } from 'lucide-react'
+import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, CornerDownRight, CheckCircle2, Trash, PencilLine, Square, RotateCcw, Copy } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { streamChatAI, getAiUsage } from '../../services/aiService'
@@ -15,18 +15,6 @@ const qualityOptions = [
   { value: 'low', label: 'Fast', desc: 'Quick replies' },
   { value: 'medium', label: 'Balanced', desc: 'Recommended' },
   { value: 'high', label: 'Smart', desc: 'Deep thinking' },
-]
-
-const voiceLangs = [
-  { label: 'English', value: 'en-US' },
-  { label: 'हिंदी Hindi', value: 'hi-IN' },
-  { label: 'Español', value: 'es-ES' },
-  { label: 'Français', value: 'fr-FR' },
-  { label: 'Deutsch', value: 'de-DE' },
-  { label: 'العربية', value: 'ar-SA' },
-  { label: 'தமிழ் Tamil', value: 'ta-IN' },
-  { label: 'తెలుగు Telugu', value: 'te-IN' },
-  { label: 'বাংলা Bengali', value: 'bn-IN' },
 ]
 
 const suggestions = [
@@ -68,7 +56,6 @@ function AIPlanner() {
   const [listening, setListening] = useState(false)
   const [aiUsage, setAiUsage] = useState(null)
   const [quality, setQuality] = useState(() => localStorage.getItem('flowsync_ai_quality') || 'medium')
-  const [voiceLang, setVoiceLang] = useState(() => localStorage.getItem('flowsync_ai_voice_lang') || 'en-US')
   const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
   const listeningRef = useRef(listening)
@@ -76,11 +63,10 @@ function AIPlanner() {
   const silenceTimerRef = useRef(null)
   const lastSpeechRef = useRef(0)
   const finalTranscriptRef = useRef('')
-  const voiceLangRef = useRef(voiceLang)
   const handleSendRef = useRef(null)
+  const abortRef = useRef(null)
 
   useEffect(() => { listeningRef.current = listening }, [listening])
-  useEffect(() => { voiceLangRef.current = voiceLang; localStorage.setItem('flowsync_ai_voice_lang', voiceLang) }, [voiceLang])
 
   const setQualityAndStore = (q) => { setQuality(q); localStorage.setItem('flowsync_ai_quality', q) }
 
@@ -142,7 +128,6 @@ function AIPlanner() {
     const recognition = new SpeechRecognition()
     recognition.continuous = true
     recognition.interimResults = true
-    recognition.lang = voiceLangRef.current
     finalTranscriptRef.current = ''
     autoRestartRef.current = true
 
@@ -199,11 +184,16 @@ function AIPlanner() {
   useEffect(() => {
     const handleVisibility = () => { if (document.hidden && listeningRef.current) stopVoiceRef.current() }
     document.addEventListener('visibilitychange', handleVisibility)
-    return () => { document.removeEventListener('visibilitychange', handleVisibility); stopVoiceRef.current() }
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      stopVoiceRef.current()
+      abortRef.current?.abort()
+    }
   }, [])
 
   const loadSession = useCallback(async (sid) => {
     if (listeningRef.current) stopVoiceRef.current()
+    abortRef.current?.abort()
     setInitialLoading(true)
     setShowSessions(false)
     try {
@@ -222,6 +212,7 @@ function AIPlanner() {
 
   const newChat = useCallback(async () => {
     if (listeningRef.current) stopVoiceRef.current()
+    abortRef.current?.abort()
     const sid = genId()
     setSessionId(sid)
     setMessages([defaultMessage])
@@ -230,36 +221,56 @@ function AIPlanner() {
 
   useEffect(() => { if (!initialLoading) bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, initialLoading])
 
-  const handleSend = async (text) => {
+  const handleSend = async (text, { skipUserSave = false } = {}) => {
     const msgText = text || input
     if (!msgText.trim() || streaming) return
     setInput('')
     setStreaming(true)
     const aiId = genId()
     const placeholder = { id: aiId, role: 'ai', text: '', tasks: [], createdTasks: [], actions: [], suggestions: [], streaming: true }
-    const appendToken = (token) => {
-      setMessages(prev => prev.map(m => m.id === aiId ? { ...m, text: m.text + token } : m))
+    let tokenBuf = ''
+    let flushTimer = null
+    const flush = () => {
+      if (!tokenBuf) return
+      const chunk = tokenBuf
+      tokenBuf = ''
+      setMessages(prev => prev.map(m => m.id === aiId ? { ...m, text: m.text + chunk } : m))
     }
+    const appendToken = (token) => {
+      if (!token) return
+      tokenBuf += token
+      if (!flushTimer) flushTimer = setTimeout(() => { flushTimer = null; flush() }, 50)
+    }
+    const controller = new AbortController()
+    abortRef.current = controller
     try {
-      const savedUser = await saveChatMessage({ sessionId, role: 'user', text: msgText })
-      setMessages(prev => [...prev, savedUser, placeholder])
+      const savedUser = skipUserSave ? null : await saveChatMessage({ sessionId, role: 'user', text: msgText })
+      setMessages(prev => [...(skipUserSave ? prev : [...prev, savedUser]), placeholder])
       const done = await streamChatAI({
         message: msgText,
         sessionId,
         quality,
+        signal: controller.signal,
         onToken: appendToken,
-        onError: () => { appendToken('') },
+        onError: () => {},
       })
+      flush()
+      if (done && done.aborted) {
+        setMessages(prev => prev.filter(m => m.id !== aiId))
+        return
+      }
       if (done && done.error) {
         const errText = done.message || 'Sorry, something went wrong. Try again.'
         const savedAI = await saveChatMessage({ sessionId, role: 'ai', text: errText }).catch(() => null)
         setMessages(prev => prev.map(m => m.id === aiId ? (savedAI || { ...m, text: errText, streaming: false }) : m))
         toast.error(errText)
       } else if (done) {
+        const replyText = (done.reply || '').trim()
+        const finalText = replyText || (done.tasks && done.tasks.length > 0 ? '' : 'Done! What would you like to do next?')
         const savedAI = await saveChatMessage({
           sessionId,
           role: 'ai',
-          text: done.reply || '',
+          text: finalText,
           tasks: done.tasks || [],
           createdTasks: done.createdTasks || [],
           actions: done.actions || [],
@@ -267,7 +278,7 @@ function AIPlanner() {
         })
         setMessages(prev => prev.map(m => m.id === aiId ? (savedAI || {
           ...m,
-          text: done.reply || '',
+          text: finalText,
           createdTasks: done.createdTasks || [],
           actions: done.actions || [],
           suggestions: done.suggestions || [],
@@ -276,12 +287,32 @@ function AIPlanner() {
       }
       getChatSessions().then(s => setSessions(s)).catch(() => {})
     } catch (err) {
+      if (err && err.name === 'AbortError') {
+        setMessages(prev => prev.filter(m => m.id !== aiId))
+        return
+      }
       const errText = err?.response?.status === 503 ? "AI service quota exceeded. Please try again later." : 'Sorry, something went wrong. Try again.'
       const savedErr = await saveChatMessage({ sessionId, role: 'ai', text: errText }).catch(() => null)
       setMessages(prev => prev.map(m => m.id === aiId ? (savedErr || { ...m, text: errText, streaming: false }) : m))
-    } finally { setStreaming(false) }
+    } finally {
+      if (flushTimer) { clearTimeout(flushTimer); flush() }
+      abortRef.current = null
+      setStreaming(false)
+    }
   }
   useEffect(() => { handleSendRef.current = handleSend })
+
+  const stopGeneration = () => { abortRef.current?.abort() }
+
+  const handleRegenerate = () => {
+    const lastUser = [...messages].reverse().find(m => m.role === 'user')
+    if (lastUser) handleSend(lastUser.text, { skipUserSave: true })
+  }
+
+  const copyMessage = async (text) => {
+    try { await navigator.clipboard.writeText(text); toast.success('Copied to clipboard') }
+    catch { toast.error('Could not copy message') }
+  }
 
   const handleDeleteMessage = async (id) => {
     try { await deleteChatMessage(id); setMessages(prev => prev.filter(m => m._id !== id)); toast.success('Message deleted') }
@@ -584,6 +615,25 @@ function AIPlanner() {
                           ))}
                         </div>
                       )}
+
+                      {msg.role === 'ai' && !msg.streaming && i === messages.length - 1 && (
+                        <div className="mt-2 ml-0 sm:ml-10 flex items-center gap-2">
+                          <button
+                            onClick={handleRegenerate}
+                            disabled={streaming}
+                            className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-zinc-700 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all disabled:opacity-50"
+                          >
+                            <RotateCcw size={11} /> Regenerate
+                          </button>
+                          <button
+                            onClick={() => copyMessage(msg.text)}
+                            disabled={streaming}
+                            className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border border-slate-200 dark:border-zinc-700 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all disabled:opacity-50"
+                          >
+                            <Copy size={11} /> Copy
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
@@ -634,17 +684,6 @@ function AIPlanner() {
                   </span>
                   <span className="text-red-500">Listening...</span>
                   <span className="hidden sm:inline text-slate-400 dark:text-slate-500">Speak now, auto-sends on pause</span>
-                  <label className="flex items-center gap-1.5 ml-auto sm:ml-2 text-xs">
-                    <span className="text-slate-400 dark:text-slate-500">Voice:</span>
-                    <select
-                      value={voiceLang}
-                      onChange={e => setVoiceLang(e.target.value)}
-                      className="bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 rounded-lg px-1.5 py-0.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-red-400"
-                      aria-label="Voice input language"
-                    >
-                      {voiceLangs.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-                    </select>
-                  </label>
                 </motion.div>
               )}
               <div className="flex gap-2.5">
@@ -671,15 +710,27 @@ function AIPlanner() {
                 >
                   {listening ? <MicOff size={17} /> : <Mic size={17} />}
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleSend()}
-                  disabled={!input.trim() || streaming}
-                  className="px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30"
-                >
-                  {streaming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                </motion.button>
+                {streaming ? (
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={stopGeneration}
+                    className="px-4 py-3 rounded-xl bg-red-500 hover:bg-red-400 text-white transition-all flex items-center justify-center shadow-md shadow-red-200/30 dark:shadow-red-900/30"
+                    title="Stop generating"
+                  >
+                    <Square size={16} />
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleSend()}
+                    disabled={!input.trim()}
+                    className="px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30"
+                  >
+                    <Send size={18} />
+                  </motion.button>
+                )}
               </div>
             </div>
           </>
