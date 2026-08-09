@@ -48,7 +48,10 @@ function Sidebar({ open, onClose }) {
   const sidebarContent = (
     <>
       <div className="flex items-center px-6 h-14 border-b border-slate-200 dark:border-zinc-800">
-        <Link to="/dashboard" onClick={handleNavClick} className="text-xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
+        <Link to="/dashboard" onClick={handleNavClick} className="flex items-center gap-2.5 text-xl font-bold text-indigo-600 dark:text-indigo-400">
+          <img src="/favicon.svg" alt="" width={26} height={26} className="rounded-[7px] shrink-0" />
+          FlowSync AI
+        </Link>
       </div>
       <motion.nav aria-label="Primary" className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" variants={containerVariants} initial="hidden" animate="visible">
         {links.map(({ to, label, icon: Icon }) => {

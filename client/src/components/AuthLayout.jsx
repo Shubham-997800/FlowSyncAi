@@ -34,7 +34,10 @@ function AuthLayout({ mode, title, subtitle, children, footer }) {
         className="hidden lg:flex flex-col justify-between w-80 xl:w-96 bg-white dark:bg-zinc-900 p-12 border-r border-slate-200 dark:border-zinc-800"
       >
         <div>
-          <Link to="/" className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
+            <Link to="/" className="inline-flex items-center gap-2.5 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+              <img src="/favicon.svg" alt="" width={28} height={28} className="rounded-lg shrink-0" />
+              FlowSync AI
+            </Link>
           <div className="mt-12">
             <span className="inline-flex items-center gap-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-medium">
               <Sparkles size={12} /> AI Productivity Platform
@@ -75,7 +78,10 @@ function AuthLayout({ mode, title, subtitle, children, footer }) {
       <div className="flex-1 flex items-center justify-center px-4 sm:px-8 py-12">
         <div className="w-full max-w-md">
           <div className="lg:hidden mb-8 text-center">
-            <Link to="/" className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">FlowSync AI</Link>
+          <Link to="/" className="inline-flex items-center gap-3 text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+            <img src="/favicon.svg" alt="" width={32} height={32} className="rounded-lg shrink-0" />
+            FlowSync AI
+          </Link>
           </div>
           <motion.div
             initial={{ opacity: 0, y: 16 }}

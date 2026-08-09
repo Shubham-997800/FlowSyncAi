@@ -6,7 +6,6 @@ import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import AuthLayout from '../../components/AuthLayout'
-import LegalModal from '../../components/LegalModal'
 import FormField from '../../components/ui/FormField'
 import { validateEmail } from '../../utils/validation'
 
@@ -14,7 +13,6 @@ function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
-  const [legal, setLegal] = useState(null)
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -105,13 +103,11 @@ function Login() {
 
         <p className="text-center text-xs text-slate-400 dark:text-slate-500 mt-4">
           By signing in, you agree to our{' '}
-          <button type="button" onClick={() => setLegal('terms')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Terms</button>
+          <Link to="/terms" className="text-indigo-600 dark:text-indigo-400 hover:underline">Terms</Link>
           {' '}&amp;{' '}
-          <button type="button" onClick={() => setLegal('privacy')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Privacy Policy</button>
+          <Link to="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</Link>
         </p>
       </AuthLayout>
-
-      {legal && <LegalModal type={legal} onClose={() => setLegal(null)} />}
     </>
   )
 }

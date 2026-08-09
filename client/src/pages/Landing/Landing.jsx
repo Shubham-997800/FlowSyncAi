@@ -50,7 +50,10 @@ function Landing() {
         <nav className={`fixed top-0 left-0 right-0 z-50 transition-all ${scrolled ? 'shadow-sm bg-white/90 dark:bg-zinc-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-zinc-900/80' : 'bg-transparent'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">
-              <Link to="/" className="text-xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">FlowSync AI</Link>
+              <Link to="/" className="inline-flex items-center gap-2 text-xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
+                <img src="/favicon.svg" alt="" width={26} height={26} className="rounded-[7px] shrink-0" />
+                FlowSync AI
+              </Link>
 
               <div className="hidden md:flex items-center gap-6">
                 {links.map((l) => (

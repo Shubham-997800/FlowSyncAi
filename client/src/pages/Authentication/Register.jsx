@@ -6,7 +6,6 @@ import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import AuthLayout from '../../components/AuthLayout'
-import LegalModal from '../../components/LegalModal'
 import FormField from '../../components/ui/FormField'
 import { validateEmail } from '../../utils/validation'
 
@@ -29,7 +28,6 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [agree, setAgree] = useState(false)
-  const [legal, setLegal] = useState(null)
   const [loading, setLoading] = useState(false)
   const [touched, setTouched] = useState({})
   const { register } = useAuth()
@@ -204,9 +202,9 @@ function Register() {
               className="w-4 h-4 rounded border-slate-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 mt-0.5 cursor-pointer" />
             <span className="text-sm text-slate-600 dark:text-slate-400">
               I agree to the{' '}
-              <button type="button" onClick={() => setLegal('terms')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Terms</button>
+              <Link to="/terms" className="text-indigo-600 dark:text-indigo-400 hover:underline">Terms</Link>
               {' '}&amp;{' '}
-              <button type="button" onClick={() => setLegal('privacy')} className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer">Privacy Policy</button>
+              <Link to="/privacy" className="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</Link>
             </span>
           </label>
 
@@ -225,8 +223,6 @@ function Register() {
           <Link to="/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">Sign In</Link>
         </p>
       </AuthLayout>
-
-      {legal && <LegalModal type={legal} onClose={() => setLegal(null)} />}
     </>
   )
 }

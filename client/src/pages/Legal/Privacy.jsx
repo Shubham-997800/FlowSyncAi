@@ -25,7 +25,8 @@ const sections = [
       'AI Processing: Your tasks and schedule data are sent to AI providers (Groq, Gemini, Mistral, OpenRouter, and others) to generate plans, prioritization, and suggestions — no personal identifiers (name/email) are included in AI requests',
       'Productivity Analytics: We aggregate your completion rates, focus patterns, and habit streaks to generate insights',
       'Service Improvement: Anonymized usage patterns help us optimize features and UI',
-      'Communication: Password reset emails via SMTP (your email is never shared with third parties)',
+      'Communication: Account-related emails (password reset, verification) and deadline reminder emails via a mail service (Resend) — your email is never shared with third parties',
+      'Notifications: Deadline reminders may be delivered as in-app alerts, email (if enabled), and browser push notifications (Web Push) when you grant permission',
     ],
   },
   {
@@ -47,7 +48,8 @@ const sections = [
       'AI Providers: Groq, Google Gemini, Cerebras, Mistral, and OpenRouter — process task titles, descriptions, and deadlines for planning/prioritization',
       'Hosting: Vercel — standard cloud infrastructure',
       'Database: MongoDB Atlas — cloud database with automated backups',
-      'Email: SMTP provider of your choice (default: Ethereal for testing)',
+      'Email: Resend (deadline reminders — used only when you enable email notifications)',
+      'Push: Browser Web Push (VAPID) for notification delivery',
       'We do NOT sell, rent, or share your personal data with advertisers or data brokers',
     ],
   },
@@ -55,10 +57,11 @@ const sections = [
     icon: Cookie,
     title: '5. Cookies & Local Storage',
     content: [
-      'Local Storage: Theme preference (light/dark/system), focus session counters, and auth state',
+      'Local Storage: Theme preference (light/dark/system), focus session counters, cached user profile, and the access token used for API calls',
+      'Access Token: Stored in local storage so the app can authenticate API requests; it expires and is refreshed automatically',
+      'Refresh Token: Stored in an httpOnly, SameSite=Lax cookie to keep you signed in securely — it cannot be read by JavaScript',
       'No third-party cookies are used',
       'No tracking scripts, analytics cookies, or fingerprinting',
-      'JWT token is stored in memory (not localStorage) for security',
     ],
   },
   {
@@ -68,7 +71,7 @@ const sections = [
       'Active accounts: Data retained until account deletion',
       'Account deletion: All user data (tasks, goals, habits, notifications, chat history) is permanently deleted within 24 hours',
       'AI chat history: Limited to 6 most recent sessions per user; oldest sessions auto-purged',
-      'Daily AI usage counters reset every 24 hours',
+      'AI usage counters: Daily limit resets every 24 hours; monthly quota resets on the 1st of each month',
       'You can delete your account anytime via Settings or by contacting the developer',
     ],
   },
@@ -105,14 +108,14 @@ function Privacy() {
         <meta name="description" content="Privacy policy for FlowSync AI" />
       </Helmet>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link to="/login" className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline mb-6">
-          <ArrowLeft size={16} /> Back to Login
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 hover:underline mb-6">
+          <ArrowLeft size={16} /> Back to Home
         </Link>
         <div className="flex items-center gap-3 mb-2">
           <Shield size={24} className="text-indigo-600 dark:text-indigo-400" />
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Privacy Policy</h1>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Last updated: July 2026</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">Last updated: June 2030</p>
 
         <div className="space-y-6">
           {sections.map(({ icon: Icon, title, content }) => (
@@ -137,7 +140,7 @@ function Privacy() {
 
         <div className="mt-8 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl">
           <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-            This privacy policy is effective as of July 2026. We reserve the right to update this policy.
+            This privacy policy is effective as of June 2030. We reserve the right to update this policy.
             Significant changes will be communicated via email or in-app notification.
           </p>
         </div>

@@ -174,8 +174,8 @@ function HeroSection() {
                         {['S','M','T','W','T','F','S'].map((d,i) => (
                           <span key={i} className="text-[7px] text-center font-medium text-slate-400 dark:text-slate-500">{d}</span>
                         ))}
-                        {Array.from({length: 7}).map((_, i) => (
-                          <div key={i} className={`text-[7px] text-center py-0.5 rounded ${i === 3 ? 'bg-indigo-500 dark:bg-indigo-400 text-white font-bold' : 'text-slate-600 dark:text-slate-400'}`}>{i + 15}</div>
+                        {Array.from({length: 28}).map((_, i) => (
+                          <div key={i} className={`text-[7px] text-center py-0.5 rounded ${i === 27 ? 'bg-indigo-500 dark:bg-indigo-400 text-white font-bold' : 'text-slate-600 dark:text-slate-400'}`}>{i + 1}</div>
                         ))}
                       </div>
                     </div>
