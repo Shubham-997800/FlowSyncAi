@@ -244,7 +244,14 @@ function AIPlanner() {
     const controller = new AbortController()
     abortRef.current = controller
     try {
-      const savedUser = skipUserSave ? null : await saveChatMessage({ sessionId, role: 'user', text: msgText })
+      let savedUser = null
+      if (!skipUserSave) {
+        try {
+          savedUser = await saveChatMessage({ sessionId, role: 'user', text: msgText })
+        } catch {
+          savedUser = { id: genId(), role: 'user', text: msgText }
+        }
+      }
       setMessages(prev => [...(skipUserSave ? prev : [...prev, savedUser]), placeholder])
       const done = await streamChatAI({
         message: msgText,

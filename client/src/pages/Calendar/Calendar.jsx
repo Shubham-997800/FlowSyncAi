@@ -62,11 +62,12 @@ function Calendar() {
     if (!form.title.trim()) { toast.error('Title is required'); return }
     setSaving(true)
     try {
+      const payload = { ...form, deadline: form.deadline || null }
       if (editingTask) {
-        await updateTask(editingTask._id, form)
+        await updateTask(editingTask._id, payload)
         toast.success('Task updated')
       } else {
-        await createTask(form)
+        await createTask(payload)
         toast.success('Task created')
       }
       setShowAddModal(false)
@@ -139,7 +140,7 @@ function Calendar() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <div className={`${showDaily || view === 'weekly' ? 'lg:col-span-2' : 'lg:col-span-2'}`}>
+        <div className="lg:col-span-2">
           {view === 'monthly' && !showDaily && <MonthlyView tasks={tasks} onDateClick={handleDateClick} />}
           {view === 'weekly' && !showDaily && <WeeklyView tasks={tasks} onDateClick={handleDateClick} />}
            {showDaily && selectedDate && <DailyView tasks={tasks} date={selectedDate} onBack={() => setShowDaily(false)} onEdit={openEditModal} onDelete={requestDelete} />}

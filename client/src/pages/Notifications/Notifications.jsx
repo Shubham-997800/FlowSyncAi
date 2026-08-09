@@ -8,7 +8,7 @@ const isDev = import.meta.env.DEV
 import NotificationCard from './NotificationCard'
 import ReminderCard from './ReminderCard'
 import AlertCard from './AlertCard'
-import { getNotifications, markAsRead, markAllRead, createNotification } from '../../services/notificationService'
+import { getNotifications, markAsRead, markAllRead, createNotification, clearNotifications } from '../../services/notificationService'
 import { organizeNotifications } from '../../services/aiService'
 
 // Notifications page with grouped list, mark-as-read, and dev sample buttons
@@ -93,8 +93,13 @@ function Notifications() {
     try { await markAllRead() } catch { toast.error('Failed to mark all as read') }
   }
 
-  const dismissAll = () => {
-    setNotifications([])
+  const dismissAll = async () => {
+    try {
+      await clearNotifications()
+      setNotifications([])
+    } catch {
+      toast.error('Failed to clear notifications')
+    }
   }
 
   const unread = notifications.filter(n => !n.read).length
@@ -177,7 +182,7 @@ function Notifications() {
         <div className="text-center py-16">
           <Bell size={48} className="mx-auto mb-4 text-slate-300 dark:text-zinc-600" />
           <p className="text-slate-500 dark:text-slate-400 font-medium">No notifications yet</p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Click the demo buttons above to generate sample notifications</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Task updates, reminders and alerts will show up here.</p>
         </div>
       ) : (
         <div className="space-y-6">

@@ -348,8 +348,8 @@ async function main() {
     const r = await request('/api/tasks', { method: 'POST', token: tokenA, body: { priority: 'high' } })
     return r.status >= 400
   })
-  await t('Oversized body (>1MB) -> 413', async () => {
-    const r = await request('/api/tasks', { method: 'POST', token: tokenA, body: { title: 'Big', description: 'x'.repeat(1200000) } })
+  await t('Oversized body (>4MB) -> 413', async () => {
+    const r = await request('/api/tasks', { method: 'POST', token: tokenA, body: { title: 'Big', description: 'x'.repeat(5 * 1024 * 1024) } })
     return r.status === 413
   })
   await t('Mass assignment (_id / isAdmin) blocked by sanitize', async () => {

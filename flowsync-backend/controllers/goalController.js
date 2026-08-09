@@ -1,24 +1,10 @@
 ﻿const Goal = require('../models/Goal')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
-const { sanitizeText } = require('../utils/sanitize')
+const { sanitizeBody } = require('../utils/sanitize')
+const { parsePagination } = require('../utils/pagination')
 const allowedFields = ['title', 'description', 'targetDate', 'status', 'progress']
-
-function sanitize(body) {
-  const safe = {}
-  for (const key of allowedFields) {
-    if (body[key] !== undefined) {
-      safe[key] = (key === 'title' || key === 'description') ? sanitizeText(body[key]) : body[key]
-    }
-  }
-  return safe
-}
-
-function parsePagination(query) {
-  const page = Math.max(parseInt(query.page) || 1, 1)
-  const limit = Math.min(Math.max(parseInt(query.limit) || 500, 1), 1000)
-  return { page, limit, skip: (page - 1) * limit }
-}
+const textFields = ['title', 'description']
 
 const getGoals = async (req, res) => {
   try {
@@ -35,7 +21,7 @@ const getGoals = async (req, res) => {
 
 const createGoal = async (req, res) => {
   try {
-    const goal = await Goal.create({ ...sanitize(req.body), user: req.user._id })
+    const goal = await Goal.create({ ...sanitizeBody(req.body, allowedFields, textFields), user: req.user._id })
     res.status(201).json(goal)
   } catch (error) {
     return handleValidationError(res, error)
@@ -46,7 +32,7 @@ const updateGoal = async (req, res) => {
   try {
     const goal = await Goal.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
-      sanitize(req.body),
+      sanitizeBody(req.body, allowedFields, textFields),
       { returnDocument: 'after', runValidators: true }
     )
     if (!goal) return res.status(404).json({ message: 'Goal not found' })

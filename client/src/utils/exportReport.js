@@ -31,7 +31,9 @@ export function buildReportData(tasks = [], goals = [], habits = [], extra = {})
 }
 
 function csvCell(v) {
-  return `"${String(v ?? '').replace(/"/g, '""')}"`
+  let s = String(v ?? '')
+  if (/^[=+\-@]/.test(s)) s = "'" + s
+  return `"${s.replace(/"/g, '""')}"`
 }
 
 export function toCSVString(data) {

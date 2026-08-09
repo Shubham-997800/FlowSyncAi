@@ -23,6 +23,10 @@ export function isTypingTarget(t) {
   return false
 }
 
+export function isModalOpen() {
+  return !!document.querySelector('[role="dialog"], [aria-modal="true"], dialog[open]')
+}
+
 export function useKeyboardNavigation(onOpenHelp) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -31,6 +35,7 @@ export function useKeyboardNavigation(onOpenHelp) {
     const handler = (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return
       if (isTypingTarget(e.target)) return
+      if (isModalOpen()) return
 
       const idx = NAV_ORDER.findIndex(n => n.to === location.pathname)
 

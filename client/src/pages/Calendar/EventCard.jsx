@@ -1,4 +1,5 @@
 import { Edit2, Trash2, Clock } from 'lucide-react'
+import { parseLocalDate } from '../../utils/date'
 
 // Compact task card with priority indicator and edit/delete actions
 const priorityConfig = {
@@ -9,6 +10,7 @@ const priorityConfig = {
 
 function EventCard({ task, onEdit, onDelete }) {
   const cfg = priorityConfig[task.priority] || priorityConfig.low
+  const due = task.deadline || task.dueDate
 
   return (
     <div className="group flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:shadow-sm transition-shadow">
@@ -18,9 +20,9 @@ function EventCard({ task, onEdit, onDelete }) {
           <span className="text-xs font-medium text-slate-900 dark:text-slate-100 truncate">{task.title}</span>
           <span className={`text-[10px] font-medium ${cfg.color}`}>{task.priority}</span>
         </div>
-        {task.dueDate && (
+        {due && (
           <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
-            <Clock size={10} /> {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            <Clock size={10} /> {parseLocalDate(due)?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
         )}
       </div>

@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
 import { getHabits, createHabit, updateHabit as updateHabitApi, deleteHabit as deleteHabitApi } from '../../services/habitService'
 import { getHabitInsights } from '../../services/aiService'
-import { getTodayKey, getWeekDateKeys, toDateKey } from '../../utils/date'
+import { getTodayKey, getWeekDateKeys, parseLocalDate, toDateKey } from '../../utils/date'
 
 function HabitForm({ habit, onSave, onClose }) {
   const [title, setTitle] = useState(habit?.title || '')
@@ -297,7 +297,7 @@ function Habits() {
                     {weekDates.map(date => {
                       const isToday = date === today
                       const logged = habit.logs?.includes(date)
-                      const dayLabel = new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).charAt(0)
+                      const dayLabel = (parseLocalDate(date)?.toLocaleDateString('en-US', { weekday: 'short' }) || '').charAt(0)
                       return (
                         <div key={date} className={`flex-1 flex flex-col items-center gap-0.5 sm:gap-1 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-center transition ${isToday ? 'bg-slate-50 dark:bg-zinc-800 ring-1 ring-indigo-500' : ''}`}>
                           <span className="text-[9px] sm:text-[10px] font-medium text-slate-400 dark:text-slate-500">{dayLabel}</span>

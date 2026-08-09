@@ -39,10 +39,10 @@ export const streamChatAI = async ({ message, sessionId, quality, onToken, onDon
       const { done, value } = await reader.read()
       if (done) break
       buffer += decoder.decode(value, { stream: true })
-      const events = buffer.split('\n\n')
+      const events = buffer.split(/\r?\n\r?\n/)
       buffer = events.pop()
       for (const evt of events) {
-        const line = evt.split('\n').find(l => l.startsWith('data: '))
+        const line = evt.split(/\r?\n/).find(l => l.startsWith('data: '))
         if (!line) continue
         let payload
         try { payload = JSON.parse(line.slice(6)) } catch { continue }

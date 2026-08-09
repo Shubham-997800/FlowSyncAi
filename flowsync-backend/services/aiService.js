@@ -117,22 +117,10 @@ function resolveModels(quality) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
-function isRetriableError(err, info) {
-  if (err.message === 'stream_interrupted') return false
-  const status = err.status || err.error?.code || 0
-  const lower = info.toLowerCase()
-  if (status === 401 || info.includes('401') || info.includes('invalid_api_key') || info.includes('Incorrect API key')) return false
-  return status === 429 || status === 402 || status === 403 || status === 408 ||
-    lower.includes('429') || lower.includes('402') || lower.includes('403') ||
-    lower.includes('rate limit') || lower.includes('too many requests') ||
-    lower.includes('insufficient') || lower.includes('quota') || lower.includes('overloaded') ||
-    lower.includes('timed out') || lower.includes('timeout') || lower.includes('not found') ||
-    lower.includes('model') || lower.includes('capacity') || lower.includes('unavailable')
-}
-
 async function callAI(systemMsg, userMsg, temperature = 0.7, maxTokens = 1024, quality, opts = {}) {
   const timeoutMs = opts.timeoutMs || 30000
   const routes = resolveModels(quality)
+  let lastError = null
   for (let i = 0; i < routes.length; i++) {
     const { provider, model } = routes[i]
     const clients = getClients(provider)
@@ -159,17 +147,15 @@ async function callAI(systemMsg, userMsg, temperature = 0.7, maxTokens = 1024, q
           return content
         }
       } catch (err) {
+        lastError = err
         const info = `${err.message || ''} ${err.error?.message || ''}`
         console.error(`[AI] ${provider}/${model} failed: ${info.slice(0, 100)}`)
-        if (!isRetriableError(err, info)) {
-          throw new AiServiceUnavailableError('AI service unavailable', err)
-        }
       }
     }
     if (i < routes.length - 1) await sleep(800)
   }
   console.error('[AI] All models failed')
-  throw new AiServiceUnavailableError('AI service unavailable')
+  throw new AiServiceUnavailableError('AI service unavailable', lastError)
 }
 
 function parseJSON(text) {
@@ -523,9 +509,6 @@ async function callAIStream(systemMsg, userMsg, temperature = 0.7, maxTokens = 2
         lastErr = err
         const info = `${err.message || ''} ${err.error?.message || ''}`
         console.error(`[AI] ${provider}/${model} failed: ${info.slice(0, 100)}`)
-        if (!isRetriableError(err, info)) {
-          throw new AiServiceUnavailableError('AI service unavailable', err)
-        }
       }
     }
     if (i < routes.length - 1) await sleep(800)

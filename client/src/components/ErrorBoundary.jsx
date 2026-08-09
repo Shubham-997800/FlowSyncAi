@@ -16,6 +16,14 @@ class ErrorBoundary extends Component {
     console.error('ErrorBoundary caught:', error, info)
   }
 
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.reset()
+    }
+  }
+
+  reset = () => this.setState({ hasError: false, error: null })
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback
@@ -30,7 +38,10 @@ class ErrorBoundary extends Component {
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             <div className="flex items-center justify-center gap-3">
-              <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+              <button onClick={this.reset} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors">
+                <RefreshCw size={16} /> Try Again
+              </button>
+              <button onClick={() => window.location.reload()} className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors">
                 <RefreshCw size={16} /> Reload Page
               </button>
               <button onClick={() => window.location.href = '/'} className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors">

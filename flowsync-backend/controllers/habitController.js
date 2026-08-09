@@ -2,24 +2,12 @@
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { localDateKey } = require('../utils/dateKey')
-const { sanitizeText } = require('../utils/sanitize')
-const allowedFields = ['title', 'frequency', 'streak', 'lastChecked', 'logs', 'status']
+const { sanitizeBody } = require('../utils/sanitize')
+const { parsePagination } = require('../utils/pagination')
 
-function sanitize(body) {
-  const safe = {}
-  for (const key of allowedFields) {
-    if (body[key] !== undefined) {
-      safe[key] = (key === 'title') ? sanitizeText(body[key]) : body[key]
-    }
-  }
-  return safe
-}
-
-function parsePagination(query) {
-  const page = Math.max(parseInt(query.page) || 1, 1)
-  const limit = Math.min(Math.max(parseInt(query.limit) || 500, 1), 1000)
-  return { page, limit, skip: (page - 1) * limit }
-}
+// streak, logs and lastChecked are server-computed and must not be writable by clients.
+const allowedFields = ['title', 'frequency', 'status']
+const textFields = ['title']
 
 const getHabits = async (req, res) => {
   try {
@@ -36,7 +24,7 @@ const getHabits = async (req, res) => {
 
 const createHabit = async (req, res) => {
   try {
-    const habit = await Habit.create({ ...sanitize(req.body), user: req.user._id })
+    const habit = await Habit.create({ ...sanitizeBody(req.body, allowedFields, textFields), user: req.user._id })
     res.status(201).json(habit)
   } catch (error) {
     return handleValidationError(res, error)
@@ -47,7 +35,7 @@ const updateHabit = async (req, res) => {
   try {
     const habit = await Habit.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
-      sanitize(req.body),
+      sanitizeBody(req.body, allowedFields, textFields),
       { returnDocument: 'after', runValidators: true }
     )
     if (!habit) return res.status(404).json({ message: 'Habit not found' })

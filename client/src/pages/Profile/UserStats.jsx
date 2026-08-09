@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Flame, TrendingUp, Target, ListTodo } from 'lucide-react'
 import { getTasks } from '../../services/taskService'
 import { getHabits } from '../../services/habitService'
+import { toDateKey } from '../../utils/date'
 // Stats dashboard showing task counts, weekly chart, focus time and streak
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -26,9 +27,9 @@ function UserStats() {
 
         const wd = weekDays.map((_, i) => {
           const d = new Date(); d.setDate(d.getDate() - (6 - i))
-          const dateStr = d.toISOString().split('T')[0]
+          const dateStr = toDateKey(d)
           const dayTasks = tasks.filter(t => {
-            const deadline = t.deadline ? new Date(t.deadline).toISOString().split('T')[0] : null
+            const deadline = toDateKey(t.deadline)
             return deadline === dateStr
           })
           return dayTasks.length > 0 ? Math.round((dayTasks.filter(t => t.status === 'done').length / dayTasks.length) * 100) : -1

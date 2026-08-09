@@ -2,12 +2,13 @@ import { Plus, Brain, Timer, BarChart3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 
-// Quick action buttons for adding tasks, AI planning, focus, and analytics
+// Quick action buttons for adding tasks, AI planning, focus, and analytics.
+// The `key` is the app-wide single-key navigation shortcut (see useNavigation).
 const actions = [
-  { to: '/tasks', icon: Plus, label: 'Add Task', desc: 'Create a new task', key: '⌘1' },
-  { to: '/ai-planner', icon: Brain, label: 'Generate AI Plan', desc: 'Let AI plan your day', key: '⌘2' },
-  { to: '/focus', icon: Timer, label: 'Start Focus Session', desc: '25 min Pomodoro', key: '⌘3' },
-  { to: '/analytics', icon: BarChart3, label: 'View Analytics', desc: 'Track your progress', key: '⌘4' },
+  { to: '/tasks', icon: Plus, label: 'Add Task', desc: 'Create a new task', key: '2' },
+  { to: '/ai-planner', icon: Brain, label: 'Generate AI Plan', desc: 'Let AI plan your day', key: '3' },
+  { to: '/focus', icon: Timer, label: 'Start Focus Session', desc: '25 min Pomodoro', key: '5' },
+  { to: '/analytics', icon: BarChart3, label: 'View Analytics', desc: 'Track your progress', key: '7' },
 ]
 
 const containerVariants = {

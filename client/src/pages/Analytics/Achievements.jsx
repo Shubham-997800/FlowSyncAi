@@ -46,7 +46,7 @@ function Achievements({ tasks, goals, habits }) {
     const payload = updated.map(name => ({ name, unlockedAt: new Date() }))
     api.put('/api/settings/achievements', { achievements: payload })
       .then(() => { setSaved(updated); if (newUnlocks.length > 0) toast.success(`Achievement${newUnlocks.length > 1 ? 's' : ''} unlocked!`) })
-      .catch(() => {})
+      .catch(() => toast.error('Failed to save achievements'))
       .finally(() => { setSaving(false); savingRef.current = false })
   }, [unlockedKey, saved, unlockedIds, loaded])
 

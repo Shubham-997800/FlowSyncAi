@@ -1,28 +1,19 @@
 ﻿const Notification = require('../models/Notification')
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
-const { sanitizeText } = require('../utils/sanitize')
+const { sanitizeBody } = require('../utils/sanitize')
+const { parsePagination } = require('../utils/pagination')
 const allowedFields = ['type', 'title', 'message', 'link']
-
-function sanitize(body) {
-  const safe = {}
-  for (const key of allowedFields) {
-    if (body[key] !== undefined) {
-      safe[key] = (key === 'title' || key === 'message') ? sanitizeText(body[key]) : body[key]
-    }
-  }
-  return safe
-}
+const textFields = ['title', 'message']
 
 const getNotifications = async (req, res) => {
   try {
-    const page = Math.max(parseInt(req.query.page) || 1, 1)
-    const limit = Math.min(Math.max(parseInt(req.query.limit) || 100, 1), 1000)
     const filter = { user: req.user._id }
+    const { skip, limit } = parsePagination(req.query, { limit: 100 })
     const total = await Notification.countDocuments(filter)
     const notifications = await Notification.find(filter)
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .skip(skip)
       .limit(limit)
     res.set('X-Total-Count', total)
     res.json(notifications)
@@ -59,7 +50,7 @@ const markAllRead = async (req, res) => {
 
 const createNotification = async (req, res) => {
   try {
-    const n = await Notification.create({ ...sanitize(req.body), user: req.user._id })
+    const n = await Notification.create({ ...sanitizeBody(req.body, allowedFields, textFields), user: req.user._id })
     res.status(201).json(n)
   } catch (error) {
     return handleValidationError(res, error)
@@ -76,4 +67,13 @@ const deleteNotification = async (req, res) => {
   }
 }
 
-module.exports = { getNotifications, markRead, markAllRead, createNotification, deleteNotification }
+const deleteAllNotifications = async (req, res) => {
+  try {
+    const result = await Notification.deleteMany({ user: req.user._id })
+    res.json({ deleted: result.deletedCount })
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
+module.exports = { getNotifications, markRead, markAllRead, createNotification, deleteNotification, deleteAllNotifications }

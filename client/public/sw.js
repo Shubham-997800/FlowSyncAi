@@ -1,7 +1,8 @@
 /* global clients */
 
-const CACHE_NAME = 'flowsync-v1'
+const CACHE_NAME = 'flowsync-v2'
 const API_PREFIX = '/api/'
+const SHELL_ASSETS = ['/index.html', '/favicon.svg', '/manifest.webmanifest']
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE_NAME))
@@ -22,16 +23,11 @@ self.addEventListener('fetch', (e) => {
 
   const url = new URL(request.url)
 
+  // Only handle same-origin requests; never cache authenticated API responses.
+  if (url.origin !== self.location.origin) return
+
   if (url.pathname.startsWith(API_PREFIX)) {
-    e.respondWith(
-      fetch(request)
-        .then((res) => {
-          const copy = res.clone()
-          caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {})
-          return res
-        })
-        .catch(() => caches.match(request))
-    )
+    e.respondWith(fetch(request))
     return
   }
 
@@ -39,6 +35,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(request)
         .then((res) => {
+          if (!res.ok) return res
           const copy = res.clone()
           caches.open(CACHE_NAME).then((c) => c.put('/index.html', copy)).catch(() => {})
           return res
@@ -51,6 +48,7 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(request).then(
       (cached) => cached || fetch(request).then((res) => {
+        if (!res.ok || !res.headers.get('content-type')?.includes('text/') && !SHELL_ASSETS.includes(url.pathname)) return res
         const copy = res.clone()
         caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {})
         return res
@@ -80,7 +78,17 @@ self.addEventListener('push', (e) => {
 
 self.addEventListener('notificationclick', (e) => {
   e.notification.close()
-  const url = e.notification.data?.url || '/notifications'
+  let url = e.notification.data?.url || '/notifications'
+  try {
+    const parsed = new URL(url, self.location.origin)
+    if (parsed.origin !== self.location.origin || !parsed.pathname.startsWith('/')) {
+      url = '/notifications'
+    } else {
+      url = parsed.pathname + parsed.search + parsed.hash
+    }
+  } catch {
+    url = '/notifications'
+  }
   e.waitUntil(
     clients.matchAll({ type: 'window' }).then((clientsArr) => {
       const matching = clientsArr.find((c) => c.url.includes(url))

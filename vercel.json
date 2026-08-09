@@ -9,6 +9,9 @@
       "maxDuration": 60
     }
   },
+  "crons": [
+    { "path": "/api/cron/reminders", "schedule": "*/30 * * * *" }
+  ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },
     { "handle": "filesystem" },

@@ -11,6 +11,10 @@ function getInitialMode() {
   if (typeof window === 'undefined') return 'system'
   const stored = localStorage.getItem('theme-mode')
   if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+  // Migrate from the legacy single-key value.
+  const legacy = localStorage.getItem('theme')
+  if (legacy === 'dark') return 'dark'
+  if (legacy === 'light') return 'light'
   return 'system'
 }
 
@@ -34,9 +38,6 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     applyTheme(dark)
     localStorage.setItem('theme-mode', mode)
-    if (mode === 'dark') localStorage.setItem('theme', 'dark')
-    else if (mode === 'light') localStorage.setItem('theme', 'light')
-    else localStorage.removeItem('theme')
   }, [dark, mode])
 
   useEffect(() => {

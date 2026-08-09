@@ -22,13 +22,7 @@ export function usePushNotifications(skipAutoSetup) {
         return
       }
       try {
-        if (getPermission() === 'denied') return
-        if (getPermission() !== 'granted') {
-          const result = await Notification.requestPermission()
-          if (!mounted) return
-          setPermission(result)
-          if (result !== 'granted') return
-        }
+        if (getPermission() !== 'granted') return
         const sub = await subscribeToPush()
         if (mounted && sub) setSubscribed(true)
       } catch {

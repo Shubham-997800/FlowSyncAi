@@ -1,5 +1,5 @@
 import { useState, memo } from 'react'
-import { CheckSquare, Square, Trash2, ListTodo, Clock, Play } from 'lucide-react'
+import { CheckSquare, Square, Circle, Trash2, ListTodo, Clock, Play } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import PriorityBadge from '../../components/ui/PriorityBadge'
@@ -101,14 +101,14 @@ const TodayTasks = memo(function TodayTasks({ tasks, onToggle, onDelete, onEdit 
             custom={i}
             className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-slate-200 dark:hover:border-zinc-600 transition group"
           >
-            <button onClick={() => toggleSelect(task._id)} className="mt-0.5 flex-shrink-0">
+            <button onClick={() => toggleSelect(task._id)} aria-label={`Select ${task.title}`} title="Select for bulk actions" className="mt-0.5 flex-shrink-0">
               {selected.includes(task._id)
                 ? <CheckSquare size={18} className="text-indigo-500" />
                 : <Square size={18} className="text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition" />
               }
             </button>
-            <button onClick={() => onToggle(task._id)} aria-label={`Toggle ${task.title}`} className="mt-0.5 flex-shrink-0">
-              <Square size={18} className="text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition" />
+            <button onClick={() => onToggle(task._id)} aria-label={`Mark ${task.title} done`} title="Mark done" className="mt-0.5 flex-shrink-0">
+              <Circle size={18} className="text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition" />
             </button>
             <div className="flex-1 min-w-0">
               {editingId === task._id ? (

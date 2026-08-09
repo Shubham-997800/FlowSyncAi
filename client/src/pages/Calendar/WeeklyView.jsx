@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { getTodayKey, formatDateKey } from '../../utils/date'
+import { getTodayKey, formatDateKey, toDateKey, parseLocalDate } from '../../utils/date'
 
 // Weekly view showing 7-day task load overview
 function getWeekDates(refDate) {
@@ -25,7 +25,7 @@ function WeeklyView({ tasks, onDateClick }) {
   const prevWeek = () => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d) }
   const nextWeek = () => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d) }
 
-  const getTasksForDate = (dateStr) => tasks.filter(t => t.dueDate === dateStr)
+  const getTasksForDate = (dateStr) => tasks.filter(t => (t.dueDate || toDateKey(t.deadline)) === dateStr)
 
   const getLoadDot = (dateStr) => {
     const count = getTasksForDate(dateStr).filter(t => t.status !== 'done').length
@@ -34,13 +34,16 @@ function WeeklyView({ tasks, onDateClick }) {
     return 'bg-red-400'
   }
 
+  const fmtShort = (key) => parseLocalDate(key)?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || key
+  const weekLabel = dates.length === 7 ? `${fmtShort(dates[0])} – ${fmtShort(dates[6])}` : 'This Week'
+
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5">
       <div className="flex items-center justify-between mb-5">
         <button onClick={prevWeek} className="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
           <ChevronLeft size={20} />
         </button>
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">This Week</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{weekLabel}</h2>
         <button onClick={nextWeek} className="p-2 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
           <ChevronRight size={20} />
         </button>

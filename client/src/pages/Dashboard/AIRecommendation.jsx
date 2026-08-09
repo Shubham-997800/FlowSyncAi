@@ -10,6 +10,15 @@ const recVariant = {
   show: (i) => ({ opacity: 1, x: 0, transition: { duration: 0.3, delay: i * 0.08 } }),
 }
 
+// Icons are resolved by key at render time so cached data stays serializable.
+const ICONS = {
+  check: CheckCircle2,
+  lightbulb: Lightbulb,
+  coffee: Coffee,
+  arrow: ArrowRight,
+  alert: AlertCircle,
+}
+
 function SkeletonCard() {
   return (
     <div className="flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-800 animate-pulse">
@@ -47,7 +56,7 @@ const AIRecommendation = memo(function AIRecommendation() {
       const active = (Array.isArray(tasks) ? tasks : []).filter(t => t.status !== 'done')
 
       if (active.length === 0) {
-        const data = [{ icon: CheckCircle2, title: 'All caught up!', desc: 'No active tasks. Create a new task to get AI suggestions.', priority: 'low', badge: 'Info' }]
+        const data = [{ icon: 'check', title: 'All caught up!', desc: 'No active tasks. Create a new task to get AI suggestions.', priority: 'low', badge: 'Info' }]
         sessionStorage.setItem('flowsync_ai_cache', JSON.stringify({ data, timestamp: Date.now() }))
         return { data }
       }
@@ -59,7 +68,7 @@ const AIRecommendation = memo(function AIRecommendation() {
           const task = active.find(t => t._id === r.taskId) || {}
           const risk = (r.riskScore || 0) > 60
           return {
-            icon: i === 0 ? Lightbulb : i === 1 ? Coffee : ArrowRight,
+            icon: i === 0 ? 'lightbulb' : i === 1 ? 'coffee' : 'arrow',
             title: task.title || r.title || 'Untitled',
             desc: risk ? 'High risk — nearest deadline or overdue.' : r.reason ? r.reason : `Priority score: ${Math.round(r.priorityScore || 0)}%`,
             priority: risk ? 'high' : i === 0 ? 'medium' : 'low',
@@ -69,7 +78,7 @@ const AIRecommendation = memo(function AIRecommendation() {
       } else {
         const overdue = active.filter(t => t.deadline && new Date(t.deadline) < new Date())
         data = [
-          { icon: Lightbulb, title: overdue.length > 0 ? `${overdue.length} overdue tasks` : 'Review your tasks', desc: overdue.length > 0 ? 'Focus on clearing overdue items first.' : 'You have active tasks to review.', priority: 'medium', badge: 'Active' },
+          { icon: 'lightbulb', title: overdue.length > 0 ? `${overdue.length} overdue tasks` : 'Review your tasks', desc: overdue.length > 0 ? 'Focus on clearing overdue items first.' : 'You have active tasks to review.', priority: 'medium', badge: 'Active' },
         ]
       }
       sessionStorage.setItem('flowsync_ai_cache', JSON.stringify({ data, timestamp: Date.now() }))
@@ -79,7 +88,7 @@ const AIRecommendation = memo(function AIRecommendation() {
       if (cached) {
         try { return { data: JSON.parse(cached).data } } catch {}
       }
-      return { error: 'Could not fetch recommendations. Check connection.', fallback: [{ icon: AlertCircle, title: 'AI unavailable', desc: 'Could not fetch recommendations. Check connection.', priority: 'low', badge: 'Offline' }] }
+      return { error: 'Could not fetch recommendations. Check connection.', fallback: [{ icon: 'alert', title: 'AI unavailable', desc: 'Could not fetch recommendations. Check connection.', priority: 'low', badge: 'Offline' }] }
     }
   }, [])
 
@@ -149,7 +158,9 @@ const AIRecommendation = memo(function AIRecommendation() {
         </div>
       ) : (
         <div className="space-y-3">
-          {recommendations.map(({ icon: Icon, title, desc, priority, badge }, i) => (
+          {recommendations.map(({ icon, title, desc, priority, badge }, i) => {
+            const Icon = ICONS[icon] || Lightbulb
+            return (
             <motion.div
               key={title + i}
               variants={recVariant}
@@ -175,7 +186,8 @@ const AIRecommendation = memo(function AIRecommendation() {
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{desc}</p>
               </div>
             </motion.div>
-          ))}
+            )
+          })}
         </div>
       )}
     </section>

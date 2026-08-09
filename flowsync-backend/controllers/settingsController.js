@@ -1,5 +1,6 @@
 ﻿const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { sanitizeText } = require('../utils/sanitize')
+const mongoose = require('mongoose')
 const User = require('../models/User')
 
 function isValidUrl(str) {
@@ -110,16 +111,35 @@ const deleteAccount = async (req, res) => {
     const user = await User.findById(req.user._id)
     if (!(await user.comparePassword(password))) return res.status(400).json({ message: 'Password is incorrect' })
     const userId = req.user._id
-    await Promise.all([
-      User.findByIdAndDelete(userId),
-      Task.deleteMany({ user: userId }),
-      Goal.deleteMany({ user: userId }),
-      Habit.deleteMany({ user: userId }),
-      Notification.deleteMany({ user: userId }),
-      ChatMessage.deleteMany({ user: userId }),
-      PushSubscription.deleteMany({ user: userId }),
-      AiUsage.deleteMany({ user: userId }),
-    ])
+
+    const cleanUp = async (sess) => {
+      const opts = sess ? { session: sess } : {}
+      await Promise.all([
+        User.findByIdAndDelete(userId, opts),
+        Task.deleteMany({ user: userId }, opts),
+        Goal.deleteMany({ user: userId }, opts),
+        Habit.deleteMany({ user: userId }, opts),
+        Notification.deleteMany({ user: userId }, opts),
+        ChatMessage.deleteMany({ user: userId }, opts),
+        PushSubscription.deleteMany({ user: userId }, opts),
+        AiUsage.deleteMany({ user: userId }, opts),
+      ])
+    }
+
+    const session = await mongoose.startSession()
+    let txOk = false
+    try {
+      await session.withTransaction(() => cleanUp(session))
+      txOk = true
+    } catch (txErr) {
+      const msg = txErr?.message || ''
+      const unsupported = /transaction/i.test(msg) || /replica set/i.test(msg) || /retryable writes/i.test(msg)
+      if (!unsupported) throw txErr
+    } finally {
+      await session.endSession()
+    }
+    if (!txOk) await cleanUp(null)
+
     res.json({ message: 'Account deleted' })
   } catch (error) {
     handleError(res, error)

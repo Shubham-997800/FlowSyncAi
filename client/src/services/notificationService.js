@@ -20,3 +20,8 @@ export const createNotification = async (payload) => {
   const { data } = await api.post('/api/notifications', payload)
   return data
 }
+
+export const clearNotifications = async () => {
+  const { data } = await api.delete('/api/notifications/clear')
+  return data
+}

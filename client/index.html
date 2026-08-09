@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
     <script>
-      (function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark'}else{document.documentElement.style.colorScheme='light'}}catch(e){}})();
+      (function(){try{var m=localStorage.getItem('theme-mode');if(!m){var t=localStorage.getItem('theme');if(t==='dark')m='dark';else if(t==='light')m='light'}var dark=m==='dark'||((!m||m==='system')&&window.matchMedia('(prefers-color-scheme:dark)').matches);var r=document.documentElement;if(dark){r.classList.add('dark');r.style.colorScheme='dark'}else{r.classList.remove('dark');r.style.colorScheme='light'}}catch(e){}})();
     </script>
   </head>
   <body class="font-sans antialiased overflow-x-hidden">

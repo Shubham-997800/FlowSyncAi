@@ -21,6 +21,20 @@ export function toDateKey(value) {
   return formatDateKey(d)
 }
 
+// Parse a date value as a local Date. Date-only strings are interpreted in the
+// local timezone instead of UTC so day/weekday labels never shift by one day.
+export function parseLocalDate(value) {
+  if (!value) return null
+  let d
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, day] = value.split('-').map(Number)
+    d = new Date(y, m - 1, day)
+  } else {
+    d = new Date(value)
+  }
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
 // Local week dates (Sun..Sat) ending today
 export function getWeekDateKeys() {
   const keys = []

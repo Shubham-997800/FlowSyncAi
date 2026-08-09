@@ -1,4 +1,5 @@
 import { Target, Clock, Brain } from 'lucide-react'
+import { parseLocalDate } from '../../utils/date'
 
 // Displays the currently selected focus task with priority info
 const priorityConfig = {
@@ -11,6 +12,7 @@ function CurrentTask({ task }) {
   if (!task) return null
 
   const cfg = priorityConfig[task.priority] || priorityConfig.low
+  const due = task.deadline || task.dueDate
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5 w-full max-w-md mb-6">
@@ -25,9 +27,9 @@ function CurrentTask({ task }) {
 
       <div className="flex items-center gap-3">
         <span className={`text-xs font-medium px-2 py-0.5 rounded ${cfg.bg} ${cfg.color}`}>{cfg.label} Priority</span>
-        {task.dueDate && (
+        {due && (
           <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-            <Clock size={12} /> Due {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            <Clock size={12} /> Due {parseLocalDate(due)?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
         )}
       </div>
