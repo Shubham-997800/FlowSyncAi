@@ -64,7 +64,7 @@ const uploadAvatar = async (req, res) => {
   try {
     const { profilePicture } = req.body
     if (!isValidUrl(profilePicture)) return res.status(400).json({ message: 'Invalid image URL' })
-    if (profilePicture && profilePicture.length > 500000) return res.status(400).json({ message: 'Image data too large' })
+    if (profilePicture && profilePicture.length > 3000000) return res.status(400).json({ message: 'Image data too large' })
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { profilePicture: profilePicture || '' },

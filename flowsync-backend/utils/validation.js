@@ -39,7 +39,7 @@ const taskSchemas = {
     priority: PRIORITY.optional(),
     status: TASK_STATUS.optional(),
     deadline: ISO_DATE.optional().nullable(),
-    estimatedTime: z.number().min(0).max(100000).optional(),
+    estimatedTime: z.number().min(0).max(100000).nullable().optional(),
     tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
   }),
   update: z.object({
@@ -48,7 +48,7 @@ const taskSchemas = {
     priority: PRIORITY.optional(),
     status: TASK_STATUS.optional(),
     deadline: ISO_DATE.optional().nullable(),
-    estimatedTime: z.number().min(0).max(100000).optional(),
+    estimatedTime: z.number().min(0).max(100000).nullable().optional(),
     tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
   }),
 }

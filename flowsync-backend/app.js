@@ -57,8 +57,8 @@ app.use(cors({
   },
   credentials: true,
 }))
-app.use(express.json({ limit: '1mb' }))
-app.use(express.urlencoded({ extended: true, limit: '1mb' }))
+app.use(express.json({ limit: '4mb' }))
+app.use(express.urlencoded({ extended: true, limit: '4mb' }))
 app.use(cookieParser())
 app.use(compression({ filter: (req, res) => !req.path.includes('/stream') && compression.filter(req, res) }))
 
