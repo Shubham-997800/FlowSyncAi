@@ -40,6 +40,12 @@ const userSchema = new mongoose.Schema({
   },
   loginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date, default: null },
+  notificationPrefs: {
+    type: {
+      email: { type: Boolean, default: true },
+    },
+    default: {},
+  },
   tokenVersion: { type: Number, default: 0 },
   refreshVersion: { type: Number, default: 0 },
 }, { timestamps: true })

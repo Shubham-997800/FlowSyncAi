@@ -1,8 +1,9 @@
 import api from './api'
 
 // API functions for tasks CRUD operations
-export const getTasks = async () => {
-  const { data } = await api.get('/api/tasks', { params: { limit: 1000 } })
+// Optional filters: { status, priority, q (title search), due: 'today', page, limit }
+export const getTasks = async (params = {}) => {
+  const { data } = await api.get('/api/tasks', { params: { limit: 1000, ...params } })
   return data
 }
 

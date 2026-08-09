@@ -234,6 +234,32 @@ async function main() {
     return out.reply === 'Here is your plan' && out.tasks[0].title === 'x'
   })
 
+  console.log('===== UNIT TESTS (mailer) =====')
+  const { sendEmail } = require('../services/mailer')
+  await t('mailer: skips when no RESEND_API_KEY', async () => {
+    delete process.env.RESEND_API_KEY
+    const r = await sendEmail({ to: 'a@b.com', subject: 'hi', text: 'body' })
+    return r.skipped === true
+  })
+  await t('mailer: skips when no EMAIL_FROM', async () => {
+    process.env.RESEND_API_KEY = 're_test'
+    delete process.env.EMAIL_FROM
+    const r = await sendEmail({ to: 'a@b.com', subject: 'hi', text: 'body' })
+    return r.skipped === true
+  })
+  await t('mailer: skips on missing recipient', async () => {
+    process.env.EMAIL_FROM = 'FlowSync <x@flowsync-ai.com>'
+    const r = await sendEmail({ to: '', subject: 'hi' })
+    return r.skipped === true
+  })
+  await t('mailer: attempts provider when configured', async () => {
+    const old = global.fetch
+    global.fetch = async () => ({ ok: true, status: 200 })
+    const r = await sendEmail({ to: 'a@b.com', subject: 'hi', html: '<p>hi</p>' })
+    global.fetch = old
+    return r.ok === true
+  })
+
   const passed = results.filter((r) => r.ok).length
   const failed = results.length - passed
   console.log('\n==========================================')

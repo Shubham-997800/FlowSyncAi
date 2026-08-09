@@ -38,7 +38,7 @@
 </p>
 
 <p align="center">
-   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.9_Current-22c55e?style=for-the-badge" /></a>
+   <a href="https://github.com/Shubham-997800/FlowSync-Ai/releases"><img src="https://img.shields.io/badge/v3.10_Current-22c55e?style=for-the-badge" /></a>
 </p>
 
 <br>
@@ -638,7 +638,7 @@ All endpoints are served under `https://flowsyncai30.vercel.app/api` (local: `ht
 | POST | `/auth/login` | — | Login, issues access + refresh token (login rate-limit 5/min) |
 | POST | `/auth/refresh` | — | Rotate access/refresh token pair (verifies type + `tokenVersion`) |
 | POST | `/auth/logout` | 🔒 | Revoke refresh token via `tokenVersion++` |
-| GET | `/tasks` | 🔒 | List tasks — paginated `?page&limit` (default 500, max 1000) + `X-Total-Count` |
+| GET | `/tasks` | 🔒 | List tasks — paginated `?page&limit` (default 500, max 1000) + `X-Total-Count`; filter by `status` / `priority` / `q` (title search) / `due=today` |
 | POST | `/tasks` | 🔒 | Create task (sanitized fields, AI suggestion support) |
 | GET | `/tasks/:id` | 🔒 | Get single task (cross-user → 404) |
 | PUT | `/tasks/:id` | 🔒 | Update task |
@@ -845,6 +845,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 | **v3.7** | `Reliability + Sec + Mobile` | **Dashboard can never blank on refresh**: tasks cached in `sessionStorage` (instant paint), per-widget error boundaries, identical in-flight GET dedupe (halves API chatter), and hard-logout only on genuinely invalid tokens (transient 429/5xx no longer logs you out). **Every popup/modal verified fully on-screen at 320–390px** (notification/permission dropdowns became full-width panels, task/goal/onboarding got max-h + scroll, no 2-line button labels). **Security**: refresh token moved out of localStorage into an **httpOnly SameSite=Lax cookie** (30d, Secure in prod) with rotation + reuse-revocation + cookie clear on logout — XSS can't steal the long-lived credential. **DB**: `{ deadline: 1 }` index so the reminder sweep avoids a collection scan. AI task-create + push subscribe now map validation errors to 400. a11y labels on the AI-chat drawer toggle + notification bell. Test harness split into integration + pure-unit suites. **Backend 161/161 (147 integration + 14 unit) + frontend 65/65 tests, lint clean, build green, all live-audited.** |
 | **v3.8** | `Craftsmanship + AI Scale` | **Multi-provider AI layer**: Groq · Gemini · Cerebras · Mistral (multi-key rotation) · OpenRouter with quality-tiered failover — dead keys skip, ~16K messages/day across providers. **Typed error classes** (`AiServiceUnavailableError`, `NotFoundError`, …) replacing magic-string checks. **Zod request validation** on auth/tasks/AI routes (schema-driven, mass-assignment stripping, typed messages). **Error UX overhaul**: daily-limit 429 now includes exact reset time + `resetsAt`; streamed chat surfaces the real server error instead of a generic message; login/signup distinguish network vs server failures. **Docker Compose** for one-command full-stack dev. **Backend 188/188 (147 integration + 41 unit) + frontend 65/65 tests, lint clean.** |
 | **v3.9** | `Serverless Hardening + Cleanup` | **MongoDB-backed rate limiting** (`mongoRateLimitStore.js`) — counts survive cold starts and are shared across serverless instances (in-memory fallback if Mongo is unreachable, TTL auto-cleanup). **Deterministic reminder cron**: the 30-min deadline sweep now runs on a Vercel Cron schedule (`/api/cron/reminders`, protected by `CRON_SECRET` / `x-vercel-cron`) instead of piggybacking on live traffic. **API-side XSS**: `sanitizeBody()` strips `<script>` from name/title/description fields server-side, closing the stored-XSS gap. **Shared pagination helper** (`parsePagination`) — clamped `page/limit` with `X-Total-Count` across all list endpoints. **Cleanup**: removed 12 one-off QA/debug scripts (machine-specific audit scripts + temporary DB helpers); unified `{ message, code }` error shapes, avatar/body-size limits. **Backend 188/188 (147 integration + 41 unit) + frontend 65/65 tests, lint clean, build green.** |
+| **v3.10** | `Scale + Observability` | **Per-user rate limiting** — on Vercel serverless all users can share egress IPs, so limiters now key by the authenticated user id (with IP fallback for anonymous requests), so one user can't trip another's bucket. **Email deadline reminders** — pluggable Resend mailer (`RESEND_API_KEY`) fires a reminder email alongside the in-app + push alert, gated by a per-user `notificationPrefs.email` preference; no-op when unconfigured. **Sentry** (`SENTRY_DSN`) — optional error tracking wired into the global + controller error handlers (5xx captured, no-op without a DSN). **Server-side task filters** — `GET /tasks` now supports `status`, `priority`, `q` (regex-safe title search) and `due=today` for slimmer, targeted payloads; client service updated. Verified the bundle is already fully code-split (report-PDF/DOCX + markdown are lazy chunks). **Backend 195/195 (150 integration + 45 unit) + frontend 65/65 tests, lint clean, build green.** |
 
 ---
 
@@ -852,7 +853,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 188/188 (147 integration + 41 unit) + frontend 65/65 tests passing · both lint clean · production build succeeds · rate limiting is MongoDB-backed (survives cold starts, shared across instances) · reminder sweep runs on a protected Vercel Cron · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
+**Current status: backend 195/195 (150 integration + 45 unit) + frontend 65/65 tests passing · both lint clean · production build succeeds · rate limiting is MongoDB-backed **and keyed per-user** · reminder sweep runs on a protected Vercel Cron + emails via Resend when configured · Sentry enabled when `SENTRY_DSN` is set · CI: GitHub Actions (Node 24 — backend lint + tests, frontend lint + tests + build) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
 
 | Coverage Area | What's Verified |
 |---|---|
@@ -863,8 +864,11 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 | ⚙️ **Settings** | Profile update, weak-password → 400, password change invalidates old token, account delete cascade (Chat/Push/AiUsage), **AI settings persist + invalid → 400** |
 | 🤖 **AI** | Usage tracking, quota check, no-prompt → 400, graceful 5xx without API key |
 | ⚡ **DB & Reliability** | Pagination (`?limit&page` + `X-Total-Count`), 413 body limit, atomic reminder claims (no duplicate notifications), TTL cleanup |
-| ⏱️ **Rate Limiting (Mongo store)** | 429s across 5 limiters verified on a fresh app; persistent MongoDB store with TTL cleanup + in-memory fallback (serverless-safe), per-limiter prefixes |
+| ⏱️ **Rate Limiting (Mongo store)** | 429s across 5 limiters verified on a fresh app; persistent MongoDB store with TTL cleanup + in-memory fallback (serverless-safe), per-limiter prefixes; **keyed per-user** (same IP, separate buckets) |
 | 🗓️ **Reminder Cron (Vercel)** | `/api/cron/reminders` executes the deadline sweep; 401 without `CRON_SECRET`/`x-vercel-cron`; no duplicate notifications after sweep |
+| ✉️ **Email Reminders** | Pluggable Resend mailer — skips when `RESEND_API_KEY` unset, honors `notificationPrefs.email`, fire-and-forget (never blocks the sweep) |
+| 🧭 **Observability** | `@sentry/node` captures 5xx via `SENTRY_DSN` (no-op without it); structured `requestId` + morgan logging |
+| 🔎 **Task Filters** | `GET /tasks?status&priority&q&due=today` — enum-guarded, regex-safe search, combined with pagination + `X-Total-Count` |
 | 🗂️ **Error Shape** | All API errors return a consistent `{ message, code }`; malformed JSON → 400 `INVALID_JSON`, oversized payloads → 413, duplicate keys → 409 `DUPLICATE_FIELD`, bad ObjectId → 400 `INVALID_ID`, AI quota/unavailable → 429/503, rate-limited → 429 `RATE_LIMITED` — all with stable codes |
 | 📤 **Export (client)** | Unit tests cover CSV quote-escaping, JSON round-trip, XML well-formedness + escaping, TXT layout, and download-triggering for every text format |
 | 🧭 **Navigation (client)** | Unit tests cover keyboard shortcuts (1-9/0, ←/→, ?), swipe navigation, and typing-target detection |
@@ -879,8 +883,8 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 ```bash
 cd flowsync-backend
 npm install
-node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 147 integration checks
-node test/unit-tests.js    # 41 pure unit tests (error handler, typed errors, zod validation, AI tiers) — no server needed
+node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 150 integration checks
+node test/unit-tests.js    # 45 pure unit tests (error handler, typed errors, zod validation, AI tiers, mailer) — no server needed
 
 cd ../client
 npm install
@@ -901,7 +905,7 @@ npm run lint && npm run build
 | **UX Pro** | Drag-and-drop tasks, file attachments, PWA offline |
 | **Platform** | i18n multi-language, Storybook, error tracking (Sentry) |
 
-> ✅ **Done (v3.8 + v3.9):** zod input validation on auth/tasks/AI routes · typed error classes · multi-provider AI (Groq/Gemini/Cerebras/Mistral/OpenRouter) with key rotation · AI streaming via SSE · Docker Compose (full stack) · MongoDB-backed rate limiting · Vercel Cron reminder sweep (CRON_SECRET-protected) · API-side XSS sanitization (`sanitizeBody`) · shared pagination helper.
+> ✅ **Done (v3.8 → v3.10):** zod input validation on auth/tasks/AI routes · typed error classes · multi-provider AI (Groq/Gemini/Cerebras/Mistral/OpenRouter) with key rotation · AI streaming via SSE · Docker Compose (full stack) · MongoDB-backed + per-user rate limiting · Vercel Cron reminder sweep (CRON_SECRET-protected) · API-side XSS sanitization (`sanitizeBody`) · shared pagination helper · email reminders (Resend) · Sentry error tracking · server-side task filters.
 
 ---
 
@@ -970,6 +974,9 @@ Or simply push to `main` (the project auto-deploys from GitHub).
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | ⭐ | Web Push; if invalid, push auto-disables instead of crashing |
 | `VAPID_SUBJECT` | 🔶 | Email/mailto used by web-push |
 | `CRON_SECRET` | 🔶 | Bearer token required on `/api/cron/reminders` (falls back to trusting the Vercel `x-vercel-cron` header) |
+| `RESEND_API_KEY` | 🔶 | Enables email deadline reminders (Resend) — skipped when unset |
+| `EMAIL_FROM` | 🔶 | Verified sender for reminder emails |
+| `SENTRY_DSN` / `SENTRY_TRACES_SAMPLE_RATE` | 🔶 | Error tracking for server 5xx (no-op when unset) |
 | `AI_DAILY_LIMIT` | 🔶 | Max AI calls per user/day (default **300**) |
 | `MAX_CHAT_SESSIONS` | 🔶 | Max chat sessions kept per user (default 6) |
 | `REMINDER_CHECK_INTERVAL` | 🔶 | Reminder sweep interval in ms (default 30 min) |

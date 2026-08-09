@@ -946,6 +946,26 @@ async function main() {
     const total = Number(r.headers.get('x-total-count'))
     return r.status === 200 && r.data.length === 10 && total === 202
   })
+  await t('Task list filters: status + priority + search (q)', async () => {
+    await Task.create([
+      { user: userA._id, title: 'filter-alpha', status: 'done', priority: 'high' },
+      { user: userA._id, title: 'filter-beta', status: 'in_progress', priority: 'low' },
+    ])
+    const done = await request('/api/tasks?status=done', { token: tokenA })
+    const doneHigh = await request('/api/tasks?status=done&priority=high', { token: tokenA })
+    const search = await request('/api/tasks?q=filter-alp', { token: tokenA })
+    const matched = done.data.filter((t) => t.title.startsWith('filter-'))
+    return (
+      matched.length === 1 &&
+      matched[0].title === 'filter-alpha' &&
+      doneHigh.data.length === 1 &&
+      search.data[0] && search.data[0].title === 'filter-alpha'
+    )
+  })
+  await t('Task list search is regex-safe (metacharacters do not 500)', async () => {
+    const r = await request('/api/tasks?q=bulk-.*[{', { token: tokenA })
+    return r.status === 200 && Array.isArray(r.data)
+  })
 
   // ============ 20. RATE LIMITING (fresh app, low login limit) ============
   console.log('\n===== 20. RATE LIMITING =====')
@@ -982,6 +1002,30 @@ async function main() {
     }
     await fresh.srv.close()
     return body !== null && body.code === 'RATE_LIMITED' && typeof body.message === 'string'
+  })
+  await t('General limiter keyed per-user (same IP, separate buckets)', async () => {
+    for (const m of Object.keys(require.cache)) if (m.includes('flowsync-backend')) delete require.cache[m]
+    process.env.RATE_LIMIT_GENERAL = '5'
+    const fresh = await bootServer()
+    const b = fresh.url
+    const sign = async (name, email) => {
+      const r = await fetch(b + '/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password: 'XPass1234!' }),
+      })
+      return (await r.json()).token
+    }
+    const tokenA = await sign('RL A', 'rla@test.com')
+    const tokenB = await sign('RL B', 'rlb@test.com')
+    let lastA = null
+    for (let i = 0; i < 6; i++) {
+      const r = await fetch(b + '/api/tasks', { headers: { Authorization: `Bearer ${tokenA}` } })
+      lastA = r.status
+    }
+    const resB = await fetch(b + '/api/tasks', { headers: { Authorization: `Bearer ${tokenB}` } })
+    await fresh.srv.close()
+    return lastA === 429 && resB.status === 200
   })
 
   // ============ SUMMARY ============

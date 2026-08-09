@@ -1,3 +1,5 @@
+const { captureException } = require('../config/sentry')
+
 function normalizeError(error) {
   if (error?.errors && typeof error.errors === 'object') {
     const msgs = Object.values(error.errors).map(e => e.message || 'Invalid value').join(', ')
@@ -19,6 +21,7 @@ const handleError = (res, error, statusCode) => {
   if (error) console.error(error)
   const normalized = normalizeError(error)
   const finalStatus = statusCode || normalized.statusCode
+  if (finalStatus >= 500) captureException(error)
   const isServer = finalStatus >= 500
   const body = {
     message: isServer ? 'Server error' : (normalized.message || error?.message || 'Request failed'),

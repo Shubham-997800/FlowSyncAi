@@ -17,6 +17,9 @@ const settingsRoutes = require('./routes/settingsRoutes')
 const pushRoutes = require('./routes/pushRoutes')
 const chatRoutes = require('./routes/chatRoutes')
 const { requestId } = require('./middleware/requestId')
+const { initSentry, captureException } = require('./config/sentry')
+
+initSentry()
 
 const app = express()
 
@@ -98,6 +101,7 @@ app.use((err, req, res, _next) => {
   if (process.env.NODE_ENV === 'production') console.error(JSON.stringify(log))
   else console.error(log)
   const normalized = normalizeError(err)
+  if (normalized.statusCode >= 500) captureException(err, { requestId: req.id, url: req.originalUrl })
   const isServer = normalized.statusCode >= 500
   const body = {
     message: isServer ? 'Server error' : normalized.message,

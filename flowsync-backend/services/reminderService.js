@@ -2,6 +2,7 @@
 const Notification = require('../models/Notification')
 const ReminderState = require('../models/ReminderState')
 const { sendPushToUser } = require('../controllers/pushController')
+const { sendEmail } = require('./mailer')
 
 const { REMINDER_CHECK_INTERVAL } = require('../config/constants')
 
@@ -18,7 +19,7 @@ async function checkReminders() {
   const tasks = await Task.find({
     status: { $ne: 'done' },
     deadline: { $gte: now, $lte: in48h },
-  }).populate('user', 'email name')
+  }).populate('user', 'email name notificationPrefs')
 
   for (const task of tasks) {
     if (!task.user || !task.user.email) continue
@@ -43,6 +44,15 @@ async function checkReminders() {
       body: `Due in ${hoursLeft > 24 ? `${Math.round(hoursLeft / 24)} days` : `${hoursLeft} hours`}`,
       url: '/tasks',
     })
+    if (task.user.notificationPrefs?.email !== false) {
+      const dueText = hoursLeft > 24 ? `${Math.round(hoursLeft / 24)} days` : `${hoursLeft} hours`
+      sendEmail({
+        to: task.user.email,
+        subject: `Deadline approaching: "${task.title}"`,
+        text: `Hi ${task.user.name || 'there'},\n\n"${task.title}" is due in ${dueText} (${new Date(task.deadline).toLocaleDateString()}).\n\nLog in to FlowSync AI to plan your time: https://flowsyncai30.vercel.app/tasks`,
+        html: `<p>Hi ${task.user.name || 'there'},</p><p><strong>"${task.title}"</strong> is due in ${dueText} (${new Date(task.deadline).toLocaleDateString()}).</p><p><a href="https://flowsyncai30.vercel.app/tasks">Open FlowSync AI</a> to plan your time.</p>`,
+      }).catch((err) => console.error('Reminder email error:', err.message))
+    }
   }
 }
 
