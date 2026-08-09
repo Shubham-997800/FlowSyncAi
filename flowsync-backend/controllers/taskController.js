@@ -2,7 +2,7 @@
 
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { sanitizeBody } = require('../utils/sanitize')
-const { parsePagination } = require('../utils/pagination')
+const { parsePagination, parseCursor, encodeCursor } = require('../utils/pagination')
 const allowedTaskFields = ['title', 'description', 'priority', 'status', 'deadline', 'estimatedTime', 'tags']
 const textFields = ['title', 'description']
 const VALID_STATUS = ['todo', 'pending', 'in_progress', 'completed', 'done']
@@ -24,9 +24,24 @@ const getTasks = async (req, res) => {
       filter.deadline = { $gte: start, $lt: new Date(start.getTime() + 24 * 60 * 60 * 1000) }
     }
     const { skip, limit } = parsePagination(req.query)
+    const cursorFilter = parseCursor(req.query)
+    if (cursorFilter) {
+      const tasks = await Task.find({ ...filter, ...cursorFilter })
+        .sort({ createdAt: -1, _id: -1 })
+        .limit(limit)
+      if (tasks.length === limit) {
+        const last = tasks[tasks.length - 1]
+        res.set('X-Next-Cursor', encodeCursor(last.createdAt, last._id))
+      }
+      return res.json(tasks)
+    }
     const total = await Task.countDocuments(filter)
-    const tasks = await Task.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit)
+    const tasks = await Task.find(filter).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit)
     res.set('X-Total-Count', total)
+    if (tasks.length === limit && skip + tasks.length < total) {
+      const last = tasks[tasks.length - 1]
+      res.set('X-Next-Cursor', encodeCursor(last.createdAt, last._id))
+    }
     res.json(tasks)
   } catch (error) {
     handleError(res, error)

@@ -36,6 +36,11 @@ module.exports = async (req, res) => {
     return handleCron(req, res)
   }
 
+  // Versioned alias: /api/v1/<route> serves the same handlers as /api/<route>.
+  if (url.pathname.startsWith('/api/v1/')) {
+    req.url = req.url.replace(/^\/api\/v1/, '/api')
+  }
+
   res.on('finish', () => {
     runReminderCheckIfDue().catch((err) => console.error('Reminder sweep error:', err.message))
   })

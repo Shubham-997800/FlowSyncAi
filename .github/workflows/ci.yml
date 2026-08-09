@@ -23,8 +23,10 @@ jobs:
           cache: npm
           cache-dependency-path: flowsync-backend/package-lock.json
       - run: npm ci
+      - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm test
+      - run: npm run test:coverage
 
   frontend:
     name: Frontend lint + test + build
@@ -40,6 +42,7 @@ jobs:
           cache: npm
           cache-dependency-path: client/package-lock.json
       - run: npm ci
+      - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm test
       - run: npm run build

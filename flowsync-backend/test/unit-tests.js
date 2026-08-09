@@ -259,6 +259,40 @@ async function main() {
     global.fetch = old
     return r.ok === true
   })
+  await t('mailer: retries 5xx with backoff then succeeds', async () => {
+    const old = global.fetch
+    let calls = 0
+    global.fetch = async () => { calls++; return calls === 1 ? { ok: false, status: 503, text: async () => 'busy' } : { ok: true, status: 200 } }
+    const r = await sendEmail({ to: 'a@b.com', subject: 'hi', text: 'body' })
+    global.fetch = old
+    return r.ok === true && r.attempts === 2 && calls === 2
+  })
+  await t('mailer: retries network errors with backoff then succeeds', async () => {
+    const old = global.fetch
+    let calls = 0
+    global.fetch = async () => { calls++; if (calls === 1) throw new TypeError('ECONNRESET'); return { ok: true, status: 200 } }
+    const r = await sendEmail({ to: 'a@b.com', subject: 'hi', text: 'body' })
+    global.fetch = old
+    return r.ok === true && r.attempts === 2 && calls === 2
+  })
+  await t('mailer: fails fast on permanent 4xx (no retry)', async () => {
+    const old = global.fetch
+    let calls = 0
+    global.fetch = async () => { calls++; return { ok: false, status: 422, text: async () => 'invalid' } }
+    let threw = false
+    try { await sendEmail({ to: 'a@b.com', subject: 'hi', text: 'body' }) } catch { threw = true }
+    global.fetch = old
+    return threw === true && calls === 1
+  })
+  await t('mailer: gives up after max attempts on persistent 5xx', async () => {
+    const old = global.fetch
+    let calls = 0
+    global.fetch = async () => { calls++; return { ok: false, status: 502, text: async () => 'bad gateway' } }
+    let threw = false
+    try { await sendEmail({ to: 'a@b.com', subject: 'hi', text: 'body' }) } catch { threw = true }
+    global.fetch = old
+    return threw === true && calls === 3
+  })
 
   const passed = results.filter((r) => r.ok).length
   const failed = results.length - passed

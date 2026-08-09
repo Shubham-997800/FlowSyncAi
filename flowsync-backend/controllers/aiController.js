@@ -8,7 +8,7 @@ const aiService = require('../services/aiService')
 const { AiServiceUnavailableError } = require('../utils/errors')
 const { handleError, handleValidationError } = require('../utils/errorHandler')
 const { localDateKey } = require('../utils/dateKey')
-const { AI_DAILY_LIMIT } = require('../config/constants')
+const { AI_DAILY_LIMIT, AI_MONTHLY_LIMIT } = require('../config/constants')
 
 const MAX_MESSAGE_LEN = 2000
 const AI_UNAVAILABLE_MESSAGE = 'The AI service is temporarily busy due to provider limits. Please try again in a few minutes.'
@@ -28,8 +28,27 @@ async function getAiUsageCount(userId) {
   return usage?.count || 0
 }
 
+function localMonthKey(d = new Date()) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  return `${y}-${m}`
+}
+
+async function getAiMonthUsageCount(userId) {
+  const prefix = localMonthKey()
+  const agg = await AiUsage.aggregate([
+    { $match: { user: userId, date: { $gte: `${prefix}-01`, $lte: `${prefix}-99` } } },
+    { $group: { _id: null, total: { $sum: '$count' } } },
+  ])
+  return agg[0]?.total || 0
+}
+
 async function canUseAi(userId) {
-  return (await getAiUsageCount(userId)) < AI_DAILY_LIMIT
+  const daily = await getAiUsageCount(userId)
+  if (daily >= AI_DAILY_LIMIT) return { ok: false, reason: 'daily', used: daily, monthlyUsed: 0 }
+  const monthlyUsed = await getAiMonthUsageCount(userId)
+  if (monthlyUsed >= AI_MONTHLY_LIMIT) return { ok: false, reason: 'monthly', used: daily, monthlyUsed }
+  return { ok: true, used: daily, monthlyUsed }
 }
 
 async function recordAiUsage(userId) {
@@ -48,8 +67,18 @@ function nextResetDate() {
   return reset
 }
 
-async function limitReachedResponse(res, userId) {
-  const used = await getAiUsageCount(userId)
+async function limitReachedResponse(res, userId, check = {}) {
+  const used = check.used ?? (await getAiUsageCount(userId))
+  const monthlyUsed = check.monthlyUsed ?? (await getAiMonthUsageCount(userId))
+  if (check.reason === 'monthly') {
+    return res.status(429).json({
+      code: 'AI_MONTHLY_LIMIT',
+      message: `You've reached the monthly limit of ${AI_MONTHLY_LIMIT} AI messages. The limit resets at the start of next month.`,
+      used: monthlyUsed,
+      limit: AI_MONTHLY_LIMIT,
+      period: 'monthly',
+    })
+  }
   const reset = nextResetDate()
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'your timezone'
   const time = reset.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -80,7 +109,7 @@ async function createTasksFromAI(userId, tasks = []) {
 
 const plan = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const { prompt } = req.body
     if (!prompt) return res.status(400).json({ message: 'Prompt required' })
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
@@ -97,7 +126,7 @@ const plan = async (req, res) => {
 
 const prioritize = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.prioritizeTasks(tasks, { quality: userQuality(req) })
     for (const r of result.rankings) {
@@ -118,7 +147,7 @@ const prioritize = async (req, res) => {
 
 const rescue = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const tasks = await Task.find({
       user: req.user._id,
       status: { $ne: 'done' },
@@ -135,7 +164,7 @@ const rescue = async (req, res) => {
 
 const chatAI = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const { message, sessionId, mode } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
     if (String(message).length > MAX_MESSAGE_LEN) return res.status(400).json({ message: `Message too long (max ${MAX_MESSAGE_LEN} characters)` })
@@ -202,7 +231,7 @@ const executeChatActions = async (userId, actions = []) => {
 
 const chatStream = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const { message, sessionId, mode } = req.body
     if (!message) return res.status(400).json({ message: 'Message required' })
     if (String(message).length > MAX_MESSAGE_LEN) return res.status(400).json({ message: `Message too long (max ${MAX_MESSAGE_LEN} characters)` })
@@ -266,7 +295,7 @@ const chatStream = async (req, res) => {
 
 const suggestTaskAI = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const { title, description } = req.body
     if (!title) return res.status(400).json({ message: 'Title required' })
     const existingTasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(10)
@@ -282,8 +311,11 @@ const suggestTaskAI = async (req, res) => {
 const getUsage = async (req, res) => {
   try {
     const today = localDateKey()
-    const usage = await AiUsage.findOne({ user: req.user._id, date: today })
-    res.json({ used: usage?.count || 0, limit: AI_DAILY_LIMIT })
+    const [usage, monthlyUsed] = await Promise.all([
+      AiUsage.findOne({ user: req.user._id, date: today }),
+      getAiMonthUsageCount(req.user._id),
+    ])
+    res.json({ used: usage?.count || 0, limit: AI_DAILY_LIMIT, monthlyUsed, monthlyLimit: AI_MONTHLY_LIMIT })
   } catch (error) {
     handleError(res, error)
   }
@@ -291,7 +323,7 @@ const getUsage = async (req, res) => {
 
 const analyticsInsights = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const [tasks, habits, goals] = await Promise.all([
       Task.find({ user: req.user._id }),
       Habit.find({ user: req.user._id }),
@@ -308,7 +340,7 @@ const analyticsInsights = async (req, res) => {
 
 const habitInsights = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const [habits, tasks, goals] = await Promise.all([
       Habit.find({ user: req.user._id }),
       Task.find({ user: req.user._id }).limit(10),
@@ -325,7 +357,7 @@ const habitInsights = async (req, res) => {
 
 const focusSuggestion = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const { taskId } = req.body
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.generateFocusSuggestion(tasks, taskId, { quality: userQuality(req) })
@@ -339,7 +371,7 @@ const focusSuggestion = async (req, res) => {
 
 const profileInsights = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const [tasks, habits, goals] = await Promise.all([
       Task.find({ user: req.user._id }),
       Habit.find({ user: req.user._id }),
@@ -356,7 +388,7 @@ const profileInsights = async (req, res) => {
 
 const organizeNotifications = async (req, res) => {
   try {
-    if (!(await canUseAi(req.user._id))) return limitReachedResponse(res, req.user._id)
+    const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const { notifications } = req.body
     if (!Array.isArray(notifications) || notifications.length === 0) {
       return res.json({ groups: [], prioritizedIds: [], summary: 'No notifications to organize' })

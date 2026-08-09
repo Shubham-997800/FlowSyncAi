@@ -78,6 +78,7 @@ app.get('/api/health', async (req, res) => {
     uptime: Math.round(process.uptime()),
     timestamp: new Date().toISOString(),
     version: require('./package.json').version,
+    apiVersion: 'v1',
     database: mongoState,
     environment: process.env.NODE_ENV || 'development',
   })

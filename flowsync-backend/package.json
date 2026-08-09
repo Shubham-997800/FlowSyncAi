@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "lint": "eslint .",
-    "test": "node test/run-tests.js && node test/unit-tests.js"
+    "test": "node test/run-tests.js && node test/unit-tests.js",
+    "test:coverage": "c8 --check-coverage --reporter=text --lines 60 --functions 60 --branches 55 --statements 60 node test/run-tests.js"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "c8": "^12.0.0",
     "eslint": "^10.8.0",
     "globals": "^17.9.0",
     "mongodb-memory-server": "^11.2.0",

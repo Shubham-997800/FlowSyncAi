@@ -97,7 +97,7 @@ async function main() {
   const PushSubscription = require('../models/PushSubscription')
   const ChatMessage = require('../models/ChatMessage')
   const AiUsage = require('../models/AiUsage')
-  const { AI_DAILY_LIMIT } = require('../config/constants')
+  const { AI_DAILY_LIMIT, AI_MONTHLY_LIMIT } = require('../config/constants')
   const { localDateKey } = require('../utils/dateKey')
 
   let userA, tokenA, refreshTokenA, userB, tokenB
@@ -876,7 +876,8 @@ async function main() {
   })
   await t('AI usage reports { used, limit } shape', async () => {
     const r = await request('/api/ai/usage', { token: tokenA })
-    return r.status === 200 && typeof r.data.used === 'number' && typeof r.data.limit === 'number' && r.data.limit === AI_DAILY_LIMIT
+    return r.status === 200 && typeof r.data.used === 'number' && typeof r.data.limit === 'number' &&
+      r.data.limit === AI_DAILY_LIMIT && typeof r.data.monthlyUsed === 'number' && r.data.monthlyLimit > 0
   })
   await t('AI daily limit exhaustion -> 429 AI_DAILY_LIMIT', async () => {
     await AiUsage.findOneAndUpdate(
@@ -890,6 +891,16 @@ async function main() {
   await t('AI prioritize also honors daily limit (429)', async () => {
     const r = await request('/api/ai/prioritize', { method: 'POST', token: tokenB, body: {} })
     return r.status === 429 && r.data.code === 'AI_DAILY_LIMIT'
+  })
+  await t('AI monthly limit exhaustion -> 429 AI_MONTHLY_LIMIT', async () => {
+    const now = new Date()
+    const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    await AiUsage.updateOne({ user: userB._id, date: localDateKey() }, { $set: { count: AI_DAILY_LIMIT - 1 } })
+    const backfill = Math.ceil((AI_MONTHLY_LIMIT - AI_DAILY_LIMIT + 1) / 2)
+    await AiUsage.findOneAndUpdate({ user: userB._id, date: `${prefix}-01` }, { $set: { count: backfill } }, { upsert: true })
+    await AiUsage.findOneAndUpdate({ user: userB._id, date: `${prefix}-02` }, { $set: { count: backfill } }, { upsert: true })
+    const r = await request('/api/ai/plan', { method: 'POST', token: tokenB, body: { prompt: 'plan my week' } })
+    return r.status === 429 && r.data.code === 'AI_MONTHLY_LIMIT'
   })
 
   // ============ 17. REMINDER SWEEP ============
@@ -965,6 +976,26 @@ async function main() {
   await t('Task list search is regex-safe (metacharacters do not 500)', async () => {
     const r = await request('/api/tasks?q=bulk-.*[{', { token: tokenA })
     return r.status === 200 && Array.isArray(r.data)
+  })
+  await t('Task list cursor pagination: no overlap + keyset ordering', async () => {
+    const page1 = await request('/api/tasks?limit=10', { token: tokenA })
+    const cursor = page1.headers.get('x-next-cursor')
+    if (page1.status !== 200 || !cursor || page1.data.length !== 10) return false
+    const page2 = await request('/api/tasks?limit=10&cursor=' + encodeURIComponent(cursor), { token: tokenA })
+    const cursor2 = page2.headers.get('x-next-cursor')
+    if (page2.status !== 200 || page2.data.length !== 10 || !cursor2) return false
+    const page3 = await request('/api/tasks?limit=10&cursor=' + encodeURIComponent(cursor2), { token: tokenA })
+    if (page3.status !== 200 || page3.data.length !== 10 || !page3.headers.get('x-next-cursor')) return false
+    const all = [...page1.data, ...page2.data, ...page3.data]
+    const ids = all.map((t) => t._id)
+    const unique = new Set(ids).size === ids.length
+    const sorted = all.every((t, i) => i === 0 || all[i - 1].createdAt >= t.createdAt)
+    return unique && sorted
+  })
+  await t('API versioning: /api/v1/health + /api/v1/tasks work', async () => {
+    const health = await request('/api/v1/health')
+    const tasks = await request('/api/v1/tasks', { token: tokenA })
+    return health.status === 200 && health.data.apiVersion === 'v1' && tasks.status === 200 && Array.isArray(tasks.data)
   })
 
   // ============ 20. RATE LIMITING (fresh app, low login limit) ============

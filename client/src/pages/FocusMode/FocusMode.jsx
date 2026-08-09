@@ -1,7 +1,7 @@
 import CurrentTask from './CurrentTask'
 import SessionStats from './SessionStats'
 import Timer from './Timer'
-import { getTasks } from '../../services/taskService'
+import { useTasks } from '../../hooks/useTasks'
 import { getFocusSuggestion } from '../../services/aiService'
 import { motion } from 'framer-motion'
 import { Brain, ListTodo, Loader2, Sparkles } from 'lucide-react'
@@ -26,27 +26,14 @@ function loadTimerSettings() {
 }
 
 function FocusMode() {
-  const [tasks, setTasks] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { data: tasks = [], isLoading: loading, error: tasksError } = useTasks({}, { refetchInterval: 30000 })
   const [aiSuggestion, setAiSuggestion] = useState(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [suggestionKey, setSuggestionKey] = useState(0)
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const data = await getTasks()
-        setTasks(Array.isArray(data) ? data : [])
-      } catch {
-        toast.error('Failed to load tasks')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchTasks()
-    const interval = setInterval(fetchTasks, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    if (tasksError) toast.error('Failed to load tasks')
+  }, [tasksError])
   const [selectedTask, setSelectedTask] = useState(null)
   const [mode, setMode] = useState('focus')
   const [sessions, setSessions] = useState(() => parseInt(localStorage.getItem('flowsync_focus_sessions') || '0'))

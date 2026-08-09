@@ -17,7 +17,12 @@ test.describe('Settings password change', () => {
     await page.getByPlaceholder('Re-enter new password').fill(newPassword)
     await page.getByRole('button', { name: 'Update Password' }).click()
 
-    await expect(page.getByText('Password changed successfully')).toBeVisible({ timeout: 10000 })
+    // Success either shows the toast or (tokenVersion bump) bounces the user to
+    // /login for a fresh sign-in — both prove the password changed.
+    await Promise.race([
+      page.waitForURL(/\/login/, { timeout: 15000 }),
+      page.getByText('Password changed successfully').waitFor({ state: 'visible', timeout: 15000 }),
+    ])
 
     const oldLogin = await request.post(`${API_BASE}/api/auth/login`, {
       data: { email: session.email, password: oldPassword },
