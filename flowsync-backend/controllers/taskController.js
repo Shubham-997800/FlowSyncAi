@@ -5,7 +5,7 @@ const { sanitizeBody } = require('../utils/sanitize')
 const { parsePagination, parseCursor, encodeCursor } = require('../utils/pagination')
 const allowedTaskFields = ['title', 'description', 'priority', 'status', 'deadline', 'estimatedTime', 'tags']
 const textFields = ['title', 'description']
-const VALID_STATUS = ['todo', 'pending', 'in_progress', 'completed', 'done']
+const VALID_STATUS = ['todo', 'in_progress', 'done']
 const VALID_PRIORITY = ['low', 'medium', 'high']
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 

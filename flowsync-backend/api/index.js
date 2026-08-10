@@ -4,7 +4,7 @@ const { runReminderCheckIfDue } = require('../services/reminderService')
 
 function isCronAuthorized(req) {
   if (req.headers['x-vercel-cron']) return true
-  if (!process.env.CRON_SECRET) return true
+  if (!process.env.CRON_SECRET) return false
   return req.headers.authorization === `Bearer ${process.env.CRON_SECRET}`
 }
 
