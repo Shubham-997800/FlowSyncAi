@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Brain, Zap, Timer, ArrowDown, Loader2, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import api from '../../services/api'
+import { saveAiSettings } from '../../services/settingsService'
 
 const DEFAULT_SETTINGS = {
   aggressiveness: 'medium',
@@ -16,19 +17,29 @@ function AISettings() {
   const [loadFailed, setLoadFailed] = useState(false)
   const [rescueResult, setRescueResult] = useState(null)
   const [rescueLoading, setRescueLoading] = useState(false)
+  const skipNextSave = useRef(true)
+  const debounceRef = useRef(null)
 
   useEffect(() => {
     api.get('/api/settings/ai')
-      .then(({ data }) => setSettings({ ...DEFAULT_SETTINGS, ...(data || {}) }))
+      .then(({ data }) => {
+        setSettings({ ...DEFAULT_SETTINGS, ...(data || {}) })
+        skipNextSave.current = true
+      })
       .catch(() => { setLoadFailed(true); toast.error('Failed to load AI settings') })
       .finally(() => setLoaded(true))
   }, [])
 
   useEffect(() => {
     if (!loaded || loadFailed) return
+    if (skipNextSave.current) { skipNextSave.current = false; return }
+    clearTimeout(debounceRef.current)
     const { aggressiveness, autoScheduling, smartPrioritization, rescueMode } = settings
-    api.put('/api/settings/ai', { aggressiveness, autoScheduling, smartPrioritization, rescueMode })
-      .catch(() => toast.error('Failed to save AI settings'))
+    debounceRef.current = setTimeout(() => {
+      saveAiSettings({ aggressiveness, autoScheduling, smartPrioritization, rescueMode })
+        .catch(() => toast.error('Failed to save AI settings'))
+    }, 400)
+    return () => clearTimeout(debounceRef.current)
   }, [settings, loaded, loadFailed])
 
   const toggle = (key) => {

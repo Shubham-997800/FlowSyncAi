@@ -22,6 +22,30 @@ const tabs = [
   { key: 'password', label: 'Password', icon: Lock },
 ]
 
+function compressImage(file, maxSize = 256) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height))
+        const w = Math.max(1, Math.round(img.width * scale))
+        const h = Math.max(1, Math.round(img.height * scale))
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, w, h)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      img.onerror = () => reject(new Error('Invalid image'))
+      img.src = e.target.result
+    }
+    reader.onerror = () => reject(new Error('Could not read file'))
+    reader.readAsDataURL(file)
+  })
+}
+
 function Profile() {
   const { user, logout, setUser } = useAuth()
   const navigate = useNavigate()
@@ -33,19 +57,20 @@ function Profile() {
   const handleFile = async (file) => {
     if (!file) return
     if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return }
-    if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2MB'); return }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image must be under 10MB'); return }
     setUploading(true)
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      try {
-        const updated = await uploadAvatarApi(e.target.result)
-        setAvatar(e.target.result)
-        setUser(updated)
-        toast.success('Avatar updated')
-      } catch { toast.error('Failed to upload avatar') }
-      finally { setUploading(false) }
+    try {
+      const compressed = await compressImage(file)
+      const updated = await uploadAvatarApi(compressed)
+      setAvatar(compressed)
+      setUser(updated)
+      toast.success('Avatar updated')
+    } catch {
+      toast.error('Failed to upload avatar')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
-    reader.readAsDataURL(file)
   }
 
   const removeAvatar = async () => {

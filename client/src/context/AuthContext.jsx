@@ -31,7 +31,13 @@ export function AuthProvider({ children }) {
 
   const persistSession = (data) => {
     localStorage.setItem('token', data.token)
-    localStorage.setItem('user', JSON.stringify(data.user))
+    try {
+      localStorage.setItem('user', JSON.stringify(data.user))
+    } catch {
+      const slim = { ...data.user }
+      delete slim.profilePicture
+      try { localStorage.setItem('user', JSON.stringify(slim)) } catch {}
+    }
   }
 
   const login = async (email, password) => {
@@ -51,7 +57,13 @@ export function AuthProvider({ children }) {
   }
 
   const setUser = (user) => {
-    localStorage.setItem('user', JSON.stringify(user))
+    try {
+      localStorage.setItem('user', JSON.stringify(user))
+    } catch {
+      const slim = { ...user }
+      delete slim.profilePicture
+      try { localStorage.setItem('user', JSON.stringify(slim)) } catch {}
+    }
     dispatch({ type: 'UPDATE_USER', user })
   }
 

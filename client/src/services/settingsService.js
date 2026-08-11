@@ -20,3 +20,8 @@ export const deleteAccount = async ({ password }) => {
   const { data } = await api.delete('/api/settings/account', { data: { password } })
   return data
 }
+
+export const saveAiSettings = async (aiSettings) => {
+  const { data } = await api.put('/api/settings/ai', aiSettings)
+  return data
+}

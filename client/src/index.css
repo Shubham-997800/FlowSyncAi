@@ -10,10 +10,4 @@
   html {
     -webkit-tap-highlight-color: transparent;
   }
-  main,
-  article,
-  [class*="max-w-md"],
-  [class*="max-w-lg"] {
-    overflow-wrap: anywhere;
-  }
 }

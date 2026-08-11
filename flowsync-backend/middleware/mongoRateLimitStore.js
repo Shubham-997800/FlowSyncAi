@@ -50,19 +50,17 @@ class MongoRateLimitStore {
     try {
       const now = Date.now()
       const resetAt = now + this.windowMs
-      const record = await this.col.findOne({ key })
-      let hits = 1
-      let effectiveResetAt = resetAt
-      if (record && record.resetAt > now) {
-        hits = record.hits + 1
-        effectiveResetAt = record.resetAt
-      }
-      await this.col.updateOne(
-        { key },
-        { $set: { key, hits, resetAt: effectiveResetAt, expiresAt: new Date(effectiveResetAt) } },
-        { upsert: true }
+      const record = await this.col.findOneAndUpdate(
+        { key, resetAt: { $gt: now } },
+        {
+          $inc: { hits: 1 },
+          $setOnInsert: { key, resetAt, expiresAt: new Date(resetAt) },
+        },
+        { upsert: true, returnDocument: 'after' }
       )
-      return { totalHits: hits, resetTime: new Date(effectiveResetAt) }
+      const totalHits = record ? record.hits : 1
+      const effectiveResetAt = record ? record.resetAt : resetAt
+      return { totalHits, resetTime: new Date(effectiveResetAt) }
     } catch {
       return this.memoryIncrement(key)
     }

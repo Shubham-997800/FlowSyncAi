@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Brain, Send, Loader2, Plus, Check, Bot, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, CornerDownRight, CheckCircle2, Trash, PencilLine, Square } from 'lucide-react'
+import { Brain, Send, Loader2, Plus, Check, User, Sparkles, Trash2, X, MessageSquare, Mic, MicOff, History, Zap, Clock, Calendar, CornerDownRight, CheckCircle2, Trash, PencilLine, Square } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import { streamChatAI, getAiUsage } from '../../services/aiService'
 import { createTask } from '../../services/taskService'
 import { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, clearChatHistory } from '../../services/chatService'
 import Markdown from '../../components/ui/Markdown'
+import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import { openBrowserSettings } from '../../utils/permissions'
 
@@ -45,6 +46,7 @@ const actionMeta = {
 }
 
 function AIPlanner() {
+  const { user } = useAuth()
   const [sessionId, setSessionId] = useState(genId)
   const [sessions, setSessions] = useState([])
   const [messages, setMessages] = useState([defaultMessage])
@@ -496,15 +498,15 @@ function AIPlanner() {
                     className="group flex gap-3"
                   >
                     {msg.role === 'ai' && (
-                      <div className="w-8 h-8 rounded-xl bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30 mt-0.5">
-                        <Bot size={14} className="text-white" />
+                      <div className="w-8 h-8 rounded-xl bg-indigo-500 dark:bg-indigo-400 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200/30 dark:shadow-indigo-900/30 mt-0.5 overflow-hidden">
+                        <img src="/favicon.svg" alt="FlowSync AI" className="w-full h-full object-cover" />
                       </div>
                     )}
                     <div className={`flex-1 min-w-0 ${msg.role === 'user' ? 'flex flex-col items-end' : ''}`}>
                       <div className="flex items-start gap-2">
                         {msg.role === 'user' && (
-                          <div className="order-last w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-800/50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <User size={14} className="text-indigo-600 dark:text-indigo-400" />
+                          <div className="order-last w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-800/50 flex items-center justify-center flex-shrink-0 mt-0.5 overflow-hidden">
+                            {user?.profilePicture ? <img src={user.profilePicture} alt={user.name || 'You'} className="w-full h-full object-cover" /> : <User size={14} className="text-indigo-600 dark:text-indigo-400" />}
                           </div>
                         )}
                         <div className={`flex flex-col min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
@@ -513,11 +515,25 @@ function AIPlanner() {
                               ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm max-w-[85%] md:max-w-[70%] whitespace-pre-wrap'
                               : 'bg-white dark:bg-zinc-800/90 border border-slate-100 dark:border-zinc-700/50 text-slate-700 dark:text-slate-300 rounded-2xl rounded-tl-sm max-w-[90%] md:max-w-[75%]'
                           }`}>
-                            {msg.role === 'ai'
-                              ? (msg.streaming
-                                ? <div><Markdown>{msg.text}</Markdown><span className="inline-block w-1.5 h-4 align-middle bg-indigo-400 rounded-sm ml-0.5 animate-pulse" /></div>
-                                : <Markdown>{msg.text}</Markdown>)
-                              : msg.text}
+{msg.role === 'ai'
+  ? (msg.streaming
+    ? <div>
+        {msg.text
+          ? <Markdown>{msg.text}</Markdown>
+          : (
+            <div className="flex items-center gap-1.5 py-0.5">
+              <span className="flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" />
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.15s' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.3s' }} />
+              </span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">AI is thinking...</span>
+            </div>
+          )}
+        <span className="inline-block w-1.5 h-4 align-middle bg-indigo-400 rounded-sm ml-0.5 animate-pulse" />
+      </div>
+    : <Markdown>{msg.text}</Markdown>)
+  : msg.text}
                           </div>
                           {msg._id && (
                             <button

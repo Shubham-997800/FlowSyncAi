@@ -115,47 +115,80 @@ function resolveModels(quality) {
   return routes
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms))
+const CONCURRENCY = 3
+
+function firstSuccess(items, runner, onFail) {
+  let index = 0
+  let settled = false
+  return new Promise((resolve, reject) => {
+    let failures = 0
+    const total = items.length
+    const next = () => {
+      if (settled) return
+      if (index >= items.length) {
+        if (failures === total) reject(new Error('all attempts failed'))
+        return
+      }
+      const item = items[index++]
+      Promise.resolve()
+        .then(() => runner(item))
+        .then((value) => {
+          if (!settled) { settled = true; resolve(value) }
+        })
+        .catch((err) => {
+          onFail?.(item, err)
+          failures++
+          next()
+        })
+    }
+    for (let i = 0; i < Math.min(CONCURRENCY, items.length); i++) next()
+  })
+}
+
+function buildAttempts(quality) {
+  const attempts = []
+  for (const { provider, model } of resolveModels(quality)) {
+    for (const ai of getClients(provider)) {
+      attempts.push({ provider, model, ai })
+    }
+  }
+  return attempts
+}
 
 async function callAI(systemMsg, userMsg, temperature = 0.7, maxTokens = 1024, quality, opts = {}) {
-  const timeoutMs = opts.timeoutMs || 30000
-  const routes = resolveModels(quality)
+  const timeoutMs = opts.timeoutMs || 15000
+  const attempts = buildAttempts(quality)
+  if (attempts.length === 0) throw new AiServiceUnavailableError('AI service unavailable')
   let lastError = null
-  for (let i = 0; i < routes.length; i++) {
-    const { provider, model } = routes[i]
-    const clients = getClients(provider)
-    if (clients.length === 0) continue
-    for (const ai of clients) {
-      try {
-        const payload = {
-          model,
-          messages: [
-            { role: 'system', content: systemMsg },
-            { role: 'user', content: userMsg },
-          ],
-          temperature,
-          max_tokens: maxTokens,
-        }
-        if (opts.frequencyPenalty != null && supportsPenalty(provider)) payload.frequency_penalty = opts.frequencyPenalty
-        if (opts.presencePenalty != null && supportsPenalty(provider)) payload.presence_penalty = opts.presencePenalty
-        const res = await Promise.race([
-          ai.chat.completions.create(payload),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs)),
-        ])
-        const content = res.choices[0]?.message?.content || ''
-        if (content) {
-          return content
-        }
-      } catch (err) {
-        lastError = err
-        const info = `${err.message || ''} ${err.error?.message || ''}`
-        console.error(`[AI] ${provider}/${model} failed: ${info.slice(0, 100)}`)
+  try {
+    return await firstSuccess(attempts, async ({ provider, model, ai }) => {
+      const payload = {
+        model,
+        messages: [
+          { role: 'system', content: systemMsg },
+          { role: 'user', content: userMsg },
+        ],
+        temperature,
+        max_tokens: maxTokens,
       }
-    }
-    if (i < routes.length - 1) await sleep(800)
+      if (opts.frequencyPenalty != null && supportsPenalty(provider)) payload.frequency_penalty = opts.frequencyPenalty
+      if (opts.presencePenalty != null && supportsPenalty(provider)) payload.presence_penalty = opts.presencePenalty
+      const res = await Promise.race([
+        ai.chat.completions.create(payload),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs)),
+      ])
+      const content = res.choices[0]?.message?.content || ''
+      if (!content) throw new Error('empty response')
+      return content
+    }, ({ provider, model }, err) => {
+      lastError = err
+      const info = `${err.message || ''} ${err.error?.message || ''}`
+      console.error(`[AI] ${provider}/${model} failed: ${info.slice(0, 100)}`)
+    })
+  } catch {
+    console.error('[AI] All models failed')
+    throw new AiServiceUnavailableError('AI service unavailable', lastError)
   }
-  console.error('[AI] All models failed')
-  throw new AiServiceUnavailableError('AI service unavailable', lastError)
 }
 
 function parseJSON(text) {
@@ -392,8 +425,8 @@ OUTPUT FORMAT (ONLY valid JSON, no other text):
 If no tasks to create, set "tasks" to [].`
 }
 
-const CHAT_CONTEXT_MESSAGES = 24
-const CHAT_CONTEXT_MAX_CHARS = 600
+const CHAT_CONTEXT_MESSAGES = 12
+const CHAT_CONTEXT_MAX_CHARS = 400
 const STREAM_DELIMITER = '===TASKS_JSON==='
 const MAX_REPLY_LINES = 8
 const FALLBACK_REPLY = "I understand. Could you be more specific about what you'd like help with?"
@@ -442,7 +475,7 @@ async function retryPlainReply(message, mode, quality, opts = {}) {
   const sysMsg = `You are FlowSync AI, a multilingual assistant. The previous response failed to produce a valid answer. Respond to the user's message with ONLY a plain conversational reply in the EXACT SAME language/dialect and tone the user used (mirror slang, match emotion, cuss back if they cuss). Do NOT output JSON, do NOT output code fences, do NOT output any delimiter. Just answer directly, fully, and clearly in a few lines — answer the actual question.`
   const userMsg = `User message: "${message}"`
   const raw = await callAI(sysMsg, userMsg, 0.7, 1024, quality, {
-    timeoutMs: opts.timeoutMs || 25000,
+    timeoutMs: opts.timeoutMs || 15000,
   })
   return limitReplyLines(stripOuterCodeFence(raw))
 }
@@ -465,7 +498,7 @@ CRITICAL: Follow the language, tone, and style rules from the system instruction
   const temp = mode === 'fun' ? 0.9 : mode === 'gf' ? 0.85 : 0.7
   const tokens = mode === 'normal' ? 2048 : 1024
   const raw = await callAI(sysMsg, userMsg, temp, tokens, quality, {
-    timeoutMs: 25000,
+    timeoutMs: 15000,
     frequencyPenalty: 0.6,
     presencePenalty: 0.3,
   })
@@ -474,62 +507,59 @@ CRITICAL: Follow the language, tone, and style rules from the system instruction
     parsed.reply = limitReplyLines(parsed.reply)
     return parsed
   }
-  const plain = await retryPlainReply(message, mode, quality, { timeoutMs: 25000 })
+  const plain = await retryPlainReply(message, mode, quality, { timeoutMs: 15000 })
   if (plain) return { reply: plain, tasks: [], suggestions: [] }
   return { reply: "Sorry, I couldn't work out an answer for that. Please rephrase or ask again.", tasks: [], suggestions: [] }
 }
 
 async function callAIStream(systemMsg, userMsg, temperature = 0.7, maxTokens = 2048, quality, opts = {}, onToken) {
-  const timeoutMs = opts.timeoutMs || 60000
-  let lastErr = null
-  const routes = resolveModels(quality)
-  for (let i = 0; i < routes.length; i++) {
-    const { provider, model } = routes[i]
-    const clients = getClients(provider)
-    if (clients.length === 0) continue
-    for (const ai of clients) {
-      try {
-        const payload = {
-          model,
-          messages: [
-            { role: 'system', content: systemMsg },
-            { role: 'user', content: userMsg },
-          ],
-          temperature,
-          max_tokens: maxTokens,
-          stream: true,
-        }
-        if (opts.frequencyPenalty != null && supportsPenalty(provider)) payload.frequency_penalty = opts.frequencyPenalty
-        if (opts.presencePenalty != null && supportsPenalty(provider)) payload.presence_penalty = opts.presencePenalty
-        const stream = await Promise.race([
-          ai.chat.completions.create(payload),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs)),
-        ])
-        let full = ''
-        try {
-          for await (const chunk of stream) {
-            const delta = chunk?.choices?.[0]?.delta?.content
-            if (delta) {
-              full += delta
-              if (typeof onToken === 'function') onToken(delta)
-            }
-          }
-        } catch (err) {
-          const wrapped = new Error('stream_interrupted')
-          wrapped.cause = err
-          throw wrapped
-        }
-        if (full) return { full, model, provider }
-      } catch (err) {
-        lastErr = err
-        const info = `${err.message || ''} ${err.error?.message || ''}`
-        console.error(`[AI] ${provider}/${model} failed: ${info.slice(0, 100)}`)
+  const timeoutMs = opts.timeoutMs || 20000
+  const attempts = buildAttempts(quality)
+  if (attempts.length === 0) throw new AiServiceUnavailableError('AI service unavailable')
+  try {
+    const { stream, provider, model } = await firstSuccess(attempts, async ({ provider, model, ai }) => {
+      const payload = {
+        model,
+        messages: [
+          { role: 'system', content: systemMsg },
+          { role: 'user', content: userMsg },
+        ],
+        temperature,
+        max_tokens: maxTokens,
+        stream: true,
       }
+      if (opts.frequencyPenalty != null && supportsPenalty(provider)) payload.frequency_penalty = opts.frequencyPenalty
+      if (opts.presencePenalty != null && supportsPenalty(provider)) payload.presence_penalty = opts.presencePenalty
+      const stream = await Promise.race([
+        ai.chat.completions.create(payload),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs)),
+      ])
+      return { stream, provider, model }
+    }, ({ provider, model }, err) => {
+      const info = `${err.message || ''} ${err.error?.message || ''}`
+      console.error(`[AI] ${provider}/${model} failed: ${info.slice(0, 100)}`)
+    })
+    let full = ''
+    try {
+      for await (const chunk of stream) {
+        const delta = chunk?.choices?.[0]?.delta?.content
+        if (delta) {
+          full += delta
+          if (typeof onToken === 'function') onToken(delta)
+        }
+      }
+    } catch (err) {
+      const wrapped = new Error('stream_interrupted')
+      wrapped.cause = err
+      throw wrapped
     }
-    if (i < routes.length - 1) await sleep(800)
+    if (full) return { full, model, provider }
+    throw new Error('empty stream')
+  } catch (err) {
+    if (err instanceof AiServiceUnavailableError) throw err
+    console.error('[AI] All models failed to stream')
+    throw new AiServiceUnavailableError('AI service unavailable', err)
   }
-  console.error('[AI] All models failed to stream')
-  throw lastErr instanceof AiServiceUnavailableError ? lastErr : new AiServiceUnavailableError('AI service unavailable', lastErr)
 }
 
 function stripOuterCodeFence(text) {
@@ -667,13 +697,13 @@ Follow the language/tone/style rules from the system instructions and the OUTPUT
   const tokens = mode === 'normal' ? 3072 : 1024
   const tokenizer = createReplyTokenizer(onReplyToken)
   const { full } = await callAIStream(sysMsg, userMsg, temp, tokens, quality, {
-    timeoutMs: 45000,
+    timeoutMs: 20000,
     frequencyPenalty: 0.6,
     presencePenalty: 0.3,
   }, tokenizer)
   const parsed = parseChatStreamOutput(full)
   if (!parsed.reply || !parsed.reply.trim() || parsed.reply === FALLBACK_REPLY) {
-    const plain = await retryPlainReply(message, mode, quality, { timeoutMs: 45000 })
+    const plain = await retryPlainReply(message, mode, quality, { timeoutMs: 20000 })
     if (plain) parsed.reply = plain
   }
   return parsed

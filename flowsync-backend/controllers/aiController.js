@@ -20,7 +20,7 @@ function requestQuality(req) {
   return q && ['low', 'medium', 'high'].includes(q) ? q : userQuality(req)
 }
 
-const CHAT_CONTEXT_MESSAGES = aiService.CHAT_CONTEXT_MESSAGES || 24
+const CHAT_CONTEXT_MESSAGES = aiService.CHAT_CONTEXT_MESSAGES || 12
 
 async function getAiUsageCount(userId) {
   const today = localDateKey()
@@ -236,9 +236,9 @@ const chatStream = async (req, res) => {
     if (!message) return res.status(400).json({ message: 'Message required' })
     if (String(message).length > MAX_MESSAGE_LEN) return res.status(400).json({ message: `Message too long (max ${MAX_MESSAGE_LEN} characters)` })
     const [tasks, goals, habits] = await Promise.all([
-      Task.find({ user: req.user._id, status: { $ne: 'done' } }),
-      Goal.find({ user: req.user._id }),
-      Habit.find({ user: req.user._id }),
+      Task.find({ user: req.user._id, status: { $ne: 'done' } }).limit(60),
+      Goal.find({ user: req.user._id }).limit(20),
+      Habit.find({ user: req.user._id }).limit(20),
     ])
     let history = []
     if (sessionId) {
