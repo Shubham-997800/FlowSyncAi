@@ -221,7 +221,16 @@ function AIPlanner() {
     setShowSessions(false)
   }, [])
 
-  useEffect(() => { if (!initialLoading) bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, initialLoading])
+  useEffect(() => { if (!initialLoading) bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages.length, initialLoading])
+
+const scrollAreaRef = useRef(null)
+useEffect(() => {
+  if (!streaming || initialLoading) return
+  const el = scrollAreaRef.current
+  if (!el) return
+  const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120
+  if (nearBottom) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+}, [messages])
 
   const handleSend = async (text, { skipUserSave = false } = {}) => {
     const msgText = text || input
@@ -231,8 +240,9 @@ function AIPlanner() {
     const aiId = genId()
     const placeholder = { id: aiId, role: 'ai', text: '', tasks: [], createdTasks: [], actions: [], suggestions: [], streaming: true }
     let tokenBuf = ''
-    let flushTimer = null
+    let frameQueued = false
     const flush = () => {
+      frameQueued = false
       if (!tokenBuf) return
       const chunk = tokenBuf
       tokenBuf = ''
@@ -241,20 +251,28 @@ function AIPlanner() {
     const appendToken = (token) => {
       if (!token) return
       tokenBuf += token
-      if (!flushTimer) flushTimer = setTimeout(() => { flushTimer = null; flush() }, 50)
+      if (!frameQueued) {
+        frameQueued = true
+        requestAnimationFrame(flush)
+      }
     }
     const controller = new AbortController()
     abortRef.current = controller
+    const optimisticUser = { id: genId(), role: 'user', text: msgText }
+    if (!skipUserSave) setMessages(prev => [...prev, optimisticUser])
     try {
-      let savedUser = null
+      let savedUser = optimisticUser
       if (!skipUserSave) {
         try {
           savedUser = await saveChatMessage({ sessionId, role: 'user', text: msgText })
         } catch {
-          savedUser = { id: genId(), role: 'user', text: msgText }
+          savedUser = optimisticUser
         }
       }
-      setMessages(prev => [...(skipUserSave ? prev : [...prev, savedUser]), placeholder])
+      if (!skipUserSave && savedUser !== optimisticUser) {
+        setMessages(prev => prev.map(m => m.id === optimisticUser.id ? savedUser : m))
+      }
+      setMessages(prev => [...prev, placeholder])
       const done = await streamChatAI({
         message: msgText,
         sessionId,
@@ -307,7 +325,8 @@ function AIPlanner() {
       const savedErr = await saveChatMessage({ sessionId, role: 'ai', text: errText }).catch(() => null)
       setMessages(prev => prev.map(m => m.id === aiId ? (savedErr || { ...m, text: errText, streaming: false }) : m))
     } finally {
-      if (flushTimer) { clearTimeout(flushTimer); flush() }
+      frameQueued = false
+      flush()
       abortRef.current = null
       setStreaming(false)
     }
@@ -488,7 +507,7 @@ function AIPlanner() {
           </div>
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 scrollbar-thin">
+            <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5 scrollbar-thin">
               {messages.map((msg, i) => (
                   <motion.div
                     key={msg._id || i}

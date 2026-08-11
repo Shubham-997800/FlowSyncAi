@@ -103,17 +103,14 @@ function Sidebar({ open, onClose }) {
         <div aria-hidden="true" className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={() => onClose?.()} />
       )}
 
-      <motion.aside
+      <aside
         aria-label="Sidebar"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
         className={`${
           open ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 fixed lg:sticky top-0 left-0 z-40 lg:z-0 w-64 flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-300 h-screen`}
+        } lg:translate-x-0 fixed lg:sticky top-0 left-0 z-40 lg:z-0 w-64 flex-shrink-0 bg-white dark:bg-zinc-900 border-r border-slate-200 dark:border-zinc-800 flex flex-col transition-transform duration-300 ease-out will-change-transform h-screen`}
       >
         {sidebarContent}
-      </motion.aside>
+      </aside>
     </>
   )
 }
