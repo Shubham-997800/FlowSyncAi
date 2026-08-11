@@ -221,16 +221,21 @@ function AIPlanner() {
     setShowSessions(false)
   }, [])
 
-  useEffect(() => { if (!initialLoading) bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages.length, initialLoading])
+  const scrollAreaRef = useRef(null)
+useEffect(() => {
+  if (initialLoading) return
+  const el = scrollAreaRef.current
+  if (!el) return
+  el.scrollTop = el.scrollHeight
+}, [messages.length, initialLoading])
 
-const scrollAreaRef = useRef(null)
 useEffect(() => {
   if (!streaming || initialLoading) return
   const el = scrollAreaRef.current
   if (!el) return
   const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120
-  if (nearBottom) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-}, [messages])
+  if (nearBottom) el.scrollTop = el.scrollHeight
+}, [messages, streaming, initialLoading])
 
   const handleSend = async (text, { skipUserSave = false } = {}) => {
     const msgText = text || input

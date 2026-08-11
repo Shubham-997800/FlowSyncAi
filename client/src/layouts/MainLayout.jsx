@@ -41,6 +41,10 @@ function MainLayout() {
   const swipe = useSwipeNavigation(() => setSidebarOpen(true))
   const pageTitle = pageTitles[location.pathname] || 'FlowSync AI'
 
+useEffect(() => {
+  document.getElementById('main-content')?.scrollTo({ top: 0 })
+}, [location.pathname])
+
   const closeOnboarding = () => {
     localStorage.setItem('flowsync_onboard_shown_v1', '1')
     setShowOnboarding(false)
