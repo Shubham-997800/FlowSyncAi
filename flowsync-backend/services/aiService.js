@@ -1,5 +1,18 @@
 const { getClients, supportsPenalty } = require('../config/aiConfig')
 const { AiServiceUnavailableError } = require('../utils/errors')
+const {
+  planResponseSchema,
+  prioritizeResponseSchema,
+  rescueResponseSchema,
+  chatResponseSchema,
+  suggestTaskSchema,
+  analyticsInsightsSchema,
+  habitInsightsSchema,
+  focusSuggestionSchema,
+  profileInsightsSchema,
+  organizeNotificationsSchema,
+  validateAIResponse,
+} = require('../utils/aiValidation')
 
 const FREE_MODELS = [
   'google/gemma-4-31b-it:free',
@@ -216,7 +229,8 @@ Respond EXACTLY with this JSON:
 }`
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
-  return parseJSON(raw) || { priority: [], schedule: [], suggestions: ['Could not generate plan'], confidence: 0 }
+  const parsed = parseJSON(raw)
+  return validateAIResponse(planResponseSchema, parsed, { priority: [], schedule: [], suggestions: ['Could not generate plan'], confidence: 0 })
 }
 
 async function prioritizeTasks(tasks, opts = {}) {
@@ -234,12 +248,12 @@ Respond EXACTLY with this JSON:
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && Array.isArray(parsed.rankings)) return parsed
-  return {
+  const fallback = {
     rankings: tasks.map(t => ({ taskId: t._id, title: t.title, priorityScore: 50, riskScore: 50, reason: 'Default' })),
     suggestedOrder: tasks.map(t => t._id.toString()),
     summary: '',
   }
+  return validateAIResponse(prioritizeResponseSchema, parsed, fallback)
 }
 
 async function rescueMode(tasks, opts = {}) {
@@ -257,8 +271,7 @@ Respond EXACTLY with this JSON:
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && Array.isArray(parsed.criticalTasks)) return parsed
-  return { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 }
+  return validateAIResponse(rescueResponseSchema, parsed, { criticalTasks: [], compressedSchedule: [], dropRecommendations: [], timeCompressionStrategy: '', estimatedRecoveryHours: 0 })
 }
 
 function dedupeHistory(history = [], message = '') {
@@ -505,7 +518,7 @@ CRITICAL: Follow the language, tone, and style rules from the system instruction
   const parsed = parseJSON(raw)
   if (parsed && parsed.reply) {
     parsed.reply = limitReplyLines(parsed.reply)
-    return parsed
+    return validateAIResponse(chatResponseSchema, parsed, parsed)
   }
   const plain = await retryPlainReply(message, mode, quality, { timeoutMs: 15000 })
   if (plain) return { reply: plain, tasks: [], suggestions: [] }
@@ -724,8 +737,7 @@ Respond EXACTLY with this JSON:
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && parsed.suggestedPriority) return parsed
-  return { suggestedPriority: 'medium', suggestedEstimatedTime: 30, suggestedTags: [], reason: '' }
+  return validateAIResponse(suggestTaskSchema, parsed, { suggestedPriority: 'medium', suggestedEstimatedTime: 30, suggestedTags: [], reason: '' })
 }
 
 async function generateAnalyticsInsights(tasks, habits, goals, opts = {}) {
@@ -747,15 +759,14 @@ Respond EXACTLY with this JSON:
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && Array.isArray(parsed.recommendations)) return parsed
-  return {
+  return validateAIResponse(analyticsInsightsSchema, parsed, {
     strengths: ['Start tracking to get insights'],
     weaknesses: ['Not enough data yet'],
     recommendations: ['Create more tasks to get personalized analytics'],
     predictedCompletionRate: 0,
     focusRecommendation: '',
     productivityScore: 0,
-  }
+  })
 }
 
 async function generateHabitInsights(habits, tasks = [], goals = [], opts = {}) {
@@ -776,15 +787,14 @@ Respond EXACTLY with this JSON:
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && parsed.focusHabit) return parsed
-  return {
+  return validateAIResponse(habitInsightsSchema, parsed, {
     focusHabit: '',
     focusReason: '',
     streakMessage: 'Keep going! Every day counts.',
     optimalTime: '',
     pattern: '',
     tip: 'Try to check in at the same time each day to build consistency.',
-  }
+  })
 }
 
 async function generateFocusSuggestion(tasks, focusTaskId, opts = {}) {
@@ -805,16 +815,15 @@ Respond EXACTLY with this JSON:
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && parsed.title) return parsed
-  const p = focusTask?.priority || 'medium'
-  return {
-    title: p === 'high' ? 'High Priority Focus' : 'Steady Focus',
-    desc: focusTask ? `Focus on "${focusTask.title}" with ${p === 'high' ? '25 min' : '20 min'} blocks.` : 'Select a task to get AI-powered focus suggestions.',
-    breakSuggestion: p === 'high' ? 'Take 5-min breaks to maintain intensity' : 'Standard 7-min breaks recommended',
-    focusTime: p === 'high' ? 25 : 20,
-    energyRequired: p === 'high' ? 'high' : 'medium',
+  const fallback = {
+    title: focusTask?.priority === 'high' ? 'High Priority Focus' : 'Steady Focus',
+    desc: focusTask ? `Focus on "${focusTask.title}" with ${focusTask.priority === 'high' ? '25 min' : '20 min'} blocks.` : 'Select a task to get AI-powered focus suggestions.',
+    breakSuggestion: focusTask?.priority === 'high' ? 'Take 5-min breaks to maintain intensity' : 'Standard 7-min breaks recommended',
+    focusTime: focusTask?.priority === 'high' ? 25 : 20,
+    energyRequired: focusTask?.priority === 'high' ? 'high' : 'medium',
     reason: '',
   }
+  return validateAIResponse(focusSuggestionSchema, parsed, fallback)
 }
 
 async function generateProfileInsights(tasks, habits, goals, opts = {}) {
@@ -841,11 +850,10 @@ Respond EXACTLY with this JSON:
 
   const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && parsed.productivityScore !== undefined) return parsed
   const completed = tasks.filter(t => t.status === 'done').length
   const total = tasks.length || 1
   const maxStreak = Math.max(0, ...habits.map(h => h.streak || 0))
-  return {
+  const fallback = {
     productivityScore: Math.round((completed / total) * 100),
     totalTasks: tasks.length,
     completedTasks: completed,
@@ -859,6 +867,7 @@ Respond EXACTLY with this JSON:
     peakProductivityTime: 'morning',
     motivationalMessage: 'Every small step counts toward your goals!',
   }
+  return validateAIResponse(profileInsightsSchema, parsed, fallback)
 }
 
 async function organizeNotifications(notifications, opts = {}) {
@@ -870,16 +879,16 @@ Analyze these notifications and organize them. Respond EXACTLY with this JSON:
   "groups": [{ "name": "Urgent", "priority": 1, "notificationIds": [0, 1], "reason": "why grouped" }],
   "prioritizedIds": [0, 2, 1],
   "summary": "Brief summary of what needs attention"
-}`
+}
 
-  const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
+const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
-  if (parsed && Array.isArray(parsed.groups)) return parsed
-  return {
+  const fallback = {
     groups: [{ name: 'All Notifications', priority: 1, notificationIds: notifications.map((_, i) => i), reason: 'Default grouping' }],
     prioritizedIds: notifications.map((_, i) => i),
-    summary: `${notifications.length} notification(s)`,
+    summary: notifications.length + ' notification(s)',
   }
+  return validateAIResponse(organizeNotificationsSchema, parsed, fallback)
 }
 
 module.exports = {
