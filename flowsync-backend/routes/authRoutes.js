@@ -1,12 +1,17 @@
 const { Router } = require('express')
-const { signup, login, refresh, logout } = require('../controllers/authController')
+const { signup, login, refresh, logout, getSessions, revokeSession, logoutOthers } = require('../controllers/authController')
 const { protect } = require('../middleware/auth')
 const { authLimiter, loginLimiter, refreshLimiter } = require('../middleware/rateLimiter')
 const { validate, authSchemas } = require('../utils/validation')
+const { validateObjectId } = require('../utils/validateId')
 const router = Router()
 router.use(authLimiter)
 router.post('/signup', validate(authSchemas.signup), signup)
 router.post('/login', loginLimiter, validate(authSchemas.login), login)
 router.post('/refresh', refreshLimiter, refresh)
 router.post('/logout', protect, logout)
+// Active device/session management.
+router.get('/sessions', protect, getSessions)
+router.delete('/sessions/:id', validateObjectId, protect, revokeSession)
+router.post('/sessions/logout-others', protect, logoutOthers)
 module.exports = router

@@ -3,6 +3,7 @@ const { getChatSessions, getChatHistory, saveChatMessage, deleteChatMessage, cle
 const { protect } = require('../middleware/auth')
 const { generalLimiter } = require('../middleware/rateLimiter')
 const { validateObjectId } = require('../utils/validateId')
+const { validate, chatSchemas } = require('../utils/validation')
 
 const router = Router()
 router.use(generalLimiter)
@@ -10,7 +11,7 @@ router.use(protect)
 
 router.get('/sessions', getChatSessions)
 router.get('/', getChatHistory)
-router.post('/', saveChatMessage)
+router.post('/', validate(chatSchemas.save), saveChatMessage)
 router.delete('/clear', clearChatHistory)
 router.delete('/:id', validateObjectId, deleteChatMessage)
 

@@ -83,6 +83,8 @@ const checkInHabit = async (req, res) => {
     const today = localDateKey()
     if (!habit.logs.includes(today)) {
       habit.logs.push(today)
+      // Cap log history (~13 months) so the document cannot grow unbounded.
+      if (habit.logs.length > 400) habit.logs = habit.logs.slice(-400)
     }
     habit.lastChecked = new Date()
     habit.streak = calcStreak(habit.logs)

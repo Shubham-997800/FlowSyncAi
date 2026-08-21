@@ -40,22 +40,6 @@ function apiKeysFor(providerName) {
   return keys.filter(Boolean)
 }
 
-function getAI(providerName = 'openrouter') {
-  const p = PROVIDERS[providerName]
-  if (!p) throw new Error(`Unknown AI provider: ${providerName}`)
-  const apiKey = apiKeysFor(providerName)[0]
-  if (!apiKey) throw new Error(`AI provider "${providerName}" not configured. Set ${p.envKey}`)
-  if (!clients[providerName]) {
-    clients[providerName] = new OpenAI({
-      apiKey,
-      baseURL: p.baseURL,
-      timeout: 60000,
-      maxRetries: 0,
-    })
-  }
-  return clients[providerName]
-}
-
 function getClients(providerName) {
   const p = PROVIDERS[providerName]
   if (!p) return []
@@ -78,8 +62,4 @@ function supportsPenalty(providerName) {
   return !!PROVIDERS[providerName]?.supportsPenalties
 }
 
-function enabledProviders() {
-  return Object.keys(PROVIDERS).filter((name) => apiKeysFor(name).length > 0)
-}
-
-module.exports = { getAI, getClients, supportsPenalty, enabledProviders, PROVIDERS }
+module.exports = { getClients, supportsPenalty, PROVIDERS }

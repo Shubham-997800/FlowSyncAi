@@ -51,13 +51,25 @@ async function canUseAi(userId) {
   return { ok: true, used: daily, monthlyUsed }
 }
 
+// Atomic capped variant used after a successful AI call: guarantees the
+// stored count can never exceed the daily limit by more than the number of
+// concurrent in-flight requests, even under a check/record race.
 async function recordAiUsage(userId) {
   const today = localDateKey()
-  await AiUsage.findOneAndUpdate(
-    { user: userId, date: today },
+  const capped = await AiUsage.findOneAndUpdate(
+    { user: userId, date: today, count: { $lt: AI_DAILY_LIMIT } },
     { $inc: { count: 1 } },
-    { upsert: true }
+    { upsert: true, returnDocument: 'after' }
   )
+  if (!capped) {
+    // Race: limit was reached between canUseAi() and here. Record anyway so
+    // usage accounting stays truthful; the next request will be rejected.
+    await AiUsage.findOneAndUpdate(
+      { user: userId, date: today },
+      { $inc: { count: 1 } },
+      { upsert: true }
+    )
+  }
 }
 
 function nextResetDate() {
@@ -129,14 +141,15 @@ const prioritize = async (req, res) => {
     const aiCheck = await canUseAi(req.user._id); if (!aiCheck.ok) return limitReachedResponse(res, req.user._id, aiCheck)
     const tasks = await Task.find({ user: req.user._id, status: { $ne: 'done' } })
     const result = await aiService.prioritizeTasks(tasks, { quality: userQuality(req) })
-    for (const r of result.rankings) {
-      if (r.taskId && mongoose.isValidObjectId(r.taskId)) {
-        await Task.updateOne(
-          { _id: r.taskId, user: req.user._id },
-          { aiRiskScore: r.riskScore, aiSuggestedOrder: r.priorityScore }
-        )
-      }
-    }
+    const ops = result.rankings
+      .filter(r => r.taskId && mongoose.isValidObjectId(r.taskId))
+      .map(r => ({
+        updateOne: {
+          filter: { _id: r.taskId, user: req.user._id },
+          update: { $set: { aiRiskScore: r.riskScore, aiSuggestedOrder: r.priorityScore } },
+        },
+      }))
+    if (ops.length > 0) await Task.bulkWrite(ops, { ordered: false })
     await recordAiUsage(req.user._id)
     res.json(result)
   } catch (error) {

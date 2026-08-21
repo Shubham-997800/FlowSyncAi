@@ -76,4 +76,58 @@ const aiSchemas = {
   }),
 }
 
-module.exports = { validate, authSchemas, taskSchemas, aiSchemas }
+const chatSchemas = {
+  save: z.object({
+    sessionId: z.string().trim().min(1, 'sessionId is required').max(100),
+    role: z.enum(['user', 'ai']),
+    text: z.string().max(8000).default(''),
+    tasks: z.array(z.object({
+      title: z.string().trim().min(1).max(200),
+      description: z.string().trim().max(2000).optional(),
+      priority: PRIORITY.optional(),
+      deadline: ISO_DATE.optional().nullable(),
+    })).max(20).optional().default([]),
+    createdTasks: z.array(z.object({
+      _id: z.string().trim().max(64).optional(),
+      title: z.string().trim().min(1).max(200),
+      description: z.string().trim().max(2000).optional(),
+      priority: PRIORITY.optional(),
+      deadline: ISO_DATE.optional().nullable(),
+    })).max(20).optional().default([]),
+  }),
+}
+
+const goalSchemas = {
+  create: z.object({
+    title: z.string().trim().min(1, 'Title is required').max(200),
+    description: z.string().trim().max(2000).optional().default(''),
+    targetDate: ISO_DATE.optional().nullable(),
+    status: z.enum(['active', 'completed', 'cancelled']).optional(),
+    progress: z.number().min(0).max(100).optional(),
+  }),
+  update: z.object({
+    title: z.string().trim().min(1, 'Title is required').max(200).optional(),
+    description: z.string().trim().max(2000).optional(),
+    targetDate: ISO_DATE.optional().nullable(),
+    status: z.enum(['active', 'completed', 'cancelled']).optional(),
+    progress: z.number().min(0).max(100).optional(),
+  }),
+}
+
+const HABIT_FREQUENCY = z.enum(['daily', 'weekly', 'custom'])
+const HABIT_STATUS = z.enum(['active', 'paused', 'archived'])
+
+const habitSchemas = {
+  create: z.object({
+    title: z.string().trim().min(1, 'Title is required').max(200),
+    frequency: HABIT_FREQUENCY.optional(),
+    status: HABIT_STATUS.optional(),
+  }),
+  update: z.object({
+    title: z.string().trim().min(1, 'Title is required').max(200).optional(),
+    frequency: HABIT_FREQUENCY.optional(),
+    status: HABIT_STATUS.optional(),
+  }),
+}
+
+module.exports = { validate, authSchemas, taskSchemas, aiSchemas, chatSchemas, goalSchemas, habitSchemas }

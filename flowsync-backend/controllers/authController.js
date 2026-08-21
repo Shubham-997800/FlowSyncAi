@@ -1,17 +1,22 @@
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
 const User = require('../models/User')
+const Session = require('../models/Session')
 const { handleError } = require('../utils/errorHandler')
 const { sanitizeText } = require('../utils/sanitize')
+const { parseUserAgent } = require('../utils/ua')
 
 const ACCESS_TOKEN_TTL = '7d'
 const REFRESH_TOKEN_TTL = '30d'
 const REFRESH_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000
+// Sessions whose token could not possibly still be alive (refresh TTL 30d).
+const SESSION_STALE_MS = 35 * 24 * 60 * 60 * 1000
 
-const generateAccessToken = (id, tokenVersion) =>
-  jwt.sign({ id, tokenVersion }, process.env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL })
+const generateAccessToken = (id, tokenVersion, jti) =>
+  jwt.sign({ id, tokenVersion, jti }, process.env.JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL })
 
-const generateRefreshToken = (id, tokenVersion, refreshVersion) =>
-  jwt.sign({ id, tokenVersion, refreshVersion, type: 'refresh' }, process.env.JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL })
+const generateRefreshToken = (id, tokenVersion, refreshVersion, jti) =>
+  jwt.sign({ id, tokenVersion, refreshVersion, type: 'refresh', jti }, process.env.JWT_SECRET, { expiresIn: REFRESH_TOKEN_TTL })
 
 const refreshCookieOptions = () => ({
   httpOnly: true,
@@ -29,11 +34,34 @@ const clearRefreshCookie = (res) => {
   res.clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', path: '/' })
 }
 
-const buildAuthPayload = (user) => ({
-  token: generateAccessToken(user._id, user.tokenVersion),
-  refreshToken: generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion),
-  user,
-})
+function sessionLabel(req) {
+  const { device, browser, os } = parseUserAgent(req.headers['user-agent'] || '')
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.ip || ''
+  return { device, browser, os, ip: ip.slice(0, 64) }
+}
+
+async function upsertSession(userId, jti, req) {
+  const label = sessionLabel(req)
+  await Session.findOneAndUpdate(
+    { user: userId, jti },
+    { $set: { ...label, lastActive: new Date() } },
+    { upsert: true }
+  )
+}
+
+// Issues a fresh token pair bound to a new per-device session id.
+async function issueTokens(user, req, res, { rotateRefreshVersion = false } = {}) {
+  if (rotateRefreshVersion) {
+    user.refreshVersion = (user.refreshVersion || 0) + 1
+    await user.save()
+  }
+  const jti = crypto.randomUUID()
+  const accessToken = generateAccessToken(user._id, user.tokenVersion, jti)
+  const refreshToken = generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion, jti)
+  await upsertSession(user._id, jti, req)
+  setRefreshCookie(res, refreshToken)
+  return { token: accessToken, refreshToken, user }
+}
 
 const isNonEmptyString = (v) => typeof v === 'string' && v.trim() !== ''
 
@@ -48,8 +76,8 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: 'An account with this email already exists. Try signing in.' })
     }
     const newUser = await User.create({ name: sanitizeText(name), email, password })
-    setRefreshCookie(res, generateRefreshToken(newUser._id, newUser.tokenVersion, newUser.refreshVersion))
-    res.status(201).json({ message: 'Account created successfully.', ...buildAuthPayload(newUser) })
+    const payload = await issueTokens(newUser, req, res)
+    res.status(201).json({ message: 'Account created successfully.', ...payload })
   } catch (error) {
     console.error('Signup error:', error.message, error.name)
     if (error.name === 'ValidationError') {
@@ -80,8 +108,8 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
     await user.resetLoginAttempts()
-    setRefreshCookie(res, generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion))
-    res.json(buildAuthPayload(user))
+    const payload = await issueTokens(user, req, res)
+    res.json(payload)
   } catch (error) {
     handleError(res, error)
   }
@@ -109,16 +137,26 @@ const refresh = async (req, res) => {
       return res.status(401).json({ message: 'Session revoked. Please sign in again.' })
     }
     if (user.refreshVersion !== decoded.refreshVersion) {
+      // Reuse of an already-rotated refresh token: nuke every session.
       user.tokenVersion = (user.tokenVersion || 0) + 1
       user.refreshVersion = (user.refreshVersion || 0) + 1
       await user.save()
+      await Session.deleteMany({ user: user._id })
       clearRefreshCookie(res)
       return res.status(401).json({ message: 'Refresh token reuse detected. Please sign in again.' })
     }
-    user.refreshVersion = (user.refreshVersion || 0) + 1
-    await user.save()
-    setRefreshCookie(res, generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion))
-    res.json({ token: generateAccessToken(user._id, user.tokenVersion), refreshToken: generateRefreshToken(user._id, user.tokenVersion, user.refreshVersion), user })
+    if (decoded.jti) {
+      // A revoked/removed device session cannot mint new tokens.
+      const alive = await Session.exists({ user: user._id, jti: decoded.jti })
+      if (!alive) {
+        clearRefreshCookie(res)
+        return res.status(401).json({ message: 'Session revoked. Please sign in again.' })
+      }
+    }
+    // Rotate: retire the old session row (if any) and bind a fresh one.
+    if (decoded.jti) await Session.deleteOne({ user: user._id, jti: decoded.jti })
+    const payload = await issueTokens(user, req, res, { rotateRefreshVersion: true })
+    res.json(payload)
   } catch (error) {
     handleError(res, error)
   }
@@ -126,8 +164,15 @@ const refresh = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    req.user.tokenVersion = (req.user.tokenVersion || 0) + 1
-    await req.user.save()
+    // Per-device logout: revoke only this device's session so other
+    // devices stay signed in. Tokens issued before sessions existed are
+    // force-revoked via the tokenVersion bump (legacy path).
+    if (req.authJti) {
+      await Session.deleteOne({ user: req.user._id, jti: req.authJti })
+    } else {
+      req.user.tokenVersion = (req.user.tokenVersion || 0) + 1
+      await req.user.save()
+    }
     clearRefreshCookie(res)
     res.json({ message: 'Logged out' })
   } catch (error) {
@@ -135,4 +180,49 @@ const logout = async (req, res) => {
   }
 }
 
-module.exports = { signup, login, refresh, logout }
+// GET /api/auth/sessions — list active devices for the signed-in user.
+const getSessions = async (req, res) => {
+  try {
+    const cutoff = new Date(Date.now() - SESSION_STALE_MS)
+    await Session.deleteMany({ user: req.user._id, lastActive: { $lt: cutoff } })
+    const sessions = await Session.find({ user: req.user._id }).sort({ lastActive: -1 }).lean()
+    res.json(sessions.map(s => ({
+      _id: s._id,
+      device: s.device,
+      browser: s.browser,
+      os: s.os,
+      ip: s.ip,
+      createdAt: s.createdAt,
+      lastActive: s.lastActive,
+      current: !!req.authJti && s.jti === req.authJti,
+    })))
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
+// DELETE /api/auth/sessions/:id — revoke one device.
+const revokeSession = async (req, res) => {
+  try {
+    const session = await Session.findOneAndDelete({ _id: req.params.id, user: req.user._id })
+    if (!session) return res.status(404).json({ message: 'Session not found' })
+    res.json({ message: 'Device signed out', current: !!req.authJti && session.jti === req.authJti })
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
+// POST /api/auth/sessions/logout-others — revoke every other device.
+const logoutOthers = async (req, res) => {
+  try {
+    const filter = req.authJti
+      ? { user: req.user._id, jti: { $ne: req.authJti } }
+      : { user: req.user._id }
+    const result = await Session.deleteMany(filter)
+    res.json({ message: 'All other devices signed out', revoked: result.deletedCount })
+  } catch (error) {
+    handleError(res, error)
+  }
+}
+
+module.exports = { signup, login, refresh, logout, getSessions, revokeSession, logoutOthers }

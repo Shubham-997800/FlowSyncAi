@@ -5,7 +5,7 @@ const { localDateKey } = require('../utils/dateKey')
 const getWeekly = async (req, res) => {
   try {
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    const tasks = await Task.find({ user: req.user._id, createdAt: { $gte: weekAgo } })
+    const tasks = await Task.find({ user: req.user._id, createdAt: { $gte: weekAgo } }).select('status deadline createdAt').lean()
 
     const total = tasks.length
     const done = tasks.filter(t => t.status === 'done').length
@@ -36,7 +36,7 @@ const getMonthly = async (req, res) => {
     const now = new Date()
     const start = new Date(now.getFullYear(), now.getMonth(), 1)
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
-    const tasks = await Task.find({ user: req.user._id, createdAt: { $gte: start, $lte: end } })
+    const tasks = await Task.find({ user: req.user._id, createdAt: { $gte: start, $lte: end } }).select('status priority createdAt').lean()
 
     const total = tasks.length
     const done = tasks.filter(t => t.status === 'done').length
@@ -66,20 +66,41 @@ const getMonthly = async (req, res) => {
 
 const getStats = async (req, res) => {
   try {
-    const all = await Task.find({ user: req.user._id })
-    const total = all.length
+    // Aggregated in MongoDB so memory usage stays constant regardless of
+    // how many tasks the user has (never loads full documents into Node).
+    const [agg] = await Task.aggregate([
+      { $match: { user: req.user._id } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          todo: { $sum: { $cond: [{ $eq: ['$status', 'todo'] }, 1, 0] } },
+          inProgress: { $sum: { $cond: [{ $eq: ['$status', 'in_progress'] }, 1, 0] } },
+          done: { $sum: { $cond: [{ $eq: ['$status', 'done'] }, 1, 0] } },
+          high: { $sum: { $cond: [{ $eq: ['$priority', 'high'] }, 1, 0] } },
+          medium: { $sum: { $cond: [{ $eq: ['$priority', 'medium'] }, 1, 0] } },
+          low: { $sum: { $cond: [{ $eq: ['$priority', 'low'] }, 1, 0] } },
+          overdue: {
+            $sum: {
+              $cond: [
+                { $and: [{ $ne: ['$deadline', null] }, { $lt: ['$deadline', new Date()] }, { $ne: ['$status', 'done'] }] },
+                1, 0,
+              ],
+            },
+          },
+        },
+      },
+    ])
+    const total = agg?.total || 0
+    const done = agg?.done || 0
     res.json({
       total,
-      todo: all.filter(t => t.status === 'todo').length,
-      inProgress: all.filter(t => t.status === 'in_progress').length,
-      done: all.filter(t => t.status === 'done').length,
-      byPriority: {
-        high: all.filter(t => t.priority === 'high').length,
-        medium: all.filter(t => t.priority === 'medium').length,
-        low: all.filter(t => t.priority === 'low').length,
-      },
-      overdue: all.filter(t => t.deadline && new Date(t.deadline) < new Date() && t.status !== 'done').length,
-      completionRate: total ? Math.round((all.filter(t => t.status === 'done').length / total) * 100) : 0,
+      todo: agg?.todo || 0,
+      inProgress: agg?.inProgress || 0,
+      done,
+      byPriority: { high: agg?.high || 0, medium: agg?.medium || 0, low: agg?.low || 0 },
+      overdue: agg?.overdue || 0,
+      completionRate: total ? Math.round((done / total) * 100) : 0,
     })
   } catch (error) {
     handleError(res, error)

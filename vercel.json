@@ -10,7 +10,7 @@
     }
   },
   "crons": [
-    { "path": "/api/cron/reminders", "schedule": "*/30 * * * *" }
+    { "path": "/api/cron/reminders", "schedule": "0 3 * * *" }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },

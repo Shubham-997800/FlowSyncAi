@@ -214,11 +214,17 @@ function parseJSON(text) {
   return null
 }
 
+// Hard cap on how many items are stringified into any analytical prompt so
+// prompt size stays bounded no matter how much data a user accumulates.
+const MAX_PROMPT_TASKS = 50
+const MAX_PROMPT_HABITS = 30
+const MAX_PROMPT_GOALS = 30
+
 async function generatePlan(prompt, tasks = [], opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity engine. Generate a daily plan in JSON. Always respond with valid JSON only. Support ALL world languages in responses.`
   const userMsg = `USER: "${prompt}"
 
-TASKS: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, deadline: t.deadline })))}
+TASKS: ${JSON.stringify(tasks.slice(0, MAX_PROMPT_TASKS).map(t => ({ title: t.title, priority: t.priority, deadline: t.deadline })))}
 
 Respond EXACTLY with this JSON:
 {
@@ -237,7 +243,7 @@ async function prioritizeTasks(tasks, opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity engine. Rank tasks by urgency and importance in JSON. Always respond with valid JSON only. Write reason/summary text in the user's language if detectable from task titles.`
   const userMsg = `Rank these tasks:
 
-${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
+${JSON.stringify(tasks.slice(0, MAX_PROMPT_TASKS).map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
 
 Respond EXACTLY with this JSON:
 {
@@ -258,7 +264,7 @@ Respond EXACTLY with this JSON:
 
 async function rescueMode(tasks, opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity engine. EMERGENCY: User is overloaded with only a 48h window. Respond with JSON only. Write strategy/reason text in the user's language if detectable.`
-  const userMsg = `Tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
+  const userMsg = `Tasks: ${JSON.stringify(tasks.slice(0, MAX_PROMPT_TASKS).map(t => ({ id: t._id, title: t.title, priority: t.priority, deadline: t.deadline })))}
 
 Respond EXACTLY with this JSON:
 {
@@ -743,9 +749,9 @@ Respond EXACTLY with this JSON:
 async function generateAnalyticsInsights(tasks, habits, goals, opts = {}) {
   const sysMsg = `You are FlowSync AI, a productivity analyst. Analyze user data and provide insights. Respond with valid JSON only.`
   const userMsg = `User data:
-Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, status: t.status, deadline: t.deadline })))}
-Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}
-Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
+Tasks: ${JSON.stringify(tasks.slice(0, MAX_PROMPT_TASKS).map(t => ({ title: t.title, priority: t.priority, status: t.status, deadline: t.deadline })))}
+Habits: ${JSON.stringify(habits.slice(0, MAX_PROMPT_HABITS).map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}
+Goals: ${JSON.stringify(goals.slice(0, MAX_PROMPT_GOALS).map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
 
 Respond EXACTLY with this JSON:
 {
@@ -771,9 +777,9 @@ Respond EXACTLY with this JSON:
 
 async function generateHabitInsights(habits, tasks = [], goals = [], opts = {}) {
   const sysMsg = `You are FlowSync AI, a habit coach. Analyze habits and provide insights. Respond with valid JSON only. Write text in the user's language if detectable from habit/task titles.`
-  const userMsg = `Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, frequency: h.frequency, streak: h.streak, logs: (h.logs || []).slice(-30) })))}
-Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, status: t.status, priority: t.priority })))}
-Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, progress: g.progress })))}
+  const userMsg = `Habits: ${JSON.stringify(habits.slice(0, MAX_PROMPT_HABITS).map(h => ({ title: h.title, frequency: h.frequency, streak: h.streak, logs: (h.logs || []).slice(-30) })))}
+Tasks: ${JSON.stringify(tasks.slice(0, 10).map(t => ({ title: t.title, status: t.status, priority: t.priority })))}
+Goals: ${JSON.stringify(goals.slice(0, 5).map(g => ({ title: g.title, progress: g.progress })))}
 
 Respond EXACTLY with this JSON:
 {
@@ -828,9 +834,9 @@ Respond EXACTLY with this JSON:
 
 async function generateProfileInsights(tasks, habits, goals, opts = {}) {
   const sysMsg = `You are FlowSync AI, a personal productivity analyst. Generate a personalized productivity summary for the user's profile. Respond with valid JSON only.`
-  const userMsg = `Tasks: ${JSON.stringify(tasks.map(t => ({ title: t.title, priority: t.priority, status: t.status, deadline: t.deadline })))}
-Habits: ${JSON.stringify(habits.map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}
-Goals: ${JSON.stringify(goals.map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
+  const userMsg = `Tasks: ${JSON.stringify(tasks.slice(0, MAX_PROMPT_TASKS).map(t => ({ title: t.title, priority: t.priority, status: t.status, deadline: t.deadline })))}
+Habits: ${JSON.stringify(habits.slice(0, MAX_PROMPT_HABITS).map(h => ({ title: h.title, streak: h.streak, frequency: h.frequency })))}
+Goals: ${JSON.stringify(goals.slice(0, MAX_PROMPT_GOALS).map(g => ({ title: g.title, status: g.status, progress: g.progress })))}
 
 Respond EXACTLY with this JSON:
 {
@@ -880,7 +886,7 @@ Analyze these notifications and organize them. Respond EXACTLY with this JSON:
   "prioritizedIds": [0, 2, 1],
   "summary": "Brief summary of what needs attention"
 }
-
+`
 const raw = await callAI(sysMsg, userMsg, 0.3, 1024, opts.quality)
   const parsed = parseJSON(raw)
   const fallback = {

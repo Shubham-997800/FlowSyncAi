@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { Palette, Bell, Brain, Shield } from 'lucide-react'
+import { Palette, Bell, Brain, Shield, Info } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Helmet } from 'react-helmet-async'
 import ErrorBoundary from '../../components/ErrorBoundary'
@@ -9,6 +9,7 @@ const ThemeSettings = lazy(() => import('./ThemeSettings'))
 const NotificationSettings = lazy(() => import('./NotificationSettings'))
 const AISettings = lazy(() => import('./AISettings'))
 const AccountSettings = lazy(() => import('./AccountSettings'))
+const AboutSettings = lazy(() => import('./AboutSettings'))
 
 // Main settings page with sidebar navigation for theme, notifications, AI, account
 const sidebarItems = [
@@ -16,6 +17,7 @@ const sidebarItems = [
   { key: 'notifications', label: 'Notifications', icon: Bell },
   { key: 'ai', label: 'AI Preferences', icon: Brain },
   { key: 'account', label: 'Account', icon: Shield },
+  { key: 'about', label: 'About', icon: Info },
 ]
 
 const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
@@ -58,6 +60,7 @@ function Settings() {
               {tab === 'notifications' && <NotificationSettings />}
               {tab === 'ai' && <AISettings />}
               {tab === 'account' && <AccountSettings />}
+              {tab === 'about' && <AboutSettings />}
             </Suspense>
           </ErrorBoundary>
         </div>

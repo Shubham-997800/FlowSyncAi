@@ -3,10 +3,12 @@ import { useAuth } from '../../context/AuthContext'
 import { Shield, Trash2, Download, EyeOff, Loader2, Key } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import api from '../../services/api'
 import { deleteAccount as deleteAccountApi } from '../../services/settingsService'
 import { getTasks } from '../../services/taskService'
 import { getGoals } from '../../services/goalService'
 import { getHabits } from '../../services/habitService'
+import ActiveSessions from '../../components/settings/ActiveSessions'
 // Account management with data export (PDF), clear data, and delete account options
 function AccountSettings() {
   const { logout } = useAuth()
@@ -115,8 +117,13 @@ function AccountSettings() {
     }
   }
 
-  const handleLogoutAll = () => {
-    toast.success('Logged out of all devices (demo)')
+  const handleLogoutAll = async () => {
+    try {
+      const { data } = await api.post('/api/auth/sessions/logout-others')
+      toast.success(`${data?.revoked ?? 0} other device(s) signed out`)
+    } catch {
+      toast.error('Could not sign out other devices')
+    }
   }
 
   return (
@@ -157,6 +164,8 @@ function AccountSettings() {
           </button>
         </div>
       </div>
+
+      <ActiveSessions />
 
       <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-red-200 dark:border-red-900/50 shadow-sm p-6">
         <div className="flex items-center gap-2 mb-5">

@@ -90,6 +90,9 @@ const updatePassword = async (req, res) => {
     user.password = newPassword
     user.tokenVersion = (user.tokenVersion || 0) + 1
     await user.save()
+    // Password change revokes every device session.
+    const Session = require('../models/Session')
+    await Session.deleteMany({ user: user._id })
     res.json({ message: 'Password updated successfully' })
   } catch (error) {
     return handleValidationError(res, error)
@@ -103,6 +106,7 @@ const Notification = require('../models/Notification')
 const ChatMessage = require('../models/ChatMessage')
 const PushSubscription = require('../models/PushSubscription')
 const AiUsage = require('../models/AiUsage')
+const Session = require('../models/Session')
 
 const deleteAccount = async (req, res) => {
   try {
@@ -123,6 +127,7 @@ const deleteAccount = async (req, res) => {
         ChatMessage.deleteMany({ user: userId }, opts),
         PushSubscription.deleteMany({ user: userId }, opts),
         AiUsage.deleteMany({ user: userId }, opts),
+        Session.deleteMany({ user: userId }, opts),
       ])
     }
 

@@ -3,13 +3,14 @@ const { getHabits, createHabit, updateHabit, deleteHabit, checkInHabit } = requi
 const { protect } = require('../middleware/auth')
 const { generalLimiter } = require('../middleware/rateLimiter')
 const { validateObjectId } = require('../utils/validateId')
+const { validate, habitSchemas } = require('../utils/validation')
 
 const router = Router()
 router.use(generalLimiter)
 router.use(protect)
 
-router.route('/').get(getHabits).post(createHabit)
-router.route('/:id').all(validateObjectId).put(updateHabit).delete(deleteHabit)
+router.route('/').get(getHabits).post(validate(habitSchemas.create), createHabit)
+router.route('/:id').all(validateObjectId).put(validate(habitSchemas.update), updateHabit).delete(deleteHabit)
 router.post('/:id/checkin', validateObjectId, checkInHabit)
 
 module.exports = router
