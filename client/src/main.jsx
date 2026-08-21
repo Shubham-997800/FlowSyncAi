@@ -8,11 +8,10 @@ import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import App from './App.jsx'
+import { registerSW } from './pwa/registerSW'
 import './index.css'
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {})
-}
+registerSW()
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -6,6 +6,9 @@ import NotificationPopup from '../components/NotificationPopup'
 import PermissionMonitor from '../components/PermissionMonitor'
 import ShortcutsHelp from '../components/ShortcutsHelp'
 import DeviceOnboarding from '../components/DeviceOnboarding'
+import InstallPrompt from '../components/pwa/InstallPrompt'
+import UpdatePrompt from '../components/pwa/UpdatePrompt'
+import OfflineIndicator from '../components/pwa/OfflineIndicator'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { usePushNotifications } from '../hooks/usePushNotifications'
@@ -141,6 +144,9 @@ useEffect(() => {
       </div>
       <ShortcutsHelp open={showShortcuts} onClose={() => setShowShortcuts(false)} />
       <DeviceOnboarding open={showOnboarding} onClose={closeOnboarding} />
+      <OfflineIndicator />
+      <InstallPrompt placement="banner" />
+      <UpdatePrompt />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
 import Home from '../pages/Home'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
+import OfflinePage from '../pages/OfflinePage'
 
 const Login = lazy(() => import('../pages/Authentication/Login'))
 const Register = lazy(() => import('../pages/Authentication/Register'))
@@ -59,6 +60,7 @@ function AppRoutes() {
       <Route path="terms" element={<Lazy><Terms /></Lazy>} />
       <Route path="privacy" element={<Lazy><Privacy /></Lazy>} />
       <Route path="unauthorized" element={<Lazy><Unauthorized /></Lazy>} />
+      <Route path="offline" element={<OfflinePage />} />
       <Route path="*" element={<Lazy><NotFound /></Lazy>} />
     </Routes>
   )
