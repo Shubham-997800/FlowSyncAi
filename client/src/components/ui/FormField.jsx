@@ -11,6 +11,7 @@ function FormField({ name, label, type, icon: Icon, placeholder, value, onChange
         {Icon && <Icon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />}
         <input
           id={name}
+          name={name}
           ref={inputRef || null}
           type={type}
           required
