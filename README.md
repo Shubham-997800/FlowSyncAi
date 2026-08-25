@@ -32,7 +32,7 @@
   <img src="https://img.shields.io/badge/JWT_Auth-000000?style=flat-square&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Zod_Validation-3E67B1?style=flat-square&logo=zod&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/Tests-253%2F253-22c55e?style=flat-square" />
+  <img src="https://img.shields.io/badge/Tests-277%2F277-22c55e?style=flat-square" />
   <img src="https://img.shields.io/badge/Build-Passing-22c55e?style=flat-square" />
   <img src="https://img.shields.io/github/actions/workflow/status/Shubham-997800/FlowSync-Ai/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" />
   <img src="https://img.shields.io/github/commit-activity/m/Shubham-997800/FlowSync-Ai?style=flat-square" />
@@ -231,6 +231,10 @@ Every core screen is covered below; for a visual walkthrough, open the live demo
 | **Lucide React** | Latest | Icon library | Consistent, tree-shakeable SVG icon set |
 | **React Hot Toast** | 2 | Toast notifications | Lightweight, customizable, promise-based API |
 | **React Helmet Async** | Latest | SEO & meta tags | Sets title, OG tags, Twitter cards dynamically |
+| **@tanstack/react-query** | 5 | Server state management | Caching, dedupe, auto-invalidation for API data |
+| **react-markdown** | 10 | Markdown rendering | Renders AI chat responses with GFM support |
+| **jspdf** | 4 | PDF export | Generate PDF reports from analytics data |
+| **docx** | 9 | DOCX export | Generate Word documents from analytics data |
 
 ### Backend
 
@@ -243,7 +247,13 @@ Every core screen is covered below; for a visual walkthrough, open the live demo
 | **jsonwebtoken** | 9 | JWT auth | Stateless authentication, industry standard |
 | **bcryptjs** | 3 | Password hashing | 10 salt rounds, constant-time comparison |
 | **Helmet** | 8 | Security headers | XSS, clickjacking, MIME sniffing protection |
-| **express-rate-limit** | 8 | Rate limiting | Per-endpoint configurable limits |
+| **express-rate-limit** | 8 | Rate limiting | Per-endpoint configurable limits, MongoDB-backed store |
+| **compression** | 1 | Response compression | gzip/deflate responses for smaller payloads |
+| **cookie-parser** | 1 | Cookie parsing | httpOnly refresh token cookie support |
+| **morgan** | 1 | HTTP logging | Request/response logging |
+| **web-push** | 3 | Push notifications | Browser push via VAPID keys |
+| **openai** | 6 | AI SDK | OpenAI-compatible multi-provider client |
+| **@sentry/node** | 10 | Error tracking | Server 5xx capture (optional, via DSN) |
 
 ### AI & Infrastructure
 
@@ -340,119 +350,138 @@ flowsync-ai/
 │   └── index.js                             # Catch-all handler -> flowsync-backend/api/index.js
 │
 ├── vercel.json                              # Monorepo deploy: build client/dist + expose /api/* (single project)
+├── docker-compose.yml                       # 3-service stack (mongo + backend + client)
 ├── package.json                             # Root workspace metadata (Node 24)
 │
 ├── client/                                # 🎨 React Frontend
+│   ├── Dockerfile                          # Node 24 Alpine container for local dev
 │   ├── public/
-│   │   ├── favicon.svg                    # Site favicon (also used for push icon/badge)
-│   │   ├── icons.svg
-│   │   └── sw.js                         # Push notification service worker
+│   │   ├── favicon.svg                     # Site favicon (also used for push icon/badge)
+│   │   ├── favicon.ico                     # Legacy favicon
+│   │   ├── favicon-16x16.png / favicon-32x32.png
+│   │   ├── apple-touch-icon.png            # iOS home screen icon
+│   │   ├── icon-192.png / icon-512.png     # PWA icons
+│   │   ├── icon-maskable-512.png           # PWA maskable icon
+│   │   └── maskable.svg                    # Maskable icon source
 │   ├── src/
-│   │   ├── main.jsx                       # Entry point
-│   │   ├── App.jsx                        # Root component
-│   │   ├── index.css                      # Tailwind v4 config (import + dark variant + font)
+│   │   ├── main.jsx                        # Entry point
+│   │   ├── App.jsx                         # Root component
+│   │   ├── index.css                       # Tailwind v4 config (import + dark variant + font)
 │   │   │
 │   │   ├── routes/
-│   │   │   └── AppRoutes.jsx              # Lazy-loaded route definitions
+│   │   │   └── AppRoutes.jsx               # Lazy-loaded route definitions
 │   │   │
 │   │   ├── layouts/
-│   │   │   └── MainLayout.jsx             # Sidebar + header + theme wrapper
+│   │   │   └── MainLayout.jsx              # Sidebar + header + theme wrapper
 │   │   │
 │   │   ├── context/
-│   │   │   ├── AuthContext.jsx            # Auth state (useReducer-based)
-│   │   │   └── ThemeContext.jsx           # Dark/light/system theme
+│   │   │   ├── AuthContext.jsx             # Auth state (useReducer-based)
+│   │   │   └── ThemeContext.jsx            # Dark/light/system theme
 │   │   │
 │   │   ├── services/
-│   │   │   ├── api.js                     # Axios instance + JWT interceptor
+│   │   │   ├── api.js                      # Axios instance + JWT interceptor
 │   │   │   ├── authService.js
 │   │   │   ├── taskService.js
 │   │   │   ├── goalService.js
 │   │   │   ├── habitService.js
-│   │   │   ├── analyticsService.js
 │   │   │   ├── notificationService.js
 │   │   │   ├── settingsService.js
 │   │   │   ├── aiService.js
 │   │   │   ├── pushService.js
-│   │   │   └── chatService.js               # Chat history API layer
+│   │   │   └── chatService.js              # Chat history API layer
 │   │   │
-│   │   │   ├── components/
-│   │   │   ├── Sidebar.jsx                # Navigation sidebar
-│   │   │   ├── NotificationPopup.jsx      # Real-time notification drawer
-│   │   │   ├── ShortcutsHelp.jsx          # Keyboard-shortcut cheat-sheet modal
-│   │   │   ├── DeviceOnboarding.jsx       # First-run device-aware welcome guide
-│   │   │   ├── ReportExportMenu.jsx       # Analytics report export (PDF/DOCX/TXT/JSON/XML/CSV)
-│   │   │   ├── LegalModal.jsx             # Terms & Privacy popup (framer-motion)
-│   │   │   ├── AuthLayout.jsx             # Shared auth sidebar layout (Login/Register)
-│   │   │   └── ui/                        # Reusable primitives
-│   │   │       ├── Card.jsx
-│   │   │       ├── Badge.jsx
+│   │   ├── components/
+│   │   │   ├── Sidebar.jsx                 # Navigation sidebar
+│   │   │   ├── NotificationPopup.jsx       # Real-time notification drawer
+│   │   │   ├── ShortcutsHelp.jsx           # Keyboard-shortcut cheat-sheet modal
+│   │   │   ├── DeviceOnboarding.jsx        # First-run device-aware welcome guide
+│   │   │   ├── ReportExportMenu.jsx        # Analytics report export (PDF/DOCX/TXT/JSON/XML/CSV)
+│   │   │   ├── LegalModal.jsx              # Terms & Privacy popup (framer-motion)
+│   │   │   ├── AuthLayout.jsx              # Shared auth sidebar layout (Login/Register)
+│   │   │   ├── ErrorBoundary.jsx           # React error boundary for widget isolation
+│   │   │   ├── PermissionMonitor.jsx       # Push notification permission monitor
+│   │   │   ├── NotificationPermissionBanner.jsx # Push permission request banner
+│   │   │   └── ui/                         # Reusable primitives
 │   │   │       ├── StatCard.jsx
-│   │   │       ├── ProgressBar.jsx
 │   │   │       ├── Modal.jsx
-│   │   │       └── LoadingSpinner.jsx
+│   │   │       ├── LoadingSpinner.jsx
+│   │   │       ├── PriorityBadge.jsx
+│   │   │       ├── FormField.jsx
+│   │   │       └── Markdown.jsx            # Markdown renderer (react-markdown)
 │   │   │
 │   │   ├── pages/
-│   │   │   ├── Landing/                   # Hero, Features, HowItWorks, CTA, Footer (popup modals for legal)
-│   │   │   ├── Authentication/            # Login, Register
-│   │   │   ├── Dashboard/                 # Stats, AI cards, calendar, focus, risk
-│   │   │   ├── TaskManager/               # Task list + Goal manager
-│   │   │   ├── Calendar/                  # Monthly/weekly/daily views
-│   │   │   ├── FocusMode/                 # Pomodoro timer + settings
-│   │   │   ├── Habits/                    # Weekly tracker + streaks
-│   │   │   ├── AIPlanner/                 # AI chat, schedule, priority, rescue
-│   │   │   ├── Analytics/                 # Charts, trends, AI report
-│   │   │   ├── Notifications/             # Notification center
-│   │   │   ├── Settings/                  # Theme, AI prefs, danger zone
-│   │   │   ├── Profile/                   # Avatar, personal info, password
-│   │   │   ├── Legal/                     # Terms of Service, Privacy Policy
-│   │   │   └── Error/                     # 404, 401 pages
+│   │   │   ├── Landing/                    # Hero, Features, HowItWorks, CTA, Footer (popup modals for legal)
+│   │   │   ├── Authentication/             # Login, Register
+│   │   │   ├── Dashboard/                  # Stats, AI cards, calendar, focus, risk
+│   │   │   ├── TaskManager/                # Task list + Goal manager
+│   │   │   ├── Calendar/                   # Monthly/weekly/daily views
+│   │   │   ├── FocusMode/                  # Pomodoro timer + settings
+│   │   │   ├── Habits/                     # Weekly tracker + streaks
+│   │   │   ├── AIPlanner/                  # AI chat, schedule, priority, rescue
+│   │   │   ├── Analytics/                  # Charts, trends, AI report
+│   │   │   ├── Notifications/              # Notification center
+│   │   │   ├── Settings/                   # Theme, AI prefs, danger zone
+│   │   │   ├── Profile/                    # Avatar, personal info, password
+│   │   │   ├── Legal/                      # Terms of Service, Privacy Policy
+│   │   │   ├── Error/                      # 404, 401 pages
+│   │   │   ├── Home.jsx                    # Home/landing redirect
+│   │   │   └── OfflinePage.jsx             # PWA offline fallback
 │   │   │
-│   │   └── hooks/                         # Custom React hooks
-│   │       ├── useTheme.js
-│   │       ├── useAuth.js
-│   │       ├── useNavigation.js           # Keyboard + swipe navigation
-│   │       └── useMediaQuery.js
+│   │   ├── hooks/                          # Custom React hooks
+│   │   │   ├── useTasks.js                 # React Query task hooks (caching, dedupe, auto-invalidation)
+│   │   │   └── usePushNotifications.js     # Web push subscription management
+│   │   │
+│   │   └── utils/                          # Utility functions
+│   │       ├── date.js                     # Date formatting helpers
+│   │       ├── device.js                   # Device detection (mobile/tablet/desktop)
+│   │       ├── exportReport.js             # PDF/DOCX/TXT/JSON/XML/CSV report export
+│   │       ├── permissions.js              # Notification permission helpers
+│   │       ├── validation.js               # Client-side form validation
+│   │       └── version.js                  # App version from package.json
 │   │
-│   ├── vercel.json                        # Vite SPA settings (used only for standalone client deploys)
+│   ├── e2e/                                # Playwright E2E tests (8 specs)
 │   └── package.json
 │
-├── flowsync-backend/                      # ⚙️ Express API Server
-│   ├── server.js                          # Local dev entry point (node server.js)
-│   ├── api/index.js                       # Serverless handler used by root api/index.js (Vercel Functions)
+├── flowsync-backend/                       # ⚙️ Express API Server
+│   ├── server.js                           # Local dev entry point (node server.js)
+│   ├── Dockerfile                          # Node 24 Alpine container
+│   ├── api/index.js                        # Serverless handler used by root api/index.js (Vercel Functions)
 │   │
 │   ├── config/
-│   │   ├── db.js                          # Mongoose connection with retry logic
-│   │   ├── aiConfig.js                    # Multi-provider AI clients (Groq/Gemini/Cerebras/Mistral/OpenRouter)
-│   │   └── constants.js                   # Shared app constants
+│   │   ├── db.js                           # Mongoose connection with retry logic
+│   │   ├── aiConfig.js                     # Multi-provider AI clients (Groq/Gemini/Cerebras/Mistral/OpenRouter)
+│   │   ├── constants.js                    # Shared app constants
+│   │   └── sentry.js                       # Sentry error tracking init
 │   │
 │   ├── middleware/
-│   │   ├── auth.js                        # JWT verification
-│   │   ├── rateLimiter.js                 # Rate limiting strategies
-│   │   ├── mongoRateLimitStore.js         # MongoDB-backed limiter store (serverless-safe, TTL)
-│   │   └── requestId.js                   # X-Request-ID correlation (validated/normalized)
+│   │   ├── auth.js                         # JWT verification
+│   │   ├── rateLimiter.js                  # Rate limiting strategies
+│   │   ├── mongoRateLimitStore.js          # MongoDB-backed limiter store (serverless-safe, TTL)
+│   │   └── requestId.js                    # X-Request-ID correlation (validated/normalized)
 │   │
 │   ├── models/
-│   │   ├── User.js                        # name, email, hashed password, profile, achievements[], aiSettings
-│   │   ├── Task.js                        # title, priority, status, deadline, description
-│   │   ├── Goal.js                        # title, targetDate, progress
-│   │   ├── Habit.js                       # title, frequency, streak, logs[]
-│   │   ├── Notification.js                # type, title, message, status, userId (TTL index)
-│   │   ├── PushSubscription.js            # endpoint, keys for web push
-│   │   ├── ChatMessage.js                 # role, text, tasks[], createdTasks[]
-│   │   ├── AiUsage.js                     # daily AI quota tracking
-│   │   └── ReminderState.js               # atomic reminder-sweep claims
+│   │   ├── User.js                         # name, email, hashed password, profile, achievements[], aiSettings
+│   │   ├── Task.js                         # title, priority, status, deadline, description
+│   │   ├── Goal.js                         # title, targetDate, progress
+│   │   ├── Habit.js                        # title, frequency, streak, logs[]
+│   │   ├── Notification.js                 # type, title, message, status, userId (TTL index)
+│   │   ├── PushSubscription.js             # endpoint, keys for web push
+│   │   ├── ChatMessage.js                  # role, text, tasks[], createdTasks[]
+│   │   ├── AiUsage.js                      # daily AI quota tracking
+│   │   ├── Session.js                      # per-device session tracking (jti, device, browser, os, ip)
+│   │   └── ReminderState.js                # atomic reminder-sweep claims
 │   │
 │   ├── controllers/
-│   │   ├── authController.js              # signup, login
-│   │   ├── taskController.js              # CRUD with sanitization + get by id
-│   │   ├── goalController.js              # CRUD with sanitization
-│   │   ├── habitController.js             # CRUD + check-in + streak calculation (local-timezone aware)
-│   │   ├── analyticsController.js         # Stats, weekly, monthly aggregation
-│   │   ├── notificationController.js      # Create, list, mark-read, delete
-│   │   ├── settingsController.js          # Profile, avatar, password, delete account, achievements, AI settings
-│   │   ├── aiController.js               # Chat, plan, prioritize, rescue, suggest-task, analytics-insights, habit-insights, focus-suggest, profile-insights, organize-notifications
-│   │   ├── pushController.js             # Web push subscribe/unsubscribe (crash-proof VAPID init)
-│   │   └── chatController.js             # Chat history get/save/delete/clear
+│   │   ├── authController.js               # signup, login, refresh, logout, sessions
+│   │   ├── taskController.js               # CRUD with sanitization + get by id
+│   │   ├── goalController.js               # CRUD with sanitization
+│   │   ├── habitController.js              # CRUD + check-in + streak calculation (local-timezone aware)
+│   │   ├── analyticsController.js          # Stats, weekly, monthly aggregation
+│   │   ├── notificationController.js       # Create, list, mark-read, delete, clear
+│   │   ├── settingsController.js           # Profile, avatar, password, delete account, achievements, AI settings
+│   │   ├── aiController.js                # Chat, chat-stream, plan, prioritize, rescue, suggest-task, analytics-insights, habit-insights, focus-suggest, profile-insights, organize-notifications
+│   │   ├── pushController.js              # Web push subscribe/unsubscribe/status (crash-proof VAPID init)
+│   │   └── chatController.js              # Chat history get/save/delete/clear
 │   │
 │   ├── routes/
 │   │   ├── authRoutes.js
@@ -461,29 +490,36 @@ flowsync-ai/
 │   │   ├── habitRoutes.js
 │   │   ├── analyticsRoutes.js
 │   │   ├── notificationRoutes.js
-│   │   ├── settingsRoutes.js             # profile + AI settings (GET/PUT /api/settings/ai)
+│   │   ├── settingsRoutes.js              # profile + AI settings (GET/PUT /api/settings/ai)
 │   │   ├── aiRoutes.js
 │   │   ├── pushRoutes.js
-│   │   └── chatRoutes.js                 # Chat history CRUD
+│   │   └── chatRoutes.js                  # Chat history CRUD
 │   │
 │   ├── services/
-│   │   ├── aiService.js                   # Prompt engineering + JSON parsing (quality-tiered model failover, multilingual, tone matching)
-│   │   └── reminderService.js             # Auto deadline alerts every 30 minutes (regex-safe)
+│   │   ├── aiService.js                    # Prompt engineering + JSON parsing (quality-tiered model failover, multilingual, tone matching)
+│   │   ├── reminderService.js              # Auto deadline alerts (regex-safe, lazy fallback)
+│   │   └── mailer.js                       # Resend email with exponential backoff retry
 │   │
 │   ├── utils/
-│   │   ├── dateKey.js                     # Local-timezone date helpers
-│   │   ├── errorHandler.js                # Unified { message, code } error mapping (no leak on 5xx)
-│   │   ├── errors.js                      # Typed error classes (AiServiceUnavailableError, NotFoundError, ...)
-│   │   ├── pagination.js                  # Shared clamped page/limit parsing (X-Total-Count)
-│   │   ├── validation.js                  # Zod schemas + validate() middleware (auth/tasks/AI)
-│   │   └── validateId.js                  # ObjectId validation
+│   │   ├── dateKey.js                      # Local-timezone date helpers
+│   │   ├── errorHandler.js                 # Unified { message, code } error mapping (no leak on 5xx)
+│   │   ├── errors.js                       # Typed error classes (AiServiceUnavailableError, NotFoundError, ...)
+│   │   ├── pagination.js                   # Shared clamped page/limit parsing (X-Total-Count)
+│   │   ├── validation.js                   # Zod schemas + validate() middleware (auth/tasks/AI)
+│   │   ├── validateId.js                   # ObjectId validation
+│   │   ├── aiValidation.js                 # AI response schema validation (Zod)
+│   │   ├── pushConfig.js                   # VAPID keys + web-push initialization
+│   │   ├── sanitize.js                     # XSS sanitization (sanitizeBody)
+│   │   └── ua.js                           # User-agent parser (device/browser/OS detection)
 │   │
 │   ├── test/
-│   │   ├── run-tests.js                   # 147-test integration harness (real Mongo, same handler Vercel runs)
-│   │   └── unit-tests.js                  # 41 pure unit tests (errors, zod, AI tiers) — no server needed
+│   │   ├── run-tests.js                    # 153 integration tests (in-memory Mongo + Vercel handler)
+│   │   ├── unit-tests.js                   # 49 unit tests (errors, zod, AI tiers, mailer retry)
+│   │   └── e2e-server.js                   # E2E server bootstrapper for Playwright
 │   │
 │   └── package.json
 │
+├── .github/workflows/ci.yml               # GitHub Actions CI (3 jobs: backend, frontend, Playwright E2E)
 ├── .gitignore
 ├── README.md
 └── LICENSE
@@ -501,6 +537,10 @@ erDiagram
     User ||--o{ Goal : sets
     User ||--o{ Habit : tracks
     User ||--o{ Notification : receives
+    User ||--o{ ChatMessage : chats
+    User ||--o{ PushSubscription : subscribes
+    User ||--o{ AiUsage : consumes
+    User ||--o{ Session : authenticates
 
     User {
         ObjectId _id PK
@@ -570,6 +610,39 @@ erDiagram
         array tasks "extracted tasks"
         date createdAt
     }
+
+    PushSubscription {
+        ObjectId _id PK
+        ObjectId userId FK "ref User"
+        string endpoint "push service endpoint"
+        object keys "p256dh, auth keys"
+        date createdAt
+    }
+
+    AiUsage {
+        ObjectId _id PK
+        ObjectId userId FK "ref User"
+        date date "quota tracking date"
+        number count "calls made today"
+    }
+
+    Session {
+        ObjectId _id PK
+        ObjectId userId FK "ref User"
+        string jti "JWT token ID"
+        string device "device type"
+        string browser "browser name"
+        string os "operating system"
+        string ip "client IP"
+        date createdAt
+        date expiresAt "auto-expire"
+    }
+
+    ReminderState {
+        ObjectId _id PK
+        string key "sweep identifier"
+        date lastRun "last successful sweep"
+    }
 ```
 
 ### Relationship Details
@@ -581,6 +654,10 @@ erDiagram
 | **User → Habit** | One-to-Many | `1 : N` | Each habit is tracked independently per user. Streaks auto-calculate from log dates. |
 | **User → Notification** | One-to-Many | `1 : N` | Notifications are generated by the system (deadline alerts, achievement unlocks). |
 | **User → ChatMessage** | One-to-Many | `1 : N` | Chat history persisted per user session. |
+| **User → PushSubscription** | One-to-Many | `1 : N` | Browser push subscriptions for deadline notifications. |
+| **User → AiUsage** | One-to-Many | `1 : N` | Daily AI quota tracking per user (count + date). |
+| **User → Session** | One-to-Many | `1 : N` | Per-device session tracking for token management and revocation. |
+| **ReminderState → Cron** | System | `1 : 1` | Atomic claim prevents duplicate reminder sweeps across serverless instances. |
 
 > [!NOTE]
 > The `password` field is excluded from all API responses via Mongoose's `toJSON` transform.
@@ -642,6 +719,9 @@ All endpoints are served under `https://flowsyncai30.vercel.app/api` (local: `ht
 | POST | `/auth/login` | — | Login, issues access + refresh token (login rate-limit 5/min) |
 | POST | `/auth/refresh` | — | Rotate access/refresh token pair (verifies type + `tokenVersion`) |
 | POST | `/auth/logout` | 🔒 | Revoke refresh token via `tokenVersion++` |
+| GET | `/auth/sessions` | 🔒 | List active device sessions |
+| DELETE | `/auth/sessions/:id` | 🔒 | Revoke a specific device session |
+| POST | `/auth/sessions/logout-others` | 🔒 | Log out all other sessions |
 | GET | `/tasks` | 🔒 | List tasks — paginated `?page&limit` (default 500, max 1000) + `X-Total-Count`, or **cursor**-based with `?cursor` → `X-Next-Cursor`; filter by `status` / `priority` / `q` (title search) / `due=today` |
 | POST | `/tasks` | 🔒 | Create task (sanitized fields, AI suggestion support) |
 | GET | `/tasks/:id` | 🔒 | Get single task (cross-user → 404) |
@@ -659,6 +739,7 @@ All endpoints are served under `https://flowsyncai30.vercel.app/api` (local: `ht
 | PUT | `/notifications/read-all` | 🔒 | Mark all notifications read (batch) |
 | PUT | `/notifications/:id/read` | 🔒 | Mark single notification read |
 | DELETE | `/notifications/:id` | 🔒 | Delete notification |
+| DELETE | `/notifications/clear` | 🔒 | Clear all notifications |
 | GET | `/settings/profile` · PUT `/settings/profile` | 🔒 | Get / update profile |
 | PUT | `/settings/avatar` | 🔒 | Upload avatar |
 | PUT | `/settings/password` | 🔒 | Change password (old password verified, tokens invalidated) |
@@ -666,12 +747,14 @@ All endpoints are served under `https://flowsyncai30.vercel.app/api` (local: `ht
 | GET | `/settings/ai` · PUT `/settings/ai` | 🔒 | Get / update AI preferences (autosaved) |
 | DELETE | `/settings/account` | 🔒 | Delete account — cascades Chat/Push/AiUsage |
 | POST | `/push/subscribe` · POST `/push/unsubscribe` | 🔒 | Web push subscription management |
+| GET | `/push/status` | 🔒 | Check push subscription status |
 | GET | `/chat/sessions` | 🔒 | List chat sessions |
 | GET | `/chat` | 🔒 | Chat history — paginated + `X-Total-Count` |
 | POST | `/chat` | 🔒 | Save chat message (6-session cap) |
 | DELETE | `/chat/clear` | 🔒 | Clear entire chat history |
 | DELETE | `/chat/:id` | 🔒 | Delete single message |
 | POST | `/ai/chat` | 🔒 | AI chat — natural-language task creation |
+| POST | `/ai/chat/stream` | 🔒 | AI chat — streaming via SSE |
 | POST | `/ai/plan` | 🔒 | Smart daily planning |
 | POST | `/ai/prioritize` | 🔒 | Priority engine (urgency/risk scores) |
 | POST | `/ai/rescue` | 🔒 | Rescue Mode (48h overload window) |
@@ -685,7 +768,7 @@ All endpoints are served under `https://flowsyncai30.vercel.app/api` (local: `ht
 | GET | `/health` | — | Service health (DB state + uptime) |
 | POST | `/cron/reminders` | 🗓️ | Vercel Cron — runs the deadline reminder sweep (requires `CRON_SECRET` or `x-vercel-cron` header) |
 
-> 🔒 = requires JWT Bearer token. AI endpoints share a 20/min limit; general endpoints 100/min; auth 10/min; login 5/min. Limits are enforced by a **MongoDB-backed store** (shared across serverless instances). 🗓️ = internal Vercel Cron schedule (`*/30 * * * *`).
+> 🔒 = requires JWT Bearer token. AI endpoints share a 20/min limit; general endpoints 100/min; auth 10/min; login 5/min. Limits are enforced by a **MongoDB-backed store** (shared across serverless instances). 🗓️ = internal Vercel Cron schedule (`0 3 * * *` — daily at 3 AM; the 30-min lazy fallback on API requests handles frequent sweeps).
 
 ---
 
@@ -703,6 +786,11 @@ Query-heavy paths are covered by composite indexes (MongoDB Atlas). Notification
 | `habits` | `{ user: 1, status: 1 }` | Status-based habit queries |
 | `notifications` | `{ user: 1, createdAt: -1 }` | Notification drawer (recent-first) |
 | `notifications` | `{ createdAt: 1 }` — TTL | Auto-delete notifications after 90 days |
+| `sessions` | `{ userId: 1, jti: 1 }` | Per-device session lookup and revocation |
+| `sessions` | `{ expiresAt: 1 }` — TTL | Auto-expire stale sessions |
+| `pushSubscriptions` | `{ userId: 1 }` | Per-user push subscription lookup |
+| `aiUsages` | `{ userId: 1, date: 1 }` — unique | Daily AI quota tracking (one doc per user per day) |
+| `reminderStates` | `{ key: 1 }` — unique | Atomic cron sweep claims (no duplicate runs) |
 
 ---
 
@@ -858,7 +946,7 @@ pie showData title "Production Bundle (gzip-friendly)"
 
 FlowSync AI ships with an automated integration harness that runs the **exact same Express handler Vercel executes** (`api/index.js`) against a real MongoDB instance (in-memory 6.0.9). No mocks, no stubs — every route is exercised end-to-end.
 
-**Current status: backend 202/202 (153 integration + 49 unit) + frontend 71 unit + 8 Playwright E2E passing · both lint clean · production build succeeds · coverage gate ≥60% lines/functions in CI · `npm audit --audit-level=high` clean · rate limiting is MongoDB-backed **and keyed per-user** · reminder sweep runs on a protected Vercel Cron + emails via Resend when configured · Sentry enabled when `SENTRY_DSN` is set · custom PWA branding (logo favicon + maskable icons, installed as an app) · CI: GitHub Actions (Node 24 — backend lint + tests + coverage, frontend lint + tests + build, Playwright E2E) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
+**Current status: backend 202/202 (153 integration + 49 unit) + frontend 67 unit + 8 Playwright E2E passing · both lint clean · production build succeeds · coverage gate ≥60% lines/functions in CI · `npm audit --audit-level=high` clean · rate limiting is MongoDB-backed **and keyed per-user** · reminder sweep runs on a protected Vercel Cron + emails via Resend when configured · Sentry enabled when `SENTRY_DSN` is set · custom PWA branding (logo favicon + maskable icons, installed as an app) · CI: GitHub Actions (Node 24 — backend lint + tests + coverage, frontend lint + tests + build, Playwright E2E) all green · live at [flowsyncai30.vercel.app](https://flowsyncai30.vercel.app) with `/api/health` → 200 OK.**
 
 | Coverage Area | What's Verified |
 |---|---|
@@ -891,20 +979,18 @@ FlowSync AI ships with an automated integration harness that runs the **exact sa
 ### Running the tests
 
 ```bash
+# --- Backend ---
 cd flowsync-backend
 npm install
-node test/run-tests.js     # boots a real in-memory Mongo + the Vercel handler, runs 153 integration checks
-node test/unit-tests.js    # 49 pure unit tests (error handler, typed errors, zod validation, AI tiers, mailer retry) — no server needed
-cd ../client
-npm install
-npm test                   # 71 Vitest unit/component tests (jsdom)
-npm run build              # production build (verifies code-splitting)
-npm run e2e                # 8 Playwright E2E tests — boots the real API + Vite, exercises full flows in Chromium
+node test/run-tests.js     # 153 integration tests (in-memory Mongo + Vercel handler)
+node test/unit-tests.js    # 49 unit tests (errors, zod, AI tiers, mailer retry) — no server needed
 
+# --- Frontend ---
 cd ../client
 npm install
-npm test                   # 65 Vitest unit tests
+npm test                   # 67 Vitest unit/component tests (jsdom)
 npm run lint && npm run build
+npm run e2e                # 8 Playwright E2E tests (Chromium, real API + Vite)
 ```
 
 ---
@@ -914,13 +1000,15 @@ npm run lint && npm run build
 | Focus | Improvements |
 |-------|-------------|
 | **TypeScript** | Migrate frontend to TypeScript (strict mode) + backend type definitions |
-| **Testing** | Expand to E2E (Playwright); grow frontend unit coverage beyond 65 tests |
-| **Auth Upgrade** | API versioning, social login (Google/GitHub OAuth) |
-| **Performance** | React Query/SWR for caching, DB read-tier |
-| **UX Pro** | Drag-and-drop tasks, file attachments, PWA offline |
-| **Platform** | i18n multi-language, Storybook, error tracking (Sentry) |
+| **Social Auth** | Google/GitHub OAuth login |
+| **Offline PWA** | Full offline support with service worker caching for tasks/goals |
+| **Drag & Drop** | Reorder tasks via drag-and-drop on dashboard and task list |
+| **File Attachments** | Attach files/images to tasks and goals |
+| **i18n** | Full internationalization (UI labels, not just AI multilingual) |
+| **Storybook** | Component library documentation with Storybook |
+| **Team Features** | Shared tasks, team goals, collaboration workspace |
 
-> ✅ **Done (v3.8 → v3.11):** zod input validation on auth/tasks/AI routes · typed error classes · multi-provider AI (Groq/Gemini/Cerebras/Mistral/OpenRouter) with key rotation · AI streaming via SSE · Docker Compose (full stack) · MongoDB-backed + per-user rate limiting · Vercel Cron reminder sweep (CRON_SECRET-protected) · API-side XSS sanitization (`sanitizeBody`) · shared pagination helper + cursor pagination · email reminders (Resend) with retry/backoff · Sentry error tracking · server-side task filters · daily + monthly AI quotas · API versioning (`/api/v1`) · React Query client data layer · Playwright E2E · CI audit + coverage gates.
+> ✅ **Done (v3.0 → v3.11):** AI in every tab · multi-provider AI failover (Groq/Gemini/Cerebras/Mistral/OpenRouter) with key rotation · Zod validation · typed error classes · Docker Compose · MongoDB-backed per-user rate limiting · Vercel Cron reminder sweep · email reminders (Resend) · Sentry error tracking · cursor pagination · API versioning (`/api/v1`) · React Query · Playwright E2E (8 specs) · CI audit + coverage gates · PWA with custom branding · daily + monthly AI quotas · streaming chat (SSE) · API-side XSS sanitization.
 
 ---
 
@@ -997,6 +1085,11 @@ Or simply push to `main` (the project auto-deploys from GitHub).
 | `MAX_CHAT_SESSIONS` | 🔶 | Max chat sessions kept per user (default 6) |
 | `REMINDER_CHECK_INTERVAL` | 🔶 | Reminder sweep interval in ms (default 30 min) |
 | `RATE_LIMIT_AUTH` / `RATE_LIMIT_LOGIN` / `RATE_LIMIT_AI` / `RATE_LIMIT_GENERAL` | 🔶 | Per-endpoint rate limits (req/min) |
+| `RATE_LIMIT_REFRESH` | 🔶 | Refresh endpoint rate limit (default 30/min) |
+| `AI_MODEL` | 🔶 | Force a specific model first in the failover chain |
+| `PORT` | 🔶 | Server port for local dev (default 5000) |
+| `NODE_ENV` | 🔶 | Runtime environment (`development` / `production`) |
+| `LOG_JSON` | 🔶 | Emit structured JSON log lines per request |
 
 > [!TIP]
 > Generate VAPID keys with `npx web-push generate-vapid-keys`.
